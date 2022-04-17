@@ -1,0 +1,497 @@
+<rdf:RDF
+ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ xmlns:z="http://www.zotero.org/namespaces/export#"
+ xmlns:dcterms="http://purl.org/dc/terms/"
+ xmlns:bib="http://purl.org/net/biblio#"
+ xmlns:foaf="http://xmlns.com/foaf/0.1/"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:prism="http://prismstandard.org/namespaces/1.2/basic/">
+    <bib:Article rdf:about="#item_1">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf>
+           <bib:Journal></bib:Journal>
+        </dcterms:isPartOf>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Cramer</foaf:surname>
+                        <foaf:givenName>Estee</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Ray</foaf:surname>
+                        <foaf:givenName>Evan</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Lopez</foaf:surname>
+                        <foaf:givenName>Velma</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Bracher</foaf:surname>
+                        <foaf:givenName>Johannes</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <dcterms:isReferencedBy rdf:resource="#item_3"/>
+        <dcterms:isReferencedBy rdf:resource="#item_5"/>
+        <dcterms:isReferencedBy rdf:resource="#item_6"/>
+        <dc:subject>C19_forecast_eval</dc:subject>
+        <dc:title>Evaluation of individual and ensemble probabilistic forecasts of COVID-19 mortality in the US</dc:title>
+        <dcterms:abstract>Short-term probabilistic forecasts of the trajectory of the COVID-19 pandemic in the United States have served as a visible and important communication channel between the scientific modeling community and both the general public and decision-makers. Forecasting models
+provide specific, quantitative, and evaluable predictions that inform short-term decisions such as
+healthcare staffing needs, school closures, and allocation of medical supplies. Starting in April 2020, the US COVID-19 Forecast Hub (https://covid19forecasthub.org/) collected,
+disseminated, and synthesized tens of millions of specific predictions from more than 90 different academic, industry, and independent research groups. A multi-model ensemble
+forecast that combined predictions from dozens of different research groups every week provided the most consistently accurate probabilistic forecasts of incident deaths due to COVID-19 at the state and national level from April 2020 through October 2021. The performance of 27 individual models that submitted complete forecasts of COVID-19 deaths consistently throughout this year showed high variability in forecast skill across time, geospatial units, and forecast horizons. Two-thirds of the models evaluated showed better accuracy than a naïve
+baseline model. Forecast accuracy degraded as models made predictions further into the future,
+with probabilistic error at a 20-week horizon 3-5 times larger than when predicting at a 1-week horizon. This project underscores the role that collaboration and active coordination between governmental public health agencies, academic modeling teams, and industry partners can play in developing modern modeling capabilities to support local, state, and federal response to outbreaks.</dcterms:abstract>
+    </bib:Article>
+    <bib:Memo rdf:about="#item_3">
+        <rdf:value>&lt;p&gt;Citations&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;UD COVID-19 Forecast Hub: E. Cramer, et al., COVID-19 Forecast Hub: 4 December 2020 snapshot (2020)&lt;br /&gt;https:/doi.org/10.5281/zenodo.4305938.&lt;/li&gt;
+&lt;li&gt;5-10: Ensembles work&lt;/li&gt;
+&lt;li&gt;16-17: ensembles work for Covid&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_5">
+        <rdf:value>&lt;p&gt;Important results&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;p.8. &lt;em&gt;&quot;The top performers consisted of both models with mechanistic c&lt;/em&gt;&lt;em&gt;omponents and mostly phenomenological ones.&quot;&lt;br /&gt;--&amp;gt; i.e. here they found that mechanistic/mathematical models tend to work very well, which is different from previous research (see Funk et al. 2020)&lt;/em&gt;&lt;em&gt;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;p. 10: &lt;em&gt;&quot;models generally showed improved performance relative to the naive baseline model at larger horizons (Figure S4).&quot;&lt;br /&gt;--&amp;gt; &lt;/em&gt;does this also hold in the EuroHub?&lt;br /&gt;--&amp;gt; also not too surprising, since predicting the current level works better for 1-week ahead than for 4-weeks ahead&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_6">
+        <rdf:value>&lt;p&gt;Quotes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Forecast definition: &lt;em&gt;Teams were explicitly asked to submit “unconditional” forecasts of the&lt;/em&gt;&lt;br /&gt;&lt;em&gt;future, in other words, predictions that integrate across all possible changes in future dynamics.&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;Ensemble reasoning/rationale: &quot;&lt;em&gt;Ensemble models incorporate the information and uncertainties from multiple forecasts, each with their own perspectives, strengths and limitations, to create accurate predictions with well-calibrated uncertainty (5–10). Synthesizing multiple models removes the risk of over-reliance on any single approach for accuracy or stability&quot;&lt;br /&gt;&lt;/em&gt;&lt;em&gt;&quot;It is challenging for individual models to make calibrated predictions of the future when the behavior of the system being studied is non-stationary&lt;br /&gt;due to continually changing policies and behaviors.&quot;&lt;br /&gt;&quot;Preliminary research suggested that COVID-19 ensemble forecasts were also more accurate and precise than individual models in the early phases of the pandemic (16, 17).&quot;&lt;br /&gt;--&amp;gt;&lt;/em&gt; &lt;strong&gt;with lots of citations for these statements!&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;Feedback loop&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Article rdf:about="#item_7">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf>
+           <bib:Journal></bib:Journal>
+        </dcterms:isPartOf>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Sherratt</foaf:surname>
+                        <foaf:givenName>Katharine</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Gruson</foaf:surname>
+                        <foaf:givenName>Hugo</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <dcterms:isReferencedBy rdf:resource="#item_9"/>
+        <dcterms:isReferencedBy rdf:resource="#item_10"/>
+        <dcterms:isReferencedBy rdf:resource="#item_8"/>
+        <dcterms:isReferencedBy rdf:resource="#item_24"/>
+        <dc:title>(Draft) Predictive performance of multi-model ensemble forecasts of COVID-19 across European nations</dc:title>
+        <dcterms:abstract>Background: Short-term forecasts of infectious disease burden can contribute to situational awareness and aid capacity planning. Best practice in other fields and recent insights in infectious disease epidemiology suggest that predictive performance of such forecasts can be enhanced by combining multiple models into an ensemble. Here we report on the performance of ensembles created from over 40 models in predicting COVID-19 cases and deaths across Europe between 08 March and 15 November 2021.
+Methods: We used open-source tools to develop a public European COVID-19 Forecast Hub.We invited groups globally to contribute weekly forecasts for COVID-19 cases and deaths over the next one to four weeks. Forecasts were submitted using standardised quantiles of the predictive distribution. Each week we created an ensemble forecast, where each predictive quantile was calculated as the equally-weighted average (initially the mean and then the median from the 26th of July) of all individual models’ predictive quantiles. We retrospectively explored alternative methods for ensemble forecasts, including weighted averages based on models’ past predictive performance. The performance of the ensembles was compared to individual models and a baseline model of no change using pairwise comparison of the Weighted Interval Score (WIS).
+Results: Over 36 weeks we collected and combined 43 forecast models for 32 countries. We found a weekly ensemble had among the most reliable performances across countries over time, with more accurate predictions for reported cases and deaths than a simple baseline for 67% and 91% of possible forecast targets respectively. Relative ensemble performance declined with increasing forecast horizon when forecasting cases but remained stable for 4 weeks for incident death forecasts. Among several choices of ensemble methods we found that the most influential and best choice was to use a median average of models instead of using the mean, regardless of methods of weighting component forecast models.</dcterms:abstract>
+    </bib:Article>
+    <bib:Memo rdf:about="#item_9">
+        <rdf:value>&lt;p&gt;&lt;strong&gt;Mathy/technical stuff:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;relative WIS&lt;/strong&gt;, p. 4: &quot;Loosely speaking, a relative WIS of&lt;br /&gt;𝑥 means that averaged over the targets a given team addressed, its WIS was 𝑥 times higher or&lt;br /&gt;lower than the performance of the baseline model. Smaller values in the relative WIS are thus&lt;br /&gt;better and a value below one means that the model has above average performance. The&lt;br /&gt;relative WIS is computed using a pairwise comparison tournament where for each pair of&lt;br /&gt;models a mean score ratio is computed based on the set of shared targets. The relative WIS of&lt;br /&gt;a model with respect to&quot;&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_10">
+        <rdf:value>&lt;p&gt;&lt;strong&gt;Questions:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Figure 3: what do the bars represent? It says they represent the 48% and 96% probability, but what does that mean exactly?&lt;/li&gt;
+&lt;li&gt;p 10, flat-line comparison: &lt;em&gt;&quot;The results presented also depend on our choice of performance metric and baseline. While&lt;br /&gt;other work supports the use of the weighted interval score [26], our use of a flat-line comparison&lt;br /&gt;meant that it was more difficult for forecasts to perform well in relative terms during periods&lt;br /&gt;where incidence was very stable [27]. This may have differentially biased forecast performance&lt;br /&gt;where, for equally good forecasts for different targets, models that predicted a change in trend&lt;br /&gt;were rewarded with better scores than those that equally accurately predicted a stable&lt;br /&gt;continuation.&quot;&lt;br /&gt;&lt;/em&gt;--&amp;gt; why exactly is the forecast that predicts a change in trend rewarded if they predict the same level?&lt;em&gt;&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_8">
+        <rdf:value>&lt;p&gt;Quotes&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Definition Forecast Hub:&lt;/strong&gt; &quot;&lt;em&gt;A “forecast hub” is a centralised effort to improve the transparency and usefulness of forecasts, by standardising and collating the work of many independent teams producing forecasts [4]. A hub sets a commonly agreed-upon structure for forecast targets, such as type of disease event, spatio-temporal units, or the set of quantiles of the probability distribution to include from probabilistic forecasts. For instance, a hub may collect predictions of the total number of cases reported in a given country for each day in the next two weeks. Forecasters can adopt this format and contribute forecasts for centralised storage in the public domain. This shared infrastructure allows forecasts produced from diverse teams and methods to be visualised and quantitatively compared on a like-for-like basis, which can strengthen public and policy use of disease forecasts [5]. The underlying approach to creating a forecast hub was pioneered for forecasting influenza in the USA and adapted for forecasts of short-term COVID-19 cases and deaths in the US [6], with similar efforts elsewhere [7]–[9].&quot;  [5: &lt;a href=&quot;https://www.cdc.gov/coronavirus/2019-ncov/science/forecasting/forecasting.html]&quot;&gt;https://www.cdc.gov/coronavirus/2019-ncov/science/forecasting/forecasting.html]&lt;/a&gt;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Change in dynamics through introduction of vaccines/new variants:&lt;/strong&gt; &quot;&lt;em&gt;During the COVID-19 outbreak in Europe from March to November 2021, we identified a particular benefit from applying an ensemble forecast approach. The introduction of vaccination changed the associations between infections, cases, and deaths [32]. At the same time, the emergence and subsequent dominance of the delta variant altered transmission dynamics across Europe [33].&quot;&lt;/em&gt;&lt;br /&gt;&quot;&lt;em&gt;As epidemic dynamics became increasingly heterogeneous, the forecasting performance of any single model over time and across multiple countries became at least partly dependent on the ability, speed, and precision with which it could adapt to new conditions for each forecast target. This variability in the relative performance of models over time makes using an ensemble, balancing across all models, particularly relevant in rapidly changing epidemic conditions&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Decline of accuracy in case projections:&lt;/strong&gt; &quot;&lt;em&gt;COVID-19 has a typical serial interval of less than a week, which implies that case forecasts of more than two weeks can only hold if rates of transmission and detection remain predictable over the entire period, a strong assumption in the light of the many instances of rapidly changing policies and individual behaviour observed during the pandemic.&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;mean over median ensemble:&lt;/strong&gt; &lt;em&gt;&quot;Other work has supported the importance of the median in providing a stable forecast that better accounts for outliers than the mean [31]. However, our results did not show a strong performance benefit for any one methodological choice, joining the existing mixed evidence for any optimal ensemble method for combining short term probabilistic infectious disease forecasts.&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;study scheme, importance of preregistering:&lt;/strong&gt; &quot;&lt;em&gt;At the same time, collating time-stamped predictions ensures that we can test true out-of-sample performance of models and avoid retrospective claims of performance.&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;limitations: &lt;/strong&gt;(p. 10) &lt;br /&gt;data revisions --&amp;gt; bias (&lt;em&gt;&quot;the data used to create forecasts was not the same as that used to evaluate it&quot;)&lt;br /&gt;&lt;/em&gt;choice of baseline (flat-line predictions) --&amp;gt; favors models that predict a change in trend at the same level; perhaps modeling the baseline as a flat-line in log-scale would be better&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ensemble intricacies: &lt;/strong&gt;&lt;em&gt;&quot;“and we did not test how far the stability or methods of component forecasts influenced the resulting ensemble. This could be significant, for example during a time of low incidence, including only compartmental models in an ensemble improved predictive performance relative to including forecasts from a wider variety of methods. However, the same study found the most consistent ensemble over time was that which included all forecasts regardless of method, with performance increasing with the number of forecast models, so our results are unlikely to have changed by excluding any contributing forecasts.”&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_24">
+        <rdf:value>&lt;p&gt;Summary/Main things that could be relevant:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;nice plots: &lt;/strong&gt;performance of forecasts (horizon on x-axis, performance metric on y-axis); performance of different ensembles (weighted, median, WIS &amp;lt; 1, 10 weeks) wrt their own baseline category (unweighted, mean, all models, all weeks) at 2 weeks horizon&lt;/li&gt;
+&lt;li&gt;main goal/objective: analyzes &lt;strong&gt;ensemble performance &lt;/strong&gt;(&lt;strong&gt;equally-weighted&lt;/strong&gt; average (mean or median) and weights based on past &lt;strong&gt;model performance&lt;/strong&gt;)&lt;br /&gt;--&amp;gt; &lt;strong&gt;important: EuroCOVIDhub-ensemble &lt;/strong&gt;is mean until July 2021, median afterwards&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;scoring: &lt;/strong&gt;pairwise comparison of the weighted interval score (WIS) for overall predictive performance, coverage of the prediction intervals for the accuracy of the a forecast's prediction boundaries (for levels 0.5 and 0.95)&lt;br /&gt;&lt;strong&gt;stratified by forecast horizon, location and target&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;scoring/missings &lt;/strong&gt;used &lt;strong&gt;relative WIS &lt;/strong&gt;as a way to account for missing forecasts for some models: is computed as a &lt;strong&gt;pairwise comparison tournament &lt;/strong&gt;&quot;where for each pair of models a mean score ratio is computed based on the set of shared targets. The relative WIS of a model with respect to another model is then the ratio of their respective geometric mean of the mean score ratios.&quot; &lt;br /&gt;-&amp;gt; report the relative WIS with respect to the baseline model&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;baseline: &lt;/strong&gt;model of no change&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;data corrections: &lt;/strong&gt;We removed any forecast surrounding (in the week of or after) a strongly anomalous data point&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;data scope: &lt;/strong&gt;&quot;37 models provided sufficient quantiles that we could evaluate them using the relative weighted interval score (WIS)&quot;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt;Interesting things that are probably not directly relevant:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;compared different methods of choosing weights for aggregating forecasts into an ensemble: equal weights (mean or median) vs. past performance (-&amp;gt; &lt;em&gt;inverse score weighting, &lt;/em&gt;in this case weighting by inverse relative WIS) - for the latter: also compared using the entire time horizon vs. just the last two weeks; as well as using all models vs. just those that outperformed the baseline (relative WIS &amp;lt;1)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt;Results:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;WIS: ensemble did not outperform baseline for incidence at horizons of 3 and 4 weeks, but did outperform for incidence shorter horizons and for deaths at all horizons&lt;/li&gt;
+&lt;li&gt;calibration: incidence good at 0.5 and horizon 1 wk, thereafter not; death good at 0.95 and all horizons, underconfident for 0.5&lt;/li&gt;
+&lt;li&gt;ensemble more consistent in outperforming baseline than individual models (only one exception for forecasting cases)&lt;/li&gt;
+&lt;li&gt;across all targets (32 countries, 4 horizons), ensemble outperformed baseline for 67% and 91% of all targets, for cases and deaths respectively&lt;br /&gt;(best individual models achieved 80% (LANL-Growth rate) and 81% (RobertWalraven-ESG))&lt;/li&gt;
+&lt;li&gt;exluding forecasts that did not outperform baseline (rel WIS &amp;lt; 1) actually &lt;strong&gt;worsened&lt;/strong&gt; performance&lt;/li&gt;
+&lt;li&gt;median average did &lt;strong&gt;improve&lt;/strong&gt; performance relative to mean average, but only by a little&lt;/li&gt;
+&lt;li&gt;cases not well predictable after ~2 weeks due to rapidly changing policies and thus changing rates of transmission and detection (see Quotes)&lt;/li&gt;
+&lt;li&gt;in previous US study (J. W. Taylor and K. S. Taylor), it was fund that mean and weighted performaed median and unweighted &lt;br /&gt;-&amp;gt; could be due to &lt;strong&gt;varying quality and quantity of forecasts over time&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Article rdf:about="#item_11">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf>
+           <bib:Journal></bib:Journal>
+        </dcterms:isPartOf>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Reich</foaf:surname>
+                        <foaf:givenName>Nicolas</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Brooks</foaf:surname>
+                        <foaf:givenName>Logan</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <dcterms:isReferencedBy rdf:resource="#item_12"/>
+        <dcterms:isReferencedBy rdf:resource="#item_15"/>
+        <dcterms:isReferencedBy rdf:resource="#item_13"/>
+        <dc:title>A collaborative multiyear, multimodel assessment of seasonal influenza forecasting in the United States</dc:title>
+        <dcterms:abstract>Influenza infects an estimated 9–35 million individuals each year in
+the United States and is a contributing cause for between 12,000
+and 56,000 deaths annually. Seasonal outbreaks of influenza are
+common in temperate regions of the world, with highest incidence
+typically occurring in colder and drier months of the year. Realtime
+forecasts of influenza transmission can inform public health
+response to outbreaks.We present the results of a multiinstitution
+collaborative effort to standardize the collection and evaluation
+of forecasting models for influenza in the United States for the
+2010/2011 through 2016/2017 influenza seasons. For these seven
+seasons, we assembled weekly real-time forecasts of seven targets
+of public health interest from 22 different models. We compared
+forecast accuracy of each model relative to a historical baseline seasonal
+average. Across all regions of the United States, over half of
+the models showed consistently better performance than the historical
+baseline when forecasting incidence of influenza-like illness
+1 wk, 2 wk, and 3 wk ahead of available data and when forecasting
+the timing and magnitude of the seasonal peak. In some
+regions, delays in data reporting were strongly and negatively
+associated with forecast accuracy. More timely reporting and an
+improved overall accessibility to novel and traditional data sources
+are needed to improve forecasting accuracy and its integration
+with real-time public health decision making.</dcterms:abstract>
+        <dc:date>2019</dc:date>
+    </bib:Article>
+    <bib:Memo rdf:about="#item_12">
+        <rdf:value>&lt;p&gt;Main things that could be relevant:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;contains a list of models with short method description and classification into statistical/mechanistic&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;some really&lt;strong&gt; nice plots&lt;/strong&gt;: model performance by season, model performance relative to peak week, model-estimated changes in forecast skill due to data revisions, sketch of how a forecast looks like (with k-wk-ahead target)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;analyzed statistical vs. mechanistic&lt;/strong&gt; (plus included some guidelines for how to sort models into these categories) -&amp;gt; found no great difference, only slight advantage of statistical models&lt;br /&gt;Also, some nice criticism/thoughts on what &quot;mechanistic&quot; actually means, whether statistical models have an inherent upside over mechanistic ones, and how the distinction is not always clear (see &lt;em&gt;Quotes&lt;/em&gt;)&lt;/li&gt;
+&lt;li&gt;report score both in absolute value and in difference to baseline&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;reporting is done both by region and in aggregation&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;reporting is split up: before and after peak (the latter has much better scores)&lt;/li&gt;
+&lt;li&gt;&quot;&lt;strong&gt;nowcasting&lt;/strong&gt;&quot;: data lags behind somewhat, so the target date of the &quot;1-wk-ahead-forecast&quot; from the available is actually already a few days in the past&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;scoring of the forecasts: &lt;/strong&gt;use log score, then compute the arithmetic mean across all regions, seasons and weeks to obtain the average log score for model &lt;em&gt;m &lt;/em&gt;and target &lt;em&gt;t. &lt;/em&gt;Then &lt;strong&gt;exponentiate &lt;/strong&gt;the average log score, which yields a forecast score equivalent to the geometric mean of the probabilities assigned to the eventually observed outcome&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt;Some other interesting stuff that is probably not relevant:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;contains both k-week ahead and seasonal targets (the latter being stuff such as season onset, peak week, ...)&lt;/li&gt;
+&lt;li&gt;standalone (rigorously validated to show optimal performance on its own) vs. component models (could be developed solely to provide a specific or supplemental signal as part of a larger system)&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_15">
+        <rdf:value>&lt;p&gt;&lt;strong&gt;Questions:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&quot;Refitting of models or tuning of model parameters was explicitly discouraged to avoid unintentional overfitting of models&quot; -&amp;gt; is this also the case in the forecast hub?&lt;br /&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt; &lt;/p&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_13">
+        <rdf:value>&lt;p&gt;&lt;strong&gt;Quotes:&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;argument for why statistical models might fare better than mechanistic ones&lt;/strong&gt;:&lt;em&gt; &quot;In the case of influenza, mechanistic models&lt;/em&gt;&lt;br /&gt;&lt;em&gt;simulate a specific disease transmission process governed by the&lt;/em&gt;&lt;br /&gt;&lt;em&gt;assumed parameters and structure of the model. But observed&lt;/em&gt;&lt;br /&gt;&lt;em&gt;“influenza-like illness” data are driven by many factors that have&lt;/em&gt;&lt;br /&gt;&lt;em&gt;little to do with influenza transmission (e.g., clinical visitation&lt;/em&gt;&lt;br /&gt;&lt;em&gt;behaviors, the symptomatic diagnosis process, the case-reporting&lt;/em&gt;&lt;br /&gt;&lt;em&gt;process, a data-revision process, etc.). Since ILI data represent&lt;/em&gt;&lt;br /&gt;&lt;em&gt;an impure measure of actual influenza transmission, purely&lt;/em&gt;&lt;br /&gt;&lt;em&gt;mechanistic models may be at a disadvantage in comparison with&lt;/em&gt;&lt;br /&gt;&lt;em&gt;more structurally flexible statistical approaches when attempting&lt;/em&gt;&lt;br /&gt;&lt;em&gt;to model and forecast ILI. To counteract this potential limitation&lt;/em&gt;&lt;br /&gt;&lt;em&gt;of mechanistic models in modeling noisy surveillance data,&lt;/em&gt;&lt;br /&gt;&lt;em&gt;many forecasting models that have a mechanistic core also use&lt;/em&gt;&lt;br /&gt;&lt;em&gt;statistical approaches that explicitly or implicitly account for&lt;/em&gt;&lt;br /&gt;&lt;em&gt;unexplained discrepancies from the underlying model (20, 26)&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;some notes on the not-so-clear distinction between statistical and mechanistic models:&lt;/strong&gt; &lt;em&gt;“Mechanistic models for infectious disease consider the biological underpinnings of disease transmission and in practice are implemented as variations on the susceptible–infectious–recovered (SIR) model. Statistical models largely ignore the biological underpinnings and theory of disease transmission and focus instead on using data-driven, empirical, and statistical approaches to make the best forecasts possible of a given dataset or phenomenon. &lt;br /&gt;However, in practice, this dichotomy is less clear than it is in theory. For example, statistical models for infectious disease counts may have an autoregressive term for incidence (e.g., as done by the ReichLab-SARIMA1 model). This could be interpreted as representing a transmission process from one time period to another. In another example, the LANL-DBM model has an explicit SIR compartmental model component but also uses a purely statistical model for the discrepancy of the compartmental model with observed trends.&lt;br /&gt;“We categorized models according to whether or not they had any explicit compartmental framework (Table 1). We then took the top-three–performing compartmental models (i.e., models with some kind of an underlying compartmental structure) and compared their performance with that of the top three individual component models without compartmental structure. We excluded multimodel ensemble models (i.e., Delphi-Stat) from this comparison and also excluded the 1-wk-ahead forecasts of the CU models from the compartmental model” &lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Article rdf:about="#item_16">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf>
+           <bib:Journal></bib:Journal>
+        </dcterms:isPartOf>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Funk</foaf:surname>
+                        <foaf:givenName>Sebastian</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Abbott</foaf:surname>
+                        <foaf:givenName>Sam</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <dcterms:isReferencedBy rdf:resource="#item_18"/>
+        <dcterms:isReferencedBy rdf:resource="#item_19"/>
+        <dcterms:isReferencedBy rdf:resource="#item_17"/>
+        <dc:title>Short-term forecasts to inform the response to the Covid-19 epidemic in the UK</dc:title>
+    </bib:Article>
+    <bib:Memo rdf:about="#item_18">
+        <rdf:value>&lt;p&gt;Quotes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&quot;Definition&quot; statistical vs. mechanistic:&lt;/strong&gt; &quot;&lt;em&gt;Models for short-term forecasts can be statistical (investigating the changing distribution of variables over time), mechanistic (explicitly incorporating plausible biological and social mechanisms of transmission), or a hybrid of the two&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Possible reasoning for superiority of statistical models: &lt;/strong&gt;&lt;em&gt;&quot;Developing accurate and reliable short-term forecasts in real time for novel infectious agents such as SARS-CoV-2 in early 2020 is particularly challenging because of uncertainty about modes of transmission, severity profiles and other relevant parameters 7,10 .&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;QRA slightly outperforming EWQ (equally weighted ensemble): &lt;/strong&gt;&lt;em&gt;&quot;Having said this, this result was based on testing a wide range of ways to combine models in a quantile regression, and only the best-performing variants performed better than a simple equal-weighted quantile average, which in turn performed better than most individual models.&quot;&lt;br /&gt;&lt;strong&gt;Reasoning on this: &lt;/strong&gt;&quot;The lack of significant improvement from weighting by past forecast performance would indicate that these issues change the performance of the individual models on a week-by-week basis, potentially to a degree that reduces the expected benefits from systematically taking into account the past performance of each model.&quot;&lt;br /&gt;&lt;/em&gt;&lt;em&gt;&quot;For these reasons, the model combination produced from the equally weighted quantiles can serve as a good and principled ensemble forecast, while the performance of different ensemble methodologies remains an ongoing topic of investigation.&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Caveat on intepreting results:&lt;/strong&gt; &lt;em&gt;&quot;Throughout the period investigated in this study, the epidemic in the UK steadily declined, and good performance in this period need not correlate with good performance in other regimes, such as a resurgence of cases or a steady-state behaviour. The difficulty of the models to correctly predict the turnaround of the epidemic around the peak (albeit often acknowledging their own uncertainty) indicates that there may be value in incorporating external information, e.g. from changing social contact studies or behavioural surveys&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;All models adding gain to the ensemble: &lt;/strong&gt;&lt;em&gt;&quot;All models received some weight in the QRA at least during some periods, indicating that there is value in the contributions of all of the models.&quot;&lt;br /&gt;&quot;Extensions to the simple regression used here [...] may yield future performance gains, &lt;strong&gt;as may the inclusion of model types&lt;/strong&gt; and structures that are currently not represented in the pool of models that are part of the ensemble.&quot;&lt;/em&gt;&lt;em&gt;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;Forecasts only for short time horizons: &lt;/strong&gt;&lt;em&gt;&quot;Conversely, models that are optimised for short-term forecasts usually decline in predictive performance after only a few generations of transmission&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_19">
+        <rdf:value>&lt;p&gt;References:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;theoretical explanation of why mean average ensemble outperform individual models: &lt;/strong&gt;Annan, J. D. &amp;amp; Hargreaves, J. C. Understanding the CMIP3 Multimodel Ensemble. Journal of Climate vol. 24 4529–4538 (2011).&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_17">
+        <rdf:value>&lt;p&gt;Summary/Main things that could be relevant:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;data: Covid-19 in the &lt;strong&gt;UK &lt;/strong&gt;between 24 March and 14 July 2020&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;targets: &lt;/strong&gt;four targets: the number of ICU beds and any beds occupied by confirmed Covid-19 patients, respectively; the number of new and newly admitted Covid-19 patients in hospital; and the number of deaths by date of death.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;forecast style: &lt;/strong&gt;probabilistic -&amp;gt; set of quantiles (number and location of which changed over the course of the period above)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;11 models&lt;/strong&gt; from 6 institutions (&lt;strong&gt;with gaps&lt;/strong&gt;)&lt;/li&gt;
+&lt;li&gt;scoring: WIS, as well as separate metrics for calibration, sharpness, bias and absolute error&lt;/li&gt;
+&lt;li&gt;combined individual predictions into ensemble (&lt;strong&gt;simple mean&lt;/strong&gt; as well as quantile regression average) --&amp;gt; &quot;quantile regression average did not noticably outperform the mean ensemble&quot;&lt;/li&gt;
+&lt;li&gt;baseline/null model: predicts no change (i.e. &quot;assumed that each target would stay at its current value indefinitely into the future with uncertainty levels given by a discretised truncated normal distribution with lower bound 0 and a standard deviation given by past one-day ahead deviations from the value of the metric&quot;)&lt;/li&gt;
+&lt;li&gt;somewhat compares &lt;strong&gt;statistical vs. mechanistic &lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;contains &lt;strong&gt;model method description with classification &lt;/strong&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;contains some &lt;strong&gt;nice plots: &lt;/strong&gt;predictions of individual models/ensembles, weights given to individual models in QRA&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;models were continuously adapted during the period&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt;Results:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;individual models mostly outperformed baseline at 2-wk horizon, but not always at 1-wk&lt;/li&gt;
+&lt;li&gt;ensemble models consistently outperformed baseline for all targets&lt;/li&gt;
+&lt;li&gt;ensemble models worked particularly well for deaths and new hospital admissions, but not so well for hospital and ICU occupancy (had positive bias for ICU and new hospital admissions i.e. consistently overestimated them)&lt;/li&gt;
+&lt;li&gt;&quot;quantile regression average did not noticably outperform the mean ensemble&quot;. That is, the QRA did perform slightly better than the simple mean ensemble, but: &quot;Having said this, this result was based on testing a wide range of ways to combine models in a quantile regression, and only the best-performing variants performed better than a simple equal-weighted quantile average, which in turn performed better than most individual models.&quot;&lt;/li&gt;
+&lt;li&gt;All models received positive weight in the QRA (see quotes)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt; &lt;/p&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Article rdf:about="#item_20">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf>
+           <bib:Journal></bib:Journal>
+        </dcterms:isPartOf>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Funk</foaf:surname>
+                        <foaf:givenName>Sebastian</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Camacho</foaf:surname>
+                        <foaf:givenName>Anton</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <dcterms:isReferencedBy rdf:resource="#item_22"/>
+        <dcterms:isReferencedBy rdf:resource="#item_21"/>
+        <dc:title>Assessing the performance of real-time epidemic forecasts: A case study of Ebola in the Western Area region of Sierra Leone, 2014-15</dc:title>
+        <dcterms:abstract>Real-time forecasts based on mathematical models can inform critical decision-making during infectious disease outbreaks. Yet, epidemic forecasts are rarely evaluated during or after the event, and there is little guidance on the best metrics for assessment. Here, we propose an evaluation approach that disentangles different components of forecasting ability using metrics that separately assess the calibration, sharpness and bias of forecasts. This makes it possible to assess not just how close a forecast was to reality but also how well uncertainty has been quantified. We used this approach to analyse the performance of weekly forecasts we generated in real time for Western Area, Sierra Leone, during the 2013–16 Ebola epidemic in West Africa. We investigated a range of forecast model variants based on the model fits generated at the time with a semi-mechanistic model, and found that good probabilistic calibration was achievable at short time horizons of one or two weeks ahead but model predictions were increasingly unreliable at longer forecasting horizons.
+This suggests that forecasts may have been of good enough quality to inform decision making based on predictions a few weeks ahead of time but not longer, reflecting the high level of uncertainty in the processes driving the trajectory of the epidemic. Comparing forecasts based on the semi-mechanistic model to simpler null models showed that the best semimechanistic model variant performed better than the null models with respect to probabilistic calibration, and that this would have been identified from the earliest stages of the outbreak. As forecasts become a routine part of the toolkit in public health, standards for evaluation of performance will be important for assessing quality and improving credibility of mathematical models, and for elucidating difficulties and trade-offs when aiming to make the most useful and reliable forecasts.</dcterms:abstract>
+    </bib:Article>
+    <bib:Memo rdf:about="#item_22">
+        <rdf:value>&lt;p&gt;Quotes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;Importance of probabilistic forecasts: &lt;/strong&gt;&lt;em&gt;&quot;Probabilistic forecasts aim to quantify the inherent uncertainty in predicting the future. In the context of infectious disease outbreaks, they allow the forecaster to go beyond merely providing the most likely future scenario and quantify how likely that scenario is to occur compared to other possible scenarios&quot;&lt;br /&gt;&quot;Especially during acute outbreaks, decisions are often made based on so-called “worst-case scenarios” and their likelihood of occurring. The ability to adequately assess the magnitude as well as the probability of such scenarios requires accuracy at the tails of the predictive distribution, in other words good calibration of the forecasts.&lt;/em&gt;&lt;em&gt;&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_21">
+        <rdf:value>&lt;p&gt;Summary/Main things that could be relevant:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;used a single, &lt;strong&gt;semi-mechanistic model &lt;/strong&gt;(model description could be a good guideline on how to classify models)&lt;/li&gt;
+&lt;li&gt;this paper seems to be the &lt;strong&gt;source &lt;/strong&gt;of the sort of &lt;strong&gt;model evaluation&lt;/strong&gt; that is done in scoringutils/for the European Forecast Hub:&lt;br /&gt;i.e. bias, calibration, sharpness&lt;/li&gt;
+&lt;li&gt;contains a lot of reasoning/evaluation of the single model (i.e. also a deep dive into the individual factors of the semi-mechanistic model)&lt;br /&gt;-&amp;gt; &lt;strong&gt;could be helpful if we do more of a deep-dive into single models&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;reasoning for &lt;strong&gt;semi-mechanistic:&lt;/strong&gt;&lt;strong&gt;&lt;br /&gt;&lt;/strong&gt;&lt;em&gt;&quot;Having a model with a mechanistic core came with the advantage of&lt;br /&gt;enabling the assessment of interventions just as with a traditional mechanistic model.&quot; &lt;/em&gt;&lt;em&gt;&quot;At the same time, the model was flexible enough to visually fit a wide variety of time series, and this flexibility might mask underlying misspecifications.&quot;&lt;/em&gt;&lt;strong&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt;Results:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;bias worsened as forecast horizon expanded&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Article rdf:about="https://linkinghub.elsevier.com/retrieve/pii/S0377221721005609">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf rdf:resource="urn:issn:03772217"/>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Taylor</foaf:surname>
+                        <foaf:givenName>James W.</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Taylor</foaf:surname>
+                        <foaf:givenName>Kathryn S.</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <dcterms:isReferencedBy rdf:resource="#item_31"/>
+        <dcterms:isReferencedBy rdf:resource="#item_30"/>
+        <dc:subject>US-ForecastHub</dc:subject>
+        <dc:subject>Ensemble Methods</dc:subject>
+        <dc:title>Combining probabilistic forecasts of COVID-19 mortality in the United States</dc:title>
+        <dc:date>6/2021</dc:date>
+        <z:language>en</z:language>
+        <z:libraryCatalog>DOI.org (Crossref)</z:libraryCatalog>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://linkinghub.elsevier.com/retrieve/pii/S0377221721005609</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2022-04-12 15:26:20</dcterms:dateSubmitted>
+        <bib:pages>S0377221721005609</bib:pages>
+    </bib:Article>
+    <bib:Journal rdf:about="urn:issn:03772217">
+        <dc:title>European Journal of Operational Research</dc:title>
+        <dc:identifier>DOI 10.1016/j.ejor.2021.06.044</dc:identifier>
+        <dcterms:alternative>European Journal of Operational Research</dcterms:alternative>
+        <dc:identifier>ISSN 03772217</dc:identifier>
+    </bib:Journal>
+    <bib:Memo rdf:about="#item_31">
+        <rdf:value>&lt;p&gt;Quotes:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;ensemble weighting wrt. submitting inconsistency: &lt;/strong&gt;&lt;em&gt;&quot;The figure shows that, even when a record of past historical accuracy becomes available for all teams, accuracy will not be available for the same past periods and same time series. This has potential implications for how to implement a weighted combining method based on the historical accuracy of each method.&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;why unweighted mean (median) are good theoretically:&lt;/strong&gt; &lt;em&gt;&quot;An advantage of the simple average is its simplicity, and robustness to changes over time in the relative performance of the individual methods.&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;forecast trimming:&lt;/strong&gt; &lt;em&gt;&quot;Extending the idea of robustness to outliers, Park and Budescu (2015) propose that, for each bound, a chosen percentage of the highest and lowest forecasts are discarded, followed by averaging of the rest. We refer to this as symmetric trimming. The median is an extreme version of symmetric trimming, where all but one forecast is trimmed.&quot;&lt;br /&gt;&lt;/em&gt;&lt;em&gt;&quot;For interval forecast combining, symmetric trimming is motivated&lt;br /&gt;by robustness, and asymmetric trimming enables the impact&lt;br /&gt;to be reduced of a tendency amongst the individual forecasters&lt;br /&gt;to be either under- or overconfident.&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;notion of calibration:&lt;/strong&gt; &lt;em&gt;&quot;Randomly sampled values from a calibrated distributional forecast are indistinguishable from the observations&quot;&lt;/em&gt;&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Memo rdf:about="#item_30">
+        <rdf:value>&lt;p&gt;Summary/Main things that could be relevant:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;nice plots: &lt;/strong&gt;plot showing the total number of forecasts for each week (also showing split between compartmental/non-comp.); plot showing the coverage of each model for all 52 time series (51 states + national); Q-Q plots for calibration; plot showing ensemble performance conditional on number of forecasts included&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;target: &lt;/strong&gt;cumulative deaths&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;ensemble weighting, data issues: &lt;/strong&gt;varying levels of input consistency for each forecast show that weighting forecasts based on past performance is difficult (see Quotes)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;interval forecasts&lt;/strong&gt; for interval ranges k = 0.5 and k = 0.95&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;scoring:&lt;/strong&gt; quantile &lt;em&gt;coverage&lt;/em&gt;,&lt;em&gt; &quot;quantile score&quot;&lt;/em&gt; --&amp;gt; quantile regression loss function (eventually makes up the over-/underprediction component in the WIS) reduces to MAE for quantile level 0.5); &lt;em&gt;interval score; hit percentage &lt;/em&gt;(proportion of observations that fall below the forecast - if this is equal to \theta, the forecast is said to be calibrated)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;trimming:&lt;/strong&gt; introduce and analyze methods for trimming &lt;strong&gt;interval forecasts &lt;/strong&gt;(i.e. discarding some extreme valued forecasts) for building ensembles: either symmetric or asymmetric (asymmetric interior or exterior, depending on whether forecasts are found to be &lt;strong&gt;overconfident &lt;/strong&gt;or &lt;strong&gt;underconfident&lt;/strong&gt;) as well as for &lt;strong&gt;distributional forecasts &lt;/strong&gt;(cdf approach or mean approach)&lt;/li&gt;
+&lt;li&gt;perform &lt;strong&gt;inverse score weighting&lt;/strong&gt;, also with &lt;em&gt;shrinkage &lt;/em&gt;(i.e. a middle ground between the simple average and &quot;full&quot; inverse score weighting)&lt;/li&gt;
+&lt;li&gt;also try out &lt;strong&gt;geometric mean&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;stratification: &lt;/strong&gt;split up the sample into high mortality, medium mortality and low mortality s.t. that results were not dominated by high mortality time series;&lt;br /&gt;furthermore, split the dataset up into 4 successive 10-week periods, to see whether methods performed consistently well over the entire time period.&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;stratification by method used: &lt;/strong&gt;they check whether ensemble performance improves if only compartmental models, only other models, or all models are used&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;number of forecasts in ensemble: &lt;/strong&gt;checked whether the number of distributional forecasts considered for ensemble changes ensemble performance (sampled K numbers of forecasts with replacement, 1000 times and with K=2,...,36)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;forecast averaging:&lt;/strong&gt; it's important to take the mean of the forecast quantiles rather averaging the cumulative probabilities&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;statistical tests: &lt;/strong&gt; they test each lead time separately, furthermore &quot;implemented the statistical test for average ranks proposed by Koning, Franses, Hibon &amp;amp; Stekler, 2005 ( Section 2.2 ) to enable multiple comparisons with the best method in each column of Table 8&quot;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;OVERALL RESULT:&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;&quot;We are not aware of previous studies that have used this approach for probabilistic forecasting with data that has frequent&lt;br /&gt;entry and exit of forecasters. For our out-of-sample period of the&lt;br /&gt;most recent 30 weeks, these weighted combinations outperformed all other methods for high mortality series, while for the other series, accuracy of these methods matched the best of the other combining methods, which was the simple average. For the first 10 weeks of our dataset, insufficient historical accuracy was available with which to construct the weighted combinations. For these early weeks, the median was overall the most accurate method.&quot;&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt; &lt;/p&gt;
+&lt;p&gt;Results:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;calibration interval forecasting: &lt;/strong&gt;for all ensemble methods, the 50% interval's forecasted quantiles were too low; for the 90% interval, all (sensible) methods performed well (ensemble and median slightly outperformed by simple average and the inverse interval score)&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;calibration distributional forecasting: &lt;/strong&gt;good calibration for all four methods for the extreme quantiles, with forecasts for the other quantiles being, on average, too low. For the high mortality series and all 52 series considered together, there was better calibration from the simple average and inverse LQS method, with the simple average being the better calibrated for the lower quantiles&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;statistical tests: &lt;/strong&gt;&quot;For all the series considered together and the high mortality series, the table shows that the inverse score methods were generally significantly more accurate than the simple average and the median. For the medium mortality series, the inverse score methods were significantly more accurate than the median, but generally not significantly more accurate than the simple average. There are no cases of significance for the low mortality series. Finally, we note the table shows similar rankings of the methods for each lead time&quot;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;consistency over time: &lt;/strong&gt;&quot;it is interesting to see that the inverse score methods were reasonably consistent in performing well across the 10-week periods, and the median was very competitive for the first two 10-week periods.&quot;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;stratification by method used: &lt;/strong&gt;&quot;For the low mortality series, Table 7 shows that combining only compartmental models was most accurate. For the medium mortality series, combining only compartmental models was more accurate than combining only non-compartmental models, and there was only a small benefit in including the latter in a combination with the former. For the high mortality series, the best results were produced by combining both types of model.&quot;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;number of forecasts in ensemble&lt;/strong&gt;: noticeable improvement for K&amp;gt;20, improved until K =~ 30 --&amp;gt; shows benefit of considering a large amount of forecast&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;statistical test for rank: &lt;/strong&gt;Significance (i.e. method being significantly worse than the best ranked, which was usually an inverse scoring method) can be seen in all cases for the ‘previous best’ method, and in most cases for the median combining method.&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <bib:Article rdf:about="http://www.nejm.org/doi/10.1056/NEJMp2016822">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf rdf:resource="urn:issn:0028-4793,%201533-4406"/>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Holmdahl</foaf:surname>
+                        <foaf:givenName>Inga</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Buckee</foaf:surname>
+                        <foaf:givenName>Caroline</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <dcterms:isReferencedBy rdf:resource="#item_29"/>
+        <dc:title>Wrong but Useful — What Covid-19 Epidemiologic Models Can and Cannot Tell Us</dc:title>
+        <dc:date>2020-07-23</dc:date>
+        <z:language>en</z:language>
+        <z:libraryCatalog>DOI.org (Crossref)</z:libraryCatalog>
+        <dc:identifier>
+            <dcterms:URI>
+               <rdf:value>http://www.nejm.org/doi/10.1056/NEJMp2016822</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2022-04-12 15:27:11</dcterms:dateSubmitted>
+        <bib:pages>303-305</bib:pages>
+    </bib:Article>
+    <bib:Journal rdf:about="urn:issn:0028-4793,%201533-4406">
+        <prism:volume>383</prism:volume>
+        <dc:title>New England Journal of Medicine</dc:title>
+        <dc:identifier>DOI 10.1056/NEJMp2016822</dc:identifier>
+        <prism:number>4</prism:number>
+        <dcterms:alternative>N Engl J Med</dcterms:alternative>
+        <dc:identifier>ISSN 0028-4793, 1533-4406</dc:identifier>
+    </bib:Journal>
+    <bib:Memo rdf:about="#item_29">
+        <rdf:value>&lt;p&gt;Summary/Main things that could be relevant:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;forecasting models are often statistical: &quot;crunch epidemiological data from the past or a different location and project [...] cases into the future&quot;&lt;br /&gt;They do not account for transmission dynamics and are thus&lt;strong&gt; not well-suited for long-term prediction&lt;/strong&gt; or for &lt;strong&gt;inference about intervention efficacy&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;mechanistic models (like SEIR) can be used to simulate future dynamics by varying input parameters (i.e. &quot;disease specific parameters can be varied to test how the pandemic changes under various assumptions about the disease and implementation of control measures&quot;)&lt;br /&gt;they include &lt;strong&gt;nonlinear feedback &lt;/strong&gt;(the more people infected, the faster disease spreads)&lt;br /&gt;model &lt;strong&gt;accuracy is limited by virus knowledge&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;presented confidence intervals &quot;may not adequately capture the model's many uncertain aspects&quot;&lt;br /&gt;for mechanistic models: &quot;uncertainty in a key epidemiologic parameter or set of parameters — the duration of infectiousness, for example — may be presented as a range around a mean trajectory, reflecting simulations across the plausible or measured values of a parameter, or as separate simulations.&quot; - or &quot;with a single set of parameters but across multiple simulations with randomness or stochastic processes included&quot;&lt;/li&gt;
+&lt;li&gt;mechanistic model &lt;strong&gt;caveat: &lt;/strong&gt;&quot;remains extremely challenging to measure and model&lt;br /&gt;contact rates between susceptible and infectious people, not only under physical distancing policies but also in various reopening scenarios.&quot; --&amp;gt; &quot;key source of model uncertainty&quot;&lt;/li&gt;
+&lt;/ul&gt;</rdf:value>
+    </bib:Memo>
+    <z:Collection rdf:about="#collection_1">
+       <dc:title>EuroHub_MA</dc:title><dcterms:hasPart rdf:resource="#item_1"/>
+    </z:Collection>
+</rdf:RDF>
