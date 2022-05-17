@@ -1,13 +1,12 @@
-rm(list = ls())
+library(data.table)
+library(ggplot2)
+library(dplyr)
+library(here)
+
+source(here("code", "load_clean_data.R"))
 
 here::i_am("code/initial_exploration.R")
 
-library(data.table)
-library(magrittr)
-library(ggplot2)
-library(dplyr)
-
-source(here("code", "load_clean_data.R"))
 
 
 plot_models_per_loc <- function(data) {

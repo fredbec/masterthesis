@@ -1,12 +1,10 @@
-rm(list = ls())
-
-here::i_am("code/plot_trajectories.R")
-
-library(dplyr)
 library(ggplot2)
+library(here)
 
 #load hub_data
 source(here("code", "load_clean_data.R"))
+
+here::i_am("code/plot_trajectories.R")
 
 
 pdf("plots/trajectories.pdf",

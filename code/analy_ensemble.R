@@ -1,13 +1,10 @@
-rm(list = ls())
-
-here::i_am("code/ensemble_analysis.R")
+library(scoringutils)
+library(here)
 
 source(here("code", "load_clean_data.R"))
 source(here("code", "fun_ensemble.R"))
 
-
-library(dplyr)
-library(scoringutils)
+here::i_am("code/analy_ensemble.R")
 
 #model list for practice
 practice_models <- c("CovidMetrics-epiBATS", "itwm-dSEIR", 

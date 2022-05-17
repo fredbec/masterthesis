@@ -35,7 +35,7 @@ make_ensemble <- function(data,
     excl <- c(excl, extra_excl)
   }
 
-  #check if any ensembles in included models
+  #check if any ensembles in included models (this should generally not be the case)
   models <- data |>
     filter(!(model %in% excl)) |>
     (\(x) unique(x$model))()

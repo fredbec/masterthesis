@@ -1,8 +1,4 @@
-rm(list = ls())
-
 library(data.table)
-library(magrittr)
-#library(ggplot2)
 library(dplyr)
 library(here)
 
