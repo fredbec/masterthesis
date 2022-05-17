@@ -1,11 +1,12 @@
 rm(list = ls())
 
-setwd("C:/Users/rike/Nextcloud/Uni/Master/5. Semester (WiSe2122)/Nikos_MA/master_thesis")
-
-library("data.table")
+library(data.table)
 library(magrittr)
 #library(ggplot2)
 library(dplyr)
+library(here)
+
+here::i_am("code/load_clean_data.R")
 
 hub_data <- rbindlist(
   list(

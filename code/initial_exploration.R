@@ -1,13 +1,13 @@
 rm(list = ls())
 
-setwd("C:/Users/rike/Nextcloud/Uni/Master/5. Semester (WiSe2122)/Nikos_MA/master_thesis")
+here::i_am("code/initial_exploration.R")
 
 library(data.table)
 library(magrittr)
 library(ggplot2)
 library(dplyr)
 
-source("code/load_clean_data.R")
+source(here("code", "load_clean_data.R"))
 
 
 plot_models_per_loc <- function(data) {
@@ -31,15 +31,37 @@ plot_locs_per_model <- function(data) {
     labs(y = "Location", x = "Forecast date")
 }
 
+hub_data %>%
+  filter(location %in% c("DE", "UK", "FR", "NL", "IT")) %>%
+  make_NA(what = "truth", 
+          target_end_date >= "2021-06-21", 
+          target_end_date < "2021-03-15"
+  ) %>%
+  make_NA(what = "forecast",
+          model != 'epiforecasts-EpiNow2', 
+          forecast_date != "2021-05-24"
+  ) %>%
+  plot_predictions(
+    x = "target_end_date",
+    by = c("target_type", "location")
+  ) +
+  facet_wrap(target_type ~ location, ncol = 4, scales = "free") 
 
-scoringutils::plot_predictions(data = hub_data,
-                               filter_both = list("model == 'epiforecasts-EpiNow2'", "location == 'DE'"),
-                               filter_forecasts = list("forecast_date == '2021-04-05'"), 
-                               filter_truth = list("as.Date(target_end_date) <= '2021-05-03'"),
-                               x = "target_end_date", 
-                               range = c(0, 50, 90), 
-                               scale = "free",
-                               facet_formula = target_type ~ model)
+hub_data %>%
+  filter(target_end_date <= "2021-06-21") %>%
+  avail_forecasts(by = c("model", "forecast_date", "target_type")) %>%
+  plot_avail_forecasts() +
+  facet_wrap(~ target_type)
+
+
+hub_data %>%
+  score() %>%
+  summarise_scores(by = c("model", "target_type"),
+                  relative_skill = TRUE, 
+                  baseline = "EuroCOVIDhub-baseline") %>%
+  summarise_scores(fun = signif, digits = 2) %>%
+  plot_score_table(by = "target_type") + 
+  facet_wrap(~ target_type, nrow = 1)
 
 #plot_locs_per_model(hub_data)
 #plot_models_per_loc(hub_data)
