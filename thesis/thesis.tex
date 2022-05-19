@@ -57,16 +57,19 @@ The concept of forecasting needs to be carefully delineated from that of project
 When modeling an epidemic event, any model will suffer from inaccuracies (no "one true model"), leading to model uncertainty, which can be addressed by employing multiple modeling approaches at once (rewrite this) \cite{zelner_accounting_2021}.
 
 Ensembles have long been employed, for instance in the case of weather forecasting (citation 35 in \cite{yamana_superensemble_2016}).\\
-This is also the case for non-flu-like diseases: \cite{yamana_superensemble_2016} showed that in the case of predicting dengue, their ensemble on average performed at least as good as individual forecasts for some targets, and clearly outperformed them for others - they attributed this to the ensemble being able to counteract individual model biases.
+This is also the case for non-flu-like diseases: \cite{yamana_superensemble_2016} showed that in the case of predicting dengue, their ensemble on average performed at least as good as individual forecasts for some targets, and clearly outperformed them for others - they attributed this to the ensemble being able to counteract individual model biases.\\
+
+Ensemble forecasts are often used, . Over-reliance on the predictions of single models has been heavily critiqued during the pandemic, as this can give a very wrong idea of the state of things \citep{ioannidis_forecasting_2022}, maybe \citep{zelner_accounting_2021}.
+
 \subsection{Mean and median vs. weighted}
 In previous (epidemiological) forecasting experiment, there have been mixed results obtained on whether simple mean or median ensembles, as compared to using past model performance to weight the different forecasts, are better suited for maximizing ensemble forecasting skill. For instance, \cite{yamana_superensemble_2016} employed a Bayesian model average and found individual forecast weights to be fluctuating over time, indicating that there is no clear and long-lasting consensus on relative individual model performance. However, one can easily imagine that weighting models by past performance can introduce additional bias into the system. For instance, in the aforementioned dengue study, good performance of one forecast during the training period was somewhat deceptive and ensemble systems including that forecast actually performed worse than those that excluded it (\cite{yamana_superensemble_2016}).\\
 \cite{sherratt_draft_nodate} have investigated performance by weighting for the European Forecast Hub, which is why this thesis will investigate the simpler alternative of mean or median ensembles. \\
 Some papers identified advantage of using weighted ensemble methods, e.g. Ray 2018. However, it is unclear whether this is due to the small amount of models considered, with less sophisticated models thus dominating too much.
 \section{Data}
-The data for this thesis stem from the European Covid-19 Forecast Hub \cite{noauthor_european_2021}. The Hub is supported by the European Centre for Disease Prevention and Control (ECDC) and functions as a collaborative effort to collate and aggregate short-term forecasts for weekly cases and deaths from Covid-19 \citep{sherratt_draft_nodate}. For example, forecasts are excluded if they do not submit for all 23 quantiles.
+The data for this thesis stem from the European Covid-19 Forecast Hub \cite{noauthor_european_2021}. The Hub is supported by the European Centre for Disease Prevention and Control (ECDC) and, since March 2021, functions as a collaborative effort to collate and aggregate short-term forecasts for weekly cases and deaths from Covid-19 \citep{sherratt_draft_nodate}. Participating teams are encouraged to submit weekly quantile forecasts, that is . Point forecasts as well by whatever method or model they choose. Furthermore, all submitted forecasts, as long as they, are aggreated into an ensemble forecast, the officialFor example, forecasts are excluded if they do not submit for all 23 quantiles.
 \section{Conclusion}
 Perhaps unsurprisingly, we have shown that no consistent 
 \newpage
 \bibliography{references}
 \end{document}
-{}
+{}{}
