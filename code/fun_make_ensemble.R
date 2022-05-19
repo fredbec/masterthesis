@@ -10,6 +10,9 @@
 #'                   on summary_function
 #' @param excl models to exclude from ensemble (by default the official ensemble
 #'            and the baseline)
+#' @param extra_excl extra models to exclude, apart from excl
+#' @param strat how to stratify, i.e. unit defining a single forecast
+#' @param extra_vars any extra (redundant) variables that should stay in the data
 
 #make ensemble by summary
 make_ensemble <- function(data, 
