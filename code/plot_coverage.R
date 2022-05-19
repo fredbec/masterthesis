@@ -10,11 +10,6 @@ source(here("code", "fun_model_coverage.R"))
 
 here::i_am("code/plot_trajectories.R")
 
-locs <- readRDS(here("specs", "locs.RDS"))
-
-hub_data <- hub_data |>
-  filter(location %in% locs)
-
 
 plot_model_avail_total <- function(data){
   data |>

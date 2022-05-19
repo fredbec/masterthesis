@@ -19,7 +19,21 @@ model_types <- read.csv(here("scraper", "metadata_extended.csv")) |>
   mutate(model = gsub("\n| ","", model))
 
 
-hub_data <- merge(hub_data, model_types, by = "model")
+#read in filter values for locations and dates
+locs <-  scan(here("specs", "locs.txt"), 
+              character(), sep = ",")
+
+dates <- scan(here("specs", "dates.txt"), 
+              character(), sep = ",") |>
+  as.Date() |>
+  (\(x) seq.Date(x[1], x[2], by = 7))()
+
+
+hub_data <- merge(hub_data, model_types, 
+                  by = "model") |>
+  filter(location %in% locs,
+         forecast_date %in% dates)
+  
 
 
 #write.csv(hub_data, "hub_data/hub_data.csv")
