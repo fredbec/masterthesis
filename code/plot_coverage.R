@@ -46,7 +46,7 @@ plot_model_avail_indiv <- function(data){
     labs(title = "Individual Model Availability")
 }
 
-pdf(here("plots", "model_coverage.pdf"))
+pdf(here("plots", "coverage.pdf"))
 plot_model_avail_total(hub_data)
 plot_model_avail_indiv(hub_data)
 dev.off()
