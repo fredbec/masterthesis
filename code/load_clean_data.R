@@ -2,6 +2,8 @@ library(data.table)
 library(dplyr)
 library(here)
 
+source(here("code", "fun_model_coverage.R"))
+
 here::i_am("code/load_clean_data.R")
 
 hub_data <- rbindlist(
@@ -32,8 +34,10 @@ dates <- scan(here("specs", "dates.txt"),
 hub_data <- merge(hub_data, model_types, 
                   by = "model") |>
   filter(location %in% locs,
-         forecast_date %in% dates)
-  
+         forecast_date %in% dates) |>
+  model_coverage() |>
+  mutate(cvg_incl = as.numeric(coverage >= 0.5)) |>
+  select(-coverage)
 
 
 #write.csv(hub_data, "hub_data/hub_data.csv")

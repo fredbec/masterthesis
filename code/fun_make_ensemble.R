@@ -24,7 +24,7 @@ make_ensemble <- function(data,
                           strat = c("location", "forecast_date", "quantile",
                                     "horizon", "target_type"),
                           extra_vars = c("target_end_date", "n", 
-                                         "population")){
+                                         "population", "cvg_incl")){
   
   #extract function name to make model name
   if(is.null(model_name)){
