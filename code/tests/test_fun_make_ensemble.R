@@ -35,10 +35,81 @@ expect_true(all.equal(post_vsn, pre_vsn,
                       ignore.row.order = TRUE))
 
 
-#check if we get an error if we don't exclude ensembles 
+#check if we get a warning if we don't exclude ensembles 
 excl_check <- c("EuroCOVIDhub-baseline")
 
 expect_warning(make_ensemble(hub_data, summary_function = mean, 
                              excl = excl_check),
                "(\"EuroCOVIDhub-ensemble\")")
 
+
+############test if mean/median values are computed correctly##############
+
+#choose random values from list of models and forecast_dates (thus over time
+#more values will be tested)
+set.seed(52)
+loc <- unique(hub_data$location)|>
+  sample(1)
+
+models <- hub_data |>
+  filter(location == loc, 
+         !(model %in% c("EuroCOVIDhub-baseline", 
+                        "EuroCOVIDhub-ensemble")),
+         cvg_incl == 1) |>
+  (\(x) unique(x$model))() |>
+  sample(8)
+
+date <- unique(hub_data$forecast_date) |>
+  sample(1)
+quan <- unique(hub_data$quantile) |>
+  sample(1)
+target <- unique(hub_data$target_type) |>
+  sample(1)
+hor <- unique(hub_data$horizon) |>
+  sample(1)
+
+#"manual" calculation
+vals <- hub_data |>
+  filter(location == loc,
+         model %in% models,
+         forecast_date == as.Date(date),
+         quantile == quan,
+         target_type == target,
+         horizon == hor)
+
+pred_mean <- mean(vals$prediction)
+pred_median <- median(vals$prediction)
+
+#calculation using make_ensemble 
+ensemble_check <- make_ensemble(hub_data, mean, incl = models)|>
+  make_ensemble(median, incl = models)
+
+preds_check <- ensemble_check |>
+  filter(location == loc,
+         model %in% c("median_ensemble", 
+                      "mean_ensemble"),
+         forecast_date == as.Date(date),
+         quantile == quan,
+         target_type == target,
+         horizon == hor)
+  
+expect_equal(pred_mean, 
+             preds_check[preds_check$model == "mean_ensemble"]$prediction)
+expect_equal(pred_median, 
+             preds_check[preds_check$model == "median_ensemble"]$prediction)
+
+
+
+#check that we get a single value (this has been an issue before and I
+#am not 100% sure that I fixed it)
+ensemble_check <- make_ensemble(hub_data, mean)
+
+preds_check <- ensemble_check |>
+  filter(location == loc,
+         model == "mean_ensemble",
+         forecast_date == as.Date(date),
+         quantile == quan,
+         target_type == target,
+         horizon == hor)
+
+expect_equal(nrow(preds_check), 1)
