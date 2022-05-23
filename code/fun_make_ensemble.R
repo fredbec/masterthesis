@@ -3,6 +3,9 @@
 
 
 #' Ensemble builder function for data from the European Forecast Hub
+#' By default, builds ensemble based on all models except the baseline and Hub 
+#' ensemble models. More models to exclude or, for the reverse approach, a list 
+#' of models to include may be supplied 
 #'
 #' @param data data (subset or full) from the European Forecast hub
 #' @param summary_function function to build ensemble from (median by default)
@@ -11,6 +14,7 @@
 #' @param excl models to exclude from ensemble (by default the official ensemble
 #'            and the baseline)
 #' @param extra_excl extra models to exclude, apart from excl
+#' @param incl explicit list of models that should be included in the ensemble
 #' @param strat how to stratify, i.e. unit defining a single forecast
 #' @param extra_vars any extra (redundant) variables that should stay in the data
 
@@ -21,10 +25,12 @@ make_ensemble <- function(data,
                           excl = c("EuroCOVIDhub-baseline", 
                                    "EuroCOVIDhub-ensemble"),
                           extra_excl = NULL,
+                          incl = NULL,
                           strat = c("location", "forecast_date", "quantile",
                                     "horizon", "target_type"),
                           extra_vars = c("target_end_date", "n", 
-                                         "population", "cvg_incl")){
+                                         "population"),
+                          verbose = FALSE){
   
   #extract function name to make model name
   if(is.null(model_name)){
@@ -34,15 +40,28 @@ make_ensemble <- function(data,
       paste0("_ensemble")
   }
   
+  
+  #######make model vector based on incl/excl arguments#####
   if(!is.null(extra_excl)){
     excl <- c(excl, extra_excl)
   }
 
-  #check if any ensembles in included models (this should generally not be the case)
-  models <- data |>
-    filter(!(model %in% excl)) |>
-    (\(x) unique(x$model))()
+  if(!is.null(incl)){
+    if(verbose){message("making ensemble based on supplied models")}
+    
+    models <- data |>
+      filter(model %in% incl) |>
+      (\(x) unique(x$model))()
 
+  } else {
+    if(verbose){message("making ensemble based on all but the excluded models")}
+    
+    models <- data |>
+      filter(!(model %in% excl)) |>
+      (\(x) unique(x$model))()
+  }
+
+  #check if any ensembles in models (this should in general not be so)
   is_ensemble <- grepl(".*ensemble.*", models)
 
   if(any(is_ensemble)){
@@ -51,26 +70,28 @@ make_ensemble <- function(data,
                   "\") that is not in the list of excluded models. Is this intended?"))
   }
   
+  
+  #############make mean/median forecast################
+  
   #extract extra columns before summarising (merge again later)
   extra_cols <- data |>
     select(all_of(c(strat, extra_vars))) |>
     distinct()
   
-  
-  #make mean/median forecast
   ensemble <- data |>
     group_by(across(all_of(strat))) |>
-    filter(!(model %in% excl)) |>
+    filter(model %in% models) |>
     summarise(prediction = summary_function(prediction),
               tvsd = sd(true_value),
               true_value = mean(true_value), #this is not totally clean, so check further down
               .groups = 'drop') |> 
     mutate(model = model_name,
+           cvg_incl = 1,
            model_type = "ensemble") |> #for appending to original data
     select(model, everything()) |> #reordering
     merge(extra_cols, by = strat) #add back extra cols
   
-  
+
   #check if true values were unique before summarising
   if(any(ensemble$tvsd!=0)){
     stop("there are multiple true values for one instance")
