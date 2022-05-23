@@ -6,6 +6,9 @@ source(here("code", "fun_model_coverage.R"))
 
 here::i_am("code/load_clean_data.R")
 
+#load specs
+cvg_threshold <- scan(here("specs", "cvg_threshold.txt"), numeric())
+
 hub_data <- rbindlist(
   list(
     fread(here("hub_data", "data", "full-data-european-forecast-hub-1.csv")),
@@ -36,7 +39,7 @@ hub_data <- merge(hub_data, model_types,
   filter(location %in% locs,
          forecast_date %in% dates) |>
   model_coverage() |>
-  mutate(cvg_incl = as.numeric(coverage >= 0.5)) |>
+  mutate(cvg_incl = as.numeric(coverage >= cvg_threshold)) |>
   select(-coverage)
 
 
