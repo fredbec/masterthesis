@@ -93,12 +93,16 @@ make_ensemble <- function(data,
   
 
   #check if true values were unique before summarising
-  if(any(ensemble$tvsd!=0)){
-    stop("there are multiple true values for one instance")
-  } else {
+  if(any(is.na(ensemble$tvsd))){
+    warning("only one model in the ensemble")
     ensemble$tvsd <- NULL
+  } else {
+    if(any(ensemble$tvsd!=0)){
+      warning("there are multiple true values for one instance")
+    } else {
+      ensemble$tvsd <- NULL
+    }
   }
-  
   data_with_ens <- rbind(data, ensemble)
   
   return(data_with_ens)
