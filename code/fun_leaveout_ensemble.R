@@ -10,7 +10,7 @@ source(here("code", "fun_make_ensemble.R"))
 #' @param samples how many random samples of models to draw 
 
 leaveout_ensemble <- function(data,
-                              nmods = c(5, 7, 10, 100),
+                              nmods = c(5, 6, 7, 8, 100),
                               samples = 100,
                               seed = 32,
                               excl = c("EuroCOVIDhub-baseline",
@@ -43,66 +43,75 @@ leaveout_ensemble <- function(data,
   }
   
   #make model list per country
-  per_loc <- split(data, f = data$location)
+  per_loc <- split(data, by = c("location", "target_type"))
   models_per_loc <- lapply(per_loc, FUN = getmodels)
-    
-  
-  #locs <- unique(data$location)
+
+  target_types <- unique(data$target_type)
   locs_list <- c(list(locs), lapply(locs, function(x) c(x)))
   
   #############***#########
   #for now: only individual locations:
+  locs <- unique(data$location)
   locs_list <- lapply(locs, function(x) c(x))
-  
-  score_tabs <- list()
+
+  #container for overall results
   result_table <- NULL
   
   for (loc in locs_list){
-    for (nmod in nmods){
-      for (i in 1:samples){
+    for (target in target_types){
+      for (nmod in nmods){
         
-        if (nmod == 100){
-          models <- models_per_loc[[loc]]
-          nmod <- "all"
+        score_tabs <- list()
+        for (i in 1:samples){
+          
+          if (nmod == 100 | nmod == "all"){
+            models <- models_per_loc[[paste0(loc, ".", target)]]
+            nmod <- "all"
+          } else {
+            models <- sample(models_per_loc[[paste0(loc, ".", target)]], 
+                             nmod)
+          }
+          
+          #entry for location column
+          loc_col <- ifelse(length(loc)>1, "all", loc)
+          
+          
+          #make ensembles with current set of models
+          ensembles <- data |>
+            filter(location %in% loc,
+                   model %in% models,
+                   target_type == target) |>
+            make_ensemble(summary_function = mean) |>
+            make_ensemble(summary_function = median,
+                          extra_excl = c("mean_ensemble")) |>
+            filter(model %in% c("median_ensemble",
+                                "mean_ensemble")) |>
+            mutate(nmod = nmod)
+                   #location = loc_col,
+                   #target_type = target,
+                   #)
+          
+          
+          #score resulting ensembles
+          score_tabs[[i]] <- ensembles |>
+            score() |>
+            summarise_scores(by = c("model", "target_type", 
+                                    "location", "nmod")) 
+          
+          #no need for multiple samples with all models (no randomness)
+          if(nmod == "all"){break}
+
         }
-        
-        #print(loc)
-        models <- sample(models_per_loc[[loc]], 5)
-        
-        #entry for location column
-        loc_col <- ifelse(length(loc)>1, "all", loc)
-        
-        #make ensembles with current set of models
-        ensembles <- data |>
-          filter(location %in% loc,
-                 model %in% models) |>
-          make_ensemble(summary_function = mean) |>
-          make_ensemble(summary_function = median,
-                        extra_excl = c("mean_ensemble")) |>
-          filter(model %in% c("median_ensemble",
-                              "mean_ensemble")) |>
-          mutate(location = loc_col,
-                 nmod = nmod)
-        
-        
-        #score resulting ensembles
-        score_tabs[[i]] <- ensembles |>
-          score() |>
-          summarise_scores(by = c("model", "target_type", 
-                                  "location", "nmod")) 
-        
-        #print(score_tabs)
-        
+        #average over all tables for set of nmod + loc 
+        result_table <- rbind(result_table,
+                              rbindlist(score_tabs)[,lapply(.SD,mean), 
+                                                    list(model, target_type, 
+                                                         location, nmod)]
+                              )
+
       }
-      #average over all tables for set of nmod + loc 
-      result_table <- rbind(result_table,
-                            rbindlist(score_tabs)[,lapply(.SD,mean), 
-                                                  list(model, target_type, 
-                                                       location, nmod)]
-      )
-    }
     
-    #print(result_table)
+    }
   }
   
   return(result_table)
