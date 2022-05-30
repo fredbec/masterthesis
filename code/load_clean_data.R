@@ -43,4 +43,7 @@ hub_data <- merge(hub_data, model_types,
   select(-coverage)
 
 
-#write.csv(hub_data, "hub_data/hub_data.csv")
+#remove some stuff from the workspace
+rm(list = c("model_types", "cvg_threshold", 
+            "dates", "locs"))
+
