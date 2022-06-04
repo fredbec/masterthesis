@@ -34,15 +34,34 @@ best_performers_ensemble <- function(data,
     as.Date() |>
     sort()
   
+  locs <- unique(data$location)
+  targets <- unique(data$target_type)
+  
   
   stop_ind <- length(dates) - window #not window-1 since we still need one obs for forecasting
   
   #result containers
   bestperf_ens <- NULL
-  model_data <- matrix(ncol = length(unique(data$model)), 
-                       nrow = stop_ind)
-  colnames(model_data) <- unique(data$model)
-  rownames(model_data) <- as.character(dates[window+1:stop_ind])
+  
+  
+  #fill a list with a matrix for each combination of location and target_type
+  # column of each matrix are the models, rows are the forecast dates
+  list_names <- c("all", paste(rep(locs, each = length(targets)), 
+                               targets, sep = "."))
+  
+  model_matrices <- vector(mode = "list", 
+                           length = length(list_names))
+  names(model_matrices) <- list_names
+  
+  model_matrices <- lapply(model_matrices, function(x) 
+    matrix(ncol = length(unique(data$model)),
+           nrow = stop_ind,
+           dimnames = list(as.character(dates[window+1:stop_ind]),
+                           unique(data$model)
+           )))
+  
+  #colnames(model_data) <- unique(data$model)
+  #rownames(model_data) <- as.character(dates[window+1:stop_ind])
     
   for(i in 1:stop_ind){
     
@@ -67,9 +86,30 @@ best_performers_ensemble <- function(data,
       return(as.numeric(!is.na(matches)))
     }
     
+    
+    for(comb in names(model_matrices)){
+      if(comb == "all"){
+        model_matrices[["all"]][i,] <- match_models(best_models, 
+                                                    model_matrices[["all"]])
+      } else {
+        filters <- strsplit(comb, split = "[.]")[[1]]
+        
+        comb_models <- best_models |>
+          filter(location == filters[1],
+                 target_type == filters[2])
+        
+        model_matrices[[comb]][i,] <- match_models(comb_models,
+                                                   model_matrices[[comb]])
+        
+        
+      }
+    
+    
+    }
+    
     #mod_names <- unique(best_models$model)
     # matches <- match(colnames(model_data), mod_names)
-    model_data[i,] <- match_models(best_models, model_data)#as.numeric(!is.na(matches))
+    #model_data[i,] <- match_models(best_models, model_data)#as.numeric(!is.na(matches))
     
     
     #keep only those models which are in best_models and make 
@@ -89,7 +129,7 @@ best_performers_ensemble <- function(data,
   }
 
   if(return_model_data){
-    return(list(bestperf_ens, model_data))
+    return(list(bestperf_ens, model_matrices))
   } else {
     return(bestperf_ens)
   }
