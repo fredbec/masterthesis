@@ -10,6 +10,8 @@ source(here("code", "fun_make_ensemble.R"))
 #' @param nmods number of models to sample
 #' @param window number of weeks to consider in establishing what 
 #'             the best models are
+#' @param may_miss number of forecasts within the rolling window a model
+#'             may miss to be eligible for the best performers ensemble
 #' @param excl models to exclude from the ensemble
 #' @param cvg_threshold minimum coverage required for models to be 
 #'            included in the sampling process
@@ -19,6 +21,7 @@ best_performers_ensemble <- function(data,
                                      score = "interval_score",
                                      nmod = 3,
                                      window = 4,
+                                     may_miss = 0, 
                                      excl = c("EuroCOVIDhub-baseline",
                                               "EuroCOVIDhub-ensemble"),
                                      cvg_threshold = NULL,
@@ -53,6 +56,7 @@ best_performers_ensemble <- function(data,
                            length = length(list_names))
   names(model_matrices) <- list_names
   
+  #each list element is the same initial matrix
   model_matrices <- lapply(model_matrices, function(x) 
     matrix(ncol = length(unique(data$model)),
            nrow = stop_ind,
@@ -60,8 +64,6 @@ best_performers_ensemble <- function(data,
                            unique(data$model)
            )))
   
-  #colnames(model_data) <- unique(data$model)
-  #rownames(model_data) <- as.character(dates[window+1:stop_ind])
     
   for(i in 1:stop_ind){
     
@@ -70,9 +72,24 @@ best_performers_ensemble <- function(data,
                           to = dates[i] + (window - 1) * 7,
                           by = 7)
     
+    #get models that are available at given forecast date
+    fc_date <- dates[i] + window * 7
+    avail_models <- data |>
+      filter(forecast_date == as.Date(fc_date)) |>
+      select(model, target_type, location) |>
+      distinct() |>
+      mutate(is_present = 1)
+      
+    
     #find best performers in subset
     best_models <- data |>
       filter(forecast_date %in% sub_dates) |>
+      merge(avail_models, #kick out models which don't predict at given forecast_date
+            by = c("model", "location", "target_type")) |>
+      group_by(model, target_type, location) |>
+      mutate(n = n() / (23*4))  |> #forecast present => 92 rows, divide to get unique forecast presence 
+      filter(n >= window - may_miss) |> #threshold to include model
+      ungroup() |>
       score() |>
       summarise_scores(by = c("model", "location", "target_type")) |>
       group_by(location, target_type) |>
@@ -80,6 +97,8 @@ best_performers_ensemble <- function(data,
       select(model, location, target_type)
     
     
+    #just a small function that matches unique models in best_models
+    #to column names in model matrices, to fill a row of the model matrix
     match_models <- function(data, model_matrix){
       mod_names <- unique(data$model)
       matches <- match(colnames(model_matrix), mod_names)
@@ -87,13 +106,16 @@ best_performers_ensemble <- function(data,
     }
     
     
+    #fill list of model matrices with above function
     for(comb in names(model_matrices)){
       if(comb == "all"){
         model_matrices[["all"]][i,] <- match_models(best_models, 
                                                     model_matrices[["all"]])
       } else {
+        #split up combination of location and target
         filters <- strsplit(comb, split = "[.]")[[1]]
         
+        #only keep those best models that match location and target
         comb_models <- best_models |>
           filter(location == filters[1],
                  target_type == filters[2])
@@ -101,16 +123,9 @@ best_performers_ensemble <- function(data,
         model_matrices[[comb]][i,] <- match_models(comb_models,
                                                    model_matrices[[comb]])
         
-        
       }
-    
-    
     }
-    
-    #mod_names <- unique(best_models$model)
-    # matches <- match(colnames(model_data), mod_names)
-    #model_data[i,] <- match_models(best_models, model_data)#as.numeric(!is.na(matches))
-    
+
     
     #keep only those models which are in best_models and make 
     #next week's prediction out of these models
