@@ -1,0 +1,11 @@
+^code$
+^docs$
+^hub_data$
+^plots$
+^references$
+^results$
+^scraper$
+^specs$
+^thesis$
+^README\.Rmd$
+^.*\.Rproj$
