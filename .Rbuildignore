@@ -9,3 +9,4 @@
 ^thesis$
 ^README\.Rmd$
 ^.*\.Rproj$
+^\.Rproj\.user$

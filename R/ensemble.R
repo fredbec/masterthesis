@@ -1,7 +1,7 @@
-###preamble function definition
-#`%nin%` = Negate(`%in%`)
-
-
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' @import dplyr
+#' 
+#' @description 
 #' Ensemble builder function for data from the European Forecast Hub
 #' By default, builds ensemble based on all models except the baseline and Hub 
 #' ensemble models. More models to exclude or, for the reverse approach, a list 
@@ -17,6 +17,12 @@
 #' @param incl explicit list of models that should be included in the ensemble
 #' @param strat how to stratify, i.e. unit defining a single forecast
 #' @param extra_vars any extra (redundant) variables that should stay in the data
+#' 
+#' @return 
+#' a data.table object that contains the ensemble forecasts in addition to the 
+#' models that are already in data
+#' 
+#' @export
 
 #make ensemble by summary
 make_ensemble <- function(data, 
@@ -45,29 +51,29 @@ make_ensemble <- function(data,
   if(!is.null(extra_excl)){
     excl <- c(excl, extra_excl)
   }
-
+  
   if(!is.null(incl)){
     if(verbose){message("making ensemble based on supplied models")}
     
     models <- data |>
-      filter(model %in% incl) |>
+      dplyr::filter(model %in% incl) |>
       (\(x) unique(x$model))()
-
+    
   } else {
     if(verbose){message("making ensemble based on all but the excluded models")}
     
     models <- data |>
-      filter(!(model %in% excl)) |>
+      dplyr::filter(!(model %in% excl)) |>
       (\(x) unique(x$model))()
   }
-
+  
   #check if any ensembles in models (this should in general not be so)
   is_ensemble <- grepl(".*ensemble.*", models)
-
+  
   if(any(is_ensemble)){
     warning(paste0("There seems to be at least one ensemble (\"" , 
-                  paste(models[is_ensemble], collapse = "\", \""), 
-                  "\") that is not in the list of excluded models. Is this intended?"))
+                   paste(models[is_ensemble], collapse = "\", \""), 
+                   "\") that is not in the list of excluded models. Is this intended?"))
   }
   
   
@@ -75,23 +81,23 @@ make_ensemble <- function(data,
   
   #extract extra columns before summarising (merge again later)
   extra_cols <- data |>
-    select(all_of(c(strat, extra_vars))) |>
-    distinct()
+    dplyr::select(all_of(c(strat, extra_vars))) |>
+    dplyr::distinct()
   
   ensemble <- data |>
-    group_by(across(all_of(strat))) |>
-    filter(model %in% models) |>
-    summarise(prediction = summary_function(prediction),
-              tvsd = sd(true_value),
-              true_value = mean(true_value), #this is not totally clean, so check further down
-              .groups = 'drop') |> 
-    mutate(model = model_name,
-           cvg_incl = 1,
-           model_type = "ensemble") |> #for appending to original data
-    select(model, everything()) |> #reordering
+    dplyr::group_by(across(all_of(strat))) |>
+    dplyr::filter(model %in% models) |>
+    dplyr::summarise(prediction = summary_function(prediction),
+                     tvsd = sd(true_value),
+                     true_value = mean(true_value), #this is not totally clean, so check further down
+                     .groups = 'drop') |> 
+    dplyr::mutate(model = model_name,
+                  cvg_incl = 1,
+                  model_type = "ensemble") |> #for appending to original data
+    dplyr::select(model, everything()) |> #reordering
     merge(extra_cols, by = strat) #add back extra cols
   
-
+  
   #check if true values were unique before summarising
   if(any(is.na(ensemble$tvsd))){
     warning("only one model in the ensemble")
