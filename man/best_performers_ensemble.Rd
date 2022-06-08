@@ -11,7 +11,6 @@ best_performers_ensemble(
   window = 4,
   may_miss = 0,
   excl = c("EuroCOVIDhub-baseline", "EuroCOVIDhub-ensemble"),
-  cvg_threshold = NULL,
   return_model_data = FALSE
 )
 }
@@ -30,9 +29,6 @@ may miss to be eligible for the best performers ensemble}
 
 \item{excl}{models to exclude from the ensemble}
 
-\item{cvg_threshold}{minimum coverage required for models to be
-included in the sampling process}
-
 \item{return_model_data}{if set to TRUE, additionally to the ensemble predictions,
 a list of matrices indicating which models were used in which step
 are returned}
@@ -46,6 +42,4 @@ of the best performers ensemble
 \description{
 Assesses ensemble performance by iteratively sampling given numbers of
 model for the (mean/median) ensemble
-
-Uses fun_make_ensemble.R
 }

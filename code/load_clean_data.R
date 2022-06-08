@@ -6,7 +6,7 @@ library(here)
 here::i_am("code/load_clean_data.R")
 
 #load specs
-cvg_threshold <- scan(here("specs", "cvg_threshold.txt"), numeric())
+avail_threshold <- scan(here("specs", "avail_threshold.txt"), numeric())
 
 hub_data <- rbindlist(
   list(
@@ -37,12 +37,10 @@ hub_data <- merge(hub_data, model_types,
                   by = "model") |>
   filter(location %in% locs,
          forecast_date %in% dates) |>
-  model_coverage() |>
-  mutate(cvg_incl = as.numeric(coverage >= cvg_threshold)) |>
-  select(-coverage)
+  model_availability() 
 
 
 #remove some stuff from the workspace
-rm(list = c("model_types", "cvg_threshold", 
+rm(list = c("model_types", "avail_threshold", 
             "dates", "locs"))
 

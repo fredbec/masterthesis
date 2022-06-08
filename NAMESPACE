@@ -3,7 +3,7 @@
 export(best_performers_ensemble)
 export(leaveout_ensemble)
 export(make_ensemble)
-export(model_coverage)
+export(model_availability)
 export(plot_leaveout)
 import(dplyr)
 import(ggplot2)

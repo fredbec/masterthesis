@@ -6,7 +6,6 @@
 #' Assesses ensemble performance by iteratively sampling given numbers of 
 #' model for the (mean/median) ensemble 
 #' 
-#' Uses fun_make_ensemble.R
 #'
 #' @param data data (subset or full) from the European Forecast hub
 #' @param score which scoring function should be used to select best models
@@ -16,8 +15,6 @@
 #' @param may_miss number of forecasts within the rolling window a model
 #'             may miss to be eligible for the best performers ensemble
 #' @param excl models to exclude from the ensemble
-#' @param cvg_threshold minimum coverage required for models to be 
-#'            included in the sampling process
 #' @param return_model_data if set to TRUE, additionally to the ensemble predictions,
 #'         a list of matrices indicating which models were used in which step
 #'         are returned
@@ -37,7 +34,6 @@ best_performers_ensemble <- function(data,
                                      may_miss = 0, 
                                      excl = c("EuroCOVIDhub-baseline",
                                               "EuroCOVIDhub-ensemble"),
-                                     cvg_threshold = NULL,
                                      return_model_data = FALSE){
   
   
@@ -176,34 +172,30 @@ best_performers_ensemble <- function(data,
 #' 
 #'
 #' @param data data (subset or full) from the European Forecast hub
+#' @param avail_threshold minimum availability for models to be considered in the
+#'            sampling process 
 #' @param nmods number of models that should be sampled for each step
 #' @param samples how many random samples of models to draw 
 #' @param seed random seed for sampling
 #' @param excl which models should be excluded from the ensemble experiment
-#' @param cvg_threshold minimum coverage for models to be considered in the
-#'              sampling process 
 
 #' @export
 
 leaveout_ensemble <- function(data,
+                              avail_threshold,
                               nmods = c(5, 6, 7, 8, 100),
                               samples = 100,
                               seed = 32,
                               excl = c("EuroCOVIDhub-baseline",
-                                       "EuroCOVIDhub-ensemble"),
-                              cvg_threshold = NULL){
+                                       "EuroCOVIDhub-ensemble")){
   
   set.seed(seed)
   
-  if(!is.null(cvg_threshold)){
-    stop("flexible definition of coverage threshold is not implemented (yet)")
-  }
-  
-  #to obtain models that are above cvg threshold and not in excl
+  #to obtain models that are above avail threshold and not in excl
   getmodels <- function(data){
-    #print(data)
+    
     models <- data |>
-      dplyr::filter(cvg_incl == 1) |>
+      dplyr::filter(availability >= avail_threshold) |>
       (\(x) unique(x$model))() |>
       (\(x) x[-which(x %in% excl)])()
     
@@ -218,7 +210,6 @@ leaveout_ensemble <- function(data,
     return(models)
   }
   
-  print("check")
   #make model list per country
   per_loc <- split(data,
                    by = c("location", "target_type"))
@@ -226,11 +217,9 @@ leaveout_ensemble <- function(data,
   
   target_types <- unique(data$target_type)
   locs <- unique(data$location)
-  locs_list <- c(list(locs), lapply(locs, function(x) c(x)))
-  
+  #locs_list <- c(list(locs), lapply(locs, function(x) c(x)))
   #############***#########
   #for now: only individual locations:
-  print("check")
   locs_list <- lapply(locs, function(x) c(x))
   
   #container for overall results
@@ -242,7 +231,6 @@ leaveout_ensemble <- function(data,
         
         score_tabs <- list()
         for (i in 1:samples){
-          print("check")
           if (nmod == 100 | nmod == "all"){
             models <- models_per_loc[[paste0(loc, ".", target)]]
             nmod <- "all"
@@ -253,7 +241,6 @@ leaveout_ensemble <- function(data,
           
           #entry for location column
           loc_col <- ifelse(length(loc)>1, "all", loc)
-          
           
           #make ensembles with current set of models
           ensembles <- data |>
@@ -269,7 +256,6 @@ leaveout_ensemble <- function(data,
           #location = loc_col,
           #target_type = target,
           #)
-          
           
           #score resulting ensembles
           score_tabs[[i]] <- ensembles |>

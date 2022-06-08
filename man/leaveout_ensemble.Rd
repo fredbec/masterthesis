@@ -6,15 +6,18 @@
 \usage{
 leaveout_ensemble(
   data,
+  avail_threshold,
   nmods = c(5, 6, 7, 8, 100),
   samples = 100,
   seed = 32,
-  excl = c("EuroCOVIDhub-baseline", "EuroCOVIDhub-ensemble"),
-  cvg_threshold = NULL
+  excl = c("EuroCOVIDhub-baseline", "EuroCOVIDhub-ensemble")
 )
 }
 \arguments{
 \item{data}{data (subset or full) from the European Forecast hub}
+
+\item{avail_threshold}{minimum availability for models to be considered in the
+sampling process}
 
 \item{nmods}{number of models that should be sampled for each step}
 
@@ -23,9 +26,6 @@ leaveout_ensemble(
 \item{seed}{random seed for sampling}
 
 \item{excl}{which models should be excluded from the ensemble experiment}
-
-\item{cvg_threshold}{minimum coverage for models to be considered in the
-sampling process}
 }
 \description{
 Assesses ensemble performance by iteratively sampling given numbers of

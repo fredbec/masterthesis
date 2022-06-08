@@ -93,7 +93,7 @@ make_ensemble <- function(data,
                      true_value = mean(true_value), #this is not totally clean, so check further down
                      .groups = 'drop') |> 
     dplyr::mutate(model = model_name,
-                  cvg_incl = 1,
+                  availability = 1,
                   model_type = "ensemble") |> #for appending to original data
     dplyr::select(model, everything()) |> #reordering
     merge(extra_cols, by = strat) #add back extra cols
