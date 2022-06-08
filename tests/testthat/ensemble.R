@@ -3,7 +3,7 @@ library(masterthesis)
 
 source(here("code", "load_clean_data.R"))
 
-here::i_am("code/tests/test_fun_model_coverage.R")
+here::i_am("tests/testthat/test_fun_make_ensemble.R")
 
 #compare results using only germany and ensemble using all countries
 #and filtering germany after --> should get same result
@@ -55,9 +55,9 @@ models <- hub_data |>
   filter(location == loc, 
          !(model %in% c("EuroCOVIDhub-baseline", 
                         "EuroCOVIDhub-ensemble")),
-         cvg_incl == 1) |>
+         availability > 0.5) |>
   (\(x) unique(x$model))() |>
-  sample(8)
+  sample(4)
 
 date <- unique(hub_data$forecast_date) |>
   sample(1)
@@ -92,11 +92,11 @@ preds_check <- ensemble_check |>
          quantile == quan,
          target_type == target,
          horizon == hor)
-  
+
 expect_equal(pred_mean, 
-             preds_check[preds_check$model == "mean_ensemble"]$prediction)
+             preds_check[preds_check$model == "mean_ensemble", "prediction"])
 expect_equal(pred_median, 
-             preds_check[preds_check$model == "median_ensemble"]$prediction)
+             preds_check[preds_check$model == "median_ensemble", "prediction"])
 
 
 

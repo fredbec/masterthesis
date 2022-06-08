@@ -3,29 +3,27 @@ library(masterthesis)
 
 source(here("code", "load_clean_data.R"))
 
-here::i_am("code/tests/test_fun_model_coverage.R")
+here::i_am("tests/testthat/test_fun_model_coverage.R")
 
-
-hub_cvg <- model_coverage(hub_data)
-
+hub_avail <- hub_data
 
 #check if models are still the same
 expect_equal(sort(unique(hub_data$model)), 
-             sort(unique(hub_cvg$model))) #sort, otherwise fails bc of order
+             sort(unique(hub_avail$model))) #sort, otherwise fails bc of order
 
 
-#check if coverage was computed correctly
-cvg_ensemble <- hub_cvg |>
+#check if availability was computed correctly
+cvg_ensemble <- hub_avail |>
   filter(model == "EuroCOVIDhub-ensemble") |>
-  select(coverage) |>
+  select(availability) |>
   distinct()
 
-#ensemble should have full coverage
-expect_equal(cvg_ensemble$coverage, 1)
+#ensemble should have full availability
+expect_equal(cvg_ensemble$availability, 1)
 
 
 #check if anything at all about the core data was changed
-hub_data_check <- hub_cvg |> #"recover" ger_data from ger_cvg
+hub_data_check <- hub_avail |> #"recover" ger_data from ger_cvg
   select(names(hub_data))
 
 expect_true(all.equal(hub_data, hub_data_check,
