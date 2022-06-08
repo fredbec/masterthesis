@@ -183,7 +183,7 @@ best_performers_ensemble <- function(data,
 
 leaveout_ensemble <- function(data,
                               avail_threshold,
-                              nmods = c(5, 6, 7, 8, 100),
+                              nmods = c(5, 6, 7, 8),
                               samples = 100,
                               seed = 32,
                               excl = c("EuroCOVIDhub-baseline",
@@ -191,39 +191,28 @@ leaveout_ensemble <- function(data,
   
   set.seed(seed)
   
-  #to obtain models that are above avail threshold and not in excl
-  getmodels <- function(data){
-    
-    models <- data |>
-      dplyr::filter(availability >= avail_threshold) |>
-      (\(x) unique(x$model))() |>
-      (\(x) x[-which(x %in% excl)])()
-    
-    #check if there are still ensembles
-    is_ensemble <- grepl(".*ensemble.*", models)
-    if(any(is_ensemble)){
-      warning(paste0("There seems to be at least one ensemble (\"" , 
-                     paste(models[is_ensemble], collapse = "\", \""), 
-                     "\") that is not in the list of excluded models. Is this intended?"))
-    }
-    
-    return(models)
-  }
-  
-  #make model list per country
+  #make model list per country (getmodels is a function in utils)
   per_loc <- split(data,
                    by = c("location", "target_type"))
-  models_per_loc <- lapply(per_loc, FUN = getmodels)
+  models_per_loc <- lapply(
+    per_loc,
+    function(locdat) getmodels(locdat,
+                               excl = excl,
+                               avail_threshold = avail_threshold)
+    )
   
+  
+  #get all targets, locations
   target_types <- unique(data$target_type)
   locs <- unique(data$location)
-  #locs_list <- c(list(locs), lapply(locs, function(x) c(x)))
-  #############***#########
-  #for now: only individual locations:
-  locs_list <- lapply(locs, function(x) c(x))
+  locs_list <- lapply(locs, function(x) c(x))  #only individual locations for now
+  
+  #append "all" to nmods (to compute reference scores with all models)
+  nmods <- c(lapply(nmods, function(x) c(x)), "all")
   
   #container for overall results
   result_table <- NULL
+  
   
   for (loc in locs_list){
     for (target in target_types){
@@ -231,9 +220,10 @@ leaveout_ensemble <- function(data,
         
         score_tabs <- list()
         for (i in 1:samples){
-          if (nmod == 100 | nmod == "all"){
+          
+          if (nmod == "all"){
             models <- models_per_loc[[paste0(loc, ".", target)]]
-            nmod <- "all"
+
           } else {
             models <- sample(models_per_loc[[paste0(loc, ".", target)]], 
                              nmod)
@@ -253,9 +243,6 @@ leaveout_ensemble <- function(data,
             dplyr::filter(model %in% c("median_ensemble",
                                        "mean_ensemble")) |>
             dplyr::mutate(nmod = nmod)
-          #location = loc_col,
-          #target_type = target,
-          #)
           
           #score resulting ensembles
           score_tabs[[i]] <- ensembles |>
@@ -274,12 +261,12 @@ leaveout_ensemble <- function(data,
           dplyr::ungroup() |>
           data.table::as.data.table()
         
+        #bind to all previous results
         result_table <- rbind(result_table, temp)
         
       }
-      
     }
   }
-  return(result_table)
   
+  return(result_table)
 }

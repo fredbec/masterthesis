@@ -59,3 +59,65 @@ model_availability <- function(data, alldat = TRUE){
   
 }
 
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' @import dplyr
+#' 
+#' @description 
+#'
+#' Helper function that returns models given excl and an availability threshold
+#' Also checks whether there still are ensembles in the data (this is because
+#' this function is typically used with an ensembling procedure, where ensemble
+#' models are not wanted as input)
+#' 
+#' @param data data (subset or full) from the European Forecast hub
+#' @param excl vector of models to be excluded
+#' @param incl vector of models to be included
+#' @param avail_threshold threshold of availability for model to be included
+#' 
+#' @return either a data.frame with only the models and their respective
+#'        availability, or the original data.table including and extra column
+#'        with the availability values of the respective models (the default)
+#'
+#'       
+
+
+getmodels <- function(data, 
+                      excl = c("EuroCOVIDhub-baseline",
+                               "EuroCOVIDhub-ensemble"),
+                      incl = NULL,
+                      avail_threshold = NULL){
+  
+  if(is.null(avail_threshold)){
+    avail_threshold <- 0
+  }
+  
+  if(!is.null(incl)){
+    models <- data |>
+      dplyr::filter(availability >= avail_threshold,
+                    model %in% incl) |>
+      (\(x) unique(x$model))() 
+    
+  } else if (!is.null(excl)){
+    models <- data |>
+      dplyr::filter(availability >= avail_threshold,
+                    !model %in% excl) |>
+      (\(x) unique(x$model))() 
+    
+  } else {
+    models <- data |>
+      dplyr::filter(availability >= avail_threshold) |>
+      (\(x) unique(x$model))() 
+  }
+  
+  #check if there are still ensembles
+  is_ensemble <- grepl(".*ensemble.*", models)
+  if(any(is_ensemble)){
+    warning(paste0("There seems to be at least one ensemble (\"" , 
+                   paste(models[is_ensemble], collapse = "\", \""), 
+                   "\") that is not in the list of excluded models. Is this intended?"))
+  }
+  
+  return(models)
+}
