@@ -2,9 +2,9 @@ library(scoringutils)
 library(here)
 library(ggplot2)
 library(gridExtra)
+library(masterthesis)
 
 source(here("code", "load_clean_data.R"))
-source(here("code", "fun_make_ensemble.R"))
 
 here::i_am("code/analy_ensemble.R")
 

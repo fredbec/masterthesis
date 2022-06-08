@@ -34,6 +34,8 @@ and the baseline)}
 \item{strat}{how to stratify, i.e. unit defining a single forecast}
 
 \item{extra_vars}{any extra (redundant) variables that should stay in the data}
+
+\item{verbose}{should feedback on used models be printed}
 }
 \value{
 a data.table object that contains the ensemble forecasts in addition to the

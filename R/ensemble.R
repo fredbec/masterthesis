@@ -17,6 +17,7 @@
 #' @param incl explicit list of models that should be included in the ensemble
 #' @param strat how to stratify, i.e. unit defining a single forecast
 #' @param extra_vars any extra (redundant) variables that should stay in the data
+#' @param verbose should feedback on used models be printed
 #' 
 #' @return 
 #' a data.table object that contains the ensemble forecasts in addition to the 
@@ -88,7 +89,7 @@ make_ensemble <- function(data,
     dplyr::group_by(across(all_of(strat))) |>
     dplyr::filter(model %in% models) |>
     dplyr::summarise(prediction = summary_function(prediction),
-                     tvsd = sd(true_value),
+                     tvsd = stats::sd(true_value),
                      true_value = mean(true_value), #this is not totally clean, so check further down
                      .groups = 'drop') |> 
     dplyr::mutate(model = model_name,

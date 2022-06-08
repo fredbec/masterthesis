@@ -2,7 +2,6 @@ library(data.table)
 library(dplyr)
 library(here)
 
-source(here("code", "fun_model_coverage.R"))
 
 here::i_am("code/load_clean_data.R")
 

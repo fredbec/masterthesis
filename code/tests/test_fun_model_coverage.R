@@ -1,7 +1,7 @@
 library(here)
+library(masterthesis)
 
 source(here("code", "load_clean_data.R"))
-source(here("code", "fun_model_coverage.R"))
 
 here::i_am("code/tests/test_fun_model_coverage.R")
 
