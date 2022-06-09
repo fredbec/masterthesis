@@ -17,7 +17,8 @@
 #' @param incl explicit list of models that should be included in the ensemble
 #' @param strat how to stratify, i.e. unit defining a single forecast
 #' @param extra_vars any extra (redundant) variables that should stay in the data
-#' @param verbose should feedback on used models be printed
+#' @param avail_threshold minimum availability for models to be included in 
+#'             the ensemble
 #' 
 #' @return 
 #' a data.table object that contains the ensemble forecasts in addition to the 
@@ -37,7 +38,7 @@ make_ensemble <- function(data,
                                     "horizon", "target_type"),
                           extra_vars = c("target_end_date", "n", 
                                          "population"),
-                          verbose = FALSE){
+                          avail_threshold = NULL){
   
   #extract function name to make model name
   if(is.null(model_name)){
@@ -53,20 +54,11 @@ make_ensemble <- function(data,
     excl <- c(excl, extra_excl)
   }
   
-  if(!is.null(incl)){
-    if(verbose){message("making ensemble based on supplied models")}
-    
-    models <- data |>
-      dplyr::filter(model %in% incl) |>
-      (\(x) unique(x$model))()
-    
-  } else {
-    if(verbose){message("making ensemble based on all but the excluded models")}
-    
-    models <- data |>
-      dplyr::filter(!(model %in% excl)) |>
-      (\(x) unique(x$model))()
-  }
+  models <- masterthesis::getmodels(data, 
+                                    excl = excl, 
+                                    incl = incl, 
+                                    avail_threshold = avail_threshold)
+  
   
   #check if any ensembles in models (this should in general not be so)
   is_ensemble <- grepl(".*ensemble.*", models)
