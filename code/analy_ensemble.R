@@ -5,13 +5,11 @@ library(gridExtra)
 library(masterthesis)
 
 source(here("code", "load_clean_data.R"))
+source(here("specs", "specs.R"))
 
 here::i_am("code/analy_ensemble.R")
 
-locs <- scan(here("specs", "locs.txt"), character(), sep = ",")
-
-cvg_threshold <- scan(here("specs", "cvg_threshold.txt"), numeric())
-
+locs <- specs$locs
 
 #make mean and median ensemble and score
 hub_data <- hub_data |>

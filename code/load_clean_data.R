@@ -5,8 +5,9 @@ library(here)
 
 here::i_am("code/load_clean_data.R")
 
-#load specs
-avail_threshold <- scan(here("specs", "avail_threshold.txt"), numeric())
+#read in specs
+source(here("specs", "specs.R"))
+
 
 hub_data <- rbindlist(
   list(
@@ -24,11 +25,9 @@ model_types <- read.csv(here("scraper", "metadata_extended.csv")) |>
 
 
 #read in filter values for locations and dates
-locs <-  scan(here("specs", "locs.txt"), 
-              character(), sep = ",")
+locs <- specs$locs
 
-dates <- scan(here("specs", "dates.txt"), 
-              character(), sep = ",") |>
+dates <- specs$dates |>
   as.Date() |>
   (\(x) seq.Date(x[1], x[2], by = 7))()
 
@@ -41,6 +40,4 @@ hub_data <- merge(hub_data, model_types,
 
 
 #remove some stuff from the workspace
-rm(list = c("model_types", "avail_threshold", 
-            "dates", "locs"))
-
+rm(list = c("model_types", "dates", "locs"))
