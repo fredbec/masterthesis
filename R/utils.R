@@ -121,3 +121,53 @@ getmodels <- function(data,
   
   return(models)
 }
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' @import dplyr
+#' 
+#' @description 
+#'
+#' Helper function that computes the discrete Wasserstein 2-metric
+#' 
+#' @param data data (subset or full) from the European Forecast hub
+#' 
+#' @return either a data.frame with only the models and their respective
+#'        availability, or the original data.table including and extra column
+#'        with the availability values of the respective models (the default)
+#'
+#'       
+
+wasserstein_dist <- function(data, strat = c("model", "location", "forecast_date",
+                                             "horizon", "target_type")){
+  
+  models <- unique(data$model)
+  
+  wstein_mat <- matrix(ncol = length(models),
+                       nrow = length(models),
+                       dimnames = list(models, models))
+  
+  model_combs <- combn(models, 2) |> t()
+  
+  for (i in 1:nrow(model_combs)){
+    w_val <- data |>
+      filter(model %in% model_combs[i,]) |>
+      select(forecast_date, quantile, model, prediction) |>
+      reshape(idvar = c("forecast_date", "quantile"), 
+              timevar = "model",
+              direction = "wide") |>
+      mutate(wstein = (get(paste0("prediction.", model_combs[i,1]))-
+                         get(paste0("prediction.", model_combs[i,2])))^2) |>
+      group_by(forecast_date) |>
+      summarise(wstein = sum(wstein)) |>
+      ungroup() |>
+      summarise(avg_wstein = mean(wstein)) |>
+      pull()
+    
+
+    wstein_mat[model_combs[i,1], model_combs[i,2]] <- w_val
+  }
+
+  return(wstein_mat)  
+}
