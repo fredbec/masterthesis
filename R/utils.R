@@ -132,6 +132,8 @@ getmodels <- function(data,
 #' Helper function that computes the discrete Wasserstein 2-metric
 #' 
 #' @param data data (subset or full) from the European Forecast hub
+#' @param avail_threshold minimum availability for a model to be considered
+#' @param excl models to exclude from the calculation
 #' 
 #' @return either a data.frame with only the models and their respective
 #'        availability, or the original data.table including and extra column
@@ -139,35 +141,81 @@ getmodels <- function(data,
 #'
 #'       
 
-wasserstein_dist <- function(data, strat = c("model", "location", "forecast_date",
-                                             "horizon", "target_type")){
+wasserstein_dist <- function(data, avail_threshold,
+                             excl = c("EuroCOVIDhub-baseline",
+                                      "EuroCOVIDhub-ensemble")){
   
+  #remove models that are excluded or don't meet availability threshold
+  data <- data |>
+    filter(!model %in% excl,
+           availability >= avail_threshold)
+  
+  locs <- unique(data$location)
+  targets <- unique(data$target_type)
   models <- unique(data$model)
   
-  wstein_mat <- matrix(ncol = length(models),
-                       nrow = length(models),
-                       dimnames = list(models, models))
   
-  model_combs <- combn(models, 2) |> t()
+  #fill a list with a matrix for each combination of location and target_type
+  # column of each matrix are the models, rows are the forecast dates
+  list_names <- paste(rep(locs, each = length(targets)),
+                      targets, sep = ".")
   
-  for (i in 1:nrow(model_combs)){
-    w_val <- data |>
-      filter(model %in% model_combs[i,]) |>
-      select(forecast_date, quantile, model, prediction) |>
-      reshape(idvar = c("forecast_date", "quantile"), 
-              timevar = "model",
-              direction = "wide") |>
-      mutate(wstein = (get(paste0("prediction.", model_combs[i,1]))-
-                         get(paste0("prediction.", model_combs[i,2])))^2) |>
-      group_by(forecast_date) |>
-      summarise(wstein = sum(wstein)) |>
-      ungroup() |>
-      summarise(avg_wstein = mean(wstein)) |>
-      pull()
+  model_matrices <- vector(mode = "list", 
+                           length = length(list_names))
+  names(model_matrices) <- list_names
+  
+  #each list element is the same initial matrix
+  model_matrices <- lapply(model_matrices, function(x) 
+    matrix(ncol = length(models),
+           nrow = length(models),
+           dimnames = list(models, models)
+           ))
+  
+  
+  #loop over each combination of target and location
+  for (comb in names(model_matrices)){ 
+    #split up combination of location and target
+    filters <- strsplit(comb, split = "[.]")[[1]]
     
-
-    wstein_mat[model_combs[i,1], model_combs[i,2]] <- w_val
+    subdat <- data |>
+      dplyr::filter(location == filters[1],
+                    target_type == filters[2])
+    
+    model_combs <- combn(unique(subdat$model), 2) |> t()
+    
+    for (i in 1:nrow(model_combs)){
+      
+      #for easier readability in pipe
+      #these are the column names for the 2 models' preds after reshape
+      mod1 <- paste0("prediction.", model_combs[i,1])
+      mod2 <- paste0("prediction.", model_combs[i,2])
+      
+      w_val <- subdat |>
+        dplyr::filter(model %in% model_combs[i,]) |> #get two relevant models
+        dplyr::select(forecast_date, quantile, horizon, 
+                      model, prediction) |>
+        #reshape such that each models' prediction are own column
+        reshape(idvar = c("forecast_date", "quantile", "horizon"), 
+                timevar = "model",
+                direction = "wide") |>
+        #compute wasserstein 2-metric
+        dplyr::mutate(wstein = (get(mod1) - get(mod2))^2) |>
+        #sum over all quantiles for one forecast_date
+        dplyr::group_by(forecast_date, horizon) |>
+        dplyr::summarise(wstein = sum(wstein)) |>
+        dplyr::ungroup() |>
+        #take average over all quantiles and forecast_dates
+        dplyr::summarise(avg_wstein = mean(wstein, na.rm = TRUE)) |>
+        dplyr::pull()
+      
+      model_matrices[[comb]][model_combs[i,1], model_combs[i,2]] <- w_val
+    }
+    
+    #remove models with no predictions for each target-location 
+    model_matrices[[comb]] <- 
+      model_matrices[[comb]][unique(subdat$model), 
+                             unique(subdat$model)]
   }
 
-  return(wstein_mat)  
+  return(model_matrices)  
 }
