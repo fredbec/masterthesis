@@ -3,7 +3,7 @@ library(masterthesis)
 
 source(here("code", "load_clean_data.R"))
 
-here::i_am("tests/testthat/test_fun_model_coverage.R")
+here::i_am("tests/testthat/test-model_availability.R")
 
 hub_avail <- hub_data
 

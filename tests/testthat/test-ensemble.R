@@ -3,7 +3,7 @@ library(masterthesis)
 
 source(here("code", "load_clean_data.R"))
 
-here::i_am("tests/testthat/test_fun_make_ensemble.R")
+here::i_am("tests/testthat/test-ensemble.R")
 
 #compare results using only germany and ensemble using all countries
 #and filtering germany after --> should get same result
