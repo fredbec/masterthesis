@@ -1,0 +1,44 @@
+\input{preambel.tex}
+\input{acronyms.tex}
+
+\begin{document}
+
+
+
+%----------------------------------------------------------------------------------------
+%	HEADING TITLE AND OTHER STUFF
+%----------------------------------------------------------------------------------------
+
+%\textsc{Georg-August Universität Göttingen}\\[1.5cm] % Name of your university/college
+\input{titlepage.tex}
+
+% TOC
+\tableofcontents
+
+\pagenumbering{Roman}
+\clearpage
+
+% List of...
+\listoffigures
+\clearpage
+
+
+% Acronyms
+\printacronyms
+\clearpage
+
+
+\pagenumbering{arabic}
+
+%----------------------------------------------------------------------------------------
+%	ACTUAL TEXT BEGINS
+%----------------------------------------------------------------------------------------
+
+
+\normalsize
+\vspace{2cm}
+\section{Introduction}
+\input{introduction.tex}
+\bibliography{references}
+\bibliographystyle{plainnat}
+\end{document}
