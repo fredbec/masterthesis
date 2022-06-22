@@ -209,6 +209,7 @@ model_dist <- function(data, avail_threshold,
           get(mod1), get(mod2), quantile
         )) |>
         dplyr::ungroup() |>
+        dplyr::summarise(dist = mean(ddist)) |>
         #take average over all quantiles and forecast_dates
         dplyr::summarise(avg_dist = mean(dist)) |>
         dplyr::pull()
