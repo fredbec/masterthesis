@@ -141,13 +141,15 @@ getmodels <- function(data,
 #'
 #'       
 
-model_dist <- function(data, avail_threshold,
+model_dist <- function(data, 
+                       avail_threshold,
+                       avail_overlap_threshold,
                        dist_fun, 
                        excl = c("EuroCOVIDhub-baseline",
                                 "EuroCOVIDhub-ensemble"),
                        normalize = FALSE
                        ){
-  
+   
   #remove models that are excluded or don't meet availability threshold
   data <- data |>
     filter(!model %in% excl,
@@ -157,6 +159,12 @@ model_dist <- function(data, avail_threshold,
   targets <- unique(data$target_type)
   models <- unique(data$model)
   
+  n_obs <- data |>
+    select(forecast_date, quantile, horizon) |>
+    distinct() |>
+    nrow()
+  
+  print(n_obs)
   
   #fill a list with a matrix for each combination of location and target_type
   # column of each matrix are the models, rows are the forecast dates
@@ -192,8 +200,8 @@ model_dist <- function(data, avail_threshold,
       #these are the column names for the 2 models' preds after reshape
       mod1 <- paste0("prediction.", model_combs[i,1])
       mod2 <- paste0("prediction.", model_combs[i,2])
-      
-      w_val <- subdat |>
+
+      model_comb_dat <- subdat |>
         dplyr::filter(model %in% model_combs[i,]) |> #get two relevant models
         dplyr::select(forecast_date, quantile, horizon, 
                       model, prediction) |>
@@ -201,20 +209,39 @@ model_dist <- function(data, avail_threshold,
         reshape(idvar = c("forecast_date", "quantile", "horizon"), 
                 timevar = "model",
                 direction = "wide") |>
-        filter(!is.na(get(mod1)),
-               !is.na(get(mod2))) |>
-        dplyr::group_by(forecast_date, horizon) |>
-        #compute distance metric
-        dplyr::summarise(dist = dist_fun(
-          get(mod1), get(mod2), quantile
-        )) |>
-        dplyr::ungroup() |>
-        dplyr::summarise(dist = mean(ddist)) |>
-        #take average over all quantiles and forecast_dates
-        dplyr::summarise(avg_dist = mean(dist)) |>
-        dplyr::pull()
+        #check for overall overlap in model availability
+        mutate(both_avail = as.numeric(!is.na(get(mod1))&
+                                         !is.na(get(mod2))))
+      
+      
+      avail_overlap <- model_comb_dat |>
+        summarise(overlap = mean(both_avail) * (n() / n_obs)) |>
+        pull()
+      
+      if(avail_overlap < avail_overlap_threshold){
+        model_matrices[[comb]][model_combs[i,1], 
+                               model_combs[i,2]] <- NA
 
-      model_matrices[[comb]][model_combs[i,1], model_combs[i,2]] <- w_val
+      } else {
+        dist_val <- model_comb_dat |>
+          filter(!is.na(get(mod1)),
+                 !is.na(get(mod2))) |>
+          dplyr::group_by(forecast_date, horizon) |>
+          #compute distance metric
+          dplyr::summarise(dist = dist_fun(
+            get(mod1), get(mod2), quantile
+          )) |>
+          dplyr::ungroup() |>
+          #dplyr::summarise(dist = mean(ddist)) |>
+          #take average over all quantiles and forecast_dates
+          dplyr::summarise(avg_dist = mean(dist)) |>
+          dplyr::pull()
+        
+        model_matrices[[comb]][model_combs[i,1], 
+                               model_combs[i,2]] <- dist_val
+        
+      }
+
     }
     
     #return(model_matrices[[comb]])
