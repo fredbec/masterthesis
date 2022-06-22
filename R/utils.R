@@ -141,9 +141,12 @@ getmodels <- function(data,
 #'
 #'       
 
-wasserstein_dist <- function(data, avail_threshold,
-                             excl = c("EuroCOVIDhub-baseline",
-                                      "EuroCOVIDhub-ensemble")){
+model_dist <- function(data, avail_threshold,
+                       dist_fun, 
+                       excl = c("EuroCOVIDhub-baseline",
+                                "EuroCOVIDhub-ensemble"),
+                       normalize = FALSE
+                       ){
   
   #remove models that are excluded or don't meet availability threshold
   data <- data |>
@@ -198,24 +201,116 @@ wasserstein_dist <- function(data, avail_threshold,
         reshape(idvar = c("forecast_date", "quantile", "horizon"), 
                 timevar = "model",
                 direction = "wide") |>
-        #compute wasserstein 2-metric
-        dplyr::mutate(wstein = (get(mod1) - get(mod2))^2) |>
-        #sum over all quantiles for one forecast_date
+        filter(!is.na(get(mod1)),
+               !is.na(get(mod2))) |>
         dplyr::group_by(forecast_date, horizon) |>
-        dplyr::summarise(wstein = sum(wstein)) |>
+        #compute distance metric
+        dplyr::summarise(dist = dist_fun(
+          get(mod1), get(mod2), quantile
+        )) |>
         dplyr::ungroup() |>
         #take average over all quantiles and forecast_dates
-        dplyr::summarise(avg_wstein = mean(wstein, na.rm = TRUE)) |>
+        dplyr::summarise(avg_dist = mean(dist)) |>
         dplyr::pull()
-      
+
       model_matrices[[comb]][model_combs[i,1], model_combs[i,2]] <- w_val
     }
     
+    #return(model_matrices[[comb]])
     #remove models with no predictions for each target-location 
     model_matrices[[comb]] <- 
       model_matrices[[comb]][unique(subdat$model), 
                              unique(subdat$model)]
+    
+    if (normalize){
+      maxval <- max(model_matrices[[comb]], na.rm = TRUE)
+      model_matrices[[comb]] <- 
+        model_matrices[[comb]] / maxval
+      
+    }
   }
-
   return(model_matrices)  
 }
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' @import dplyr
+#' 
+#' @description 
+#'
+#' @param q_F quantiles of distribution F
+#' @param q_G quantiles of distribution G
+#' @param tau quantile levels of F and G
+#' 
+#' @return Wasserstein distance 
+#'       
+       
+wasserstein_dist <- function(q_F, q_G, tau){
+  return(sum(q_F-q_G)^2)
+}
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @description 
+#'
+#' Function to compute the Cramer distance. 
+#' Minimally adapted from: https://github.com/reichlab/covidHubUtils/blob/master/R/calc_cramers_dist_unequal_space.R
+#' 
+#' @param q_F quantiles of distribution F
+#' @param q_G quantiles of distribution G
+#' @param tau quantile levels of F and G
+#' 
+#' @return Cramer distance ()
+#'       
+
+cramers_dist <- function(q_F , q_G, tau) {
+    # check rules
+    # check quantile order
+    q_F_ordered <- sort(q_F)
+    q_G_ordered <- sort(q_G)
+    
+    if (sum(q_F != q_F_ordered)>0) {
+      warning("q_F has been re-ordered to correspond to increasing probability levels")
+    }
+    if (sum(q_G != q_G_ordered)>0) {
+      warning("q_G has been re-ordered to correspond to increasing probability levels")
+    }
+    # check probability level order
+    tau_ordered <- sort(tau)
+    if (sum(tau != tau_ordered)>0) {
+      warning("tau has been sorted to in an increasing order")
+    }
+    
+    # check conditions
+    if (length(q_F_ordered) != length(tau_ordered)) {
+      print(paste("the lengths of q_F", length(q_F_ordered), "and tau", length(tau_ordered)))
+      stop("The lengths of q_F_ordered and tau_ordered need to be equal")
+    }
+    if (length(q_G_ordered) != length(tau_ordered)) {
+      stop("The lengths of q_G_ordered and tau_ordered need to be equal")
+    }
+    if (sum(tau_ordered<=1)!=length(tau_ordered)|sum(tau_ordered>=0)!=length(tau_ordered)) {
+      stop("The values of tau_ordered have to be between 0 and 1")
+    }
+    if (length(q_F_ordered) != length(q_G_ordered)) {
+      message("The lengths of q_F_ordered and q_G_ordered are not equal")
+    }
+    N <- length(q_F_ordered)
+    M <- length(q_G_ordered)
+    # pool quantiles:
+    q0 <- c(q_F_ordered, q_G_ordered)
+    # indicator whether the entry is from F or G
+    q <- q0[order(q0)]
+    tf <- unlist(sapply(q, function(x) ifelse(x %in% q_F_ordered,tau_ordered[which(x == q_F_ordered)],0)))
+    tg <- unlist(sapply(q, function(x) ifelse(x %in% q_G_ordered,tau_ordered[which(x == q_G_ordered)],0)))
+    diffs_q <- diff(q)
+    # probability level vectors
+    tau_F_v <- cummax(tf)
+    tau_G_v <- cummax(tg)
+    
+    cvm <-
+      sum(((tau_F_v[1:(N + M) - 1] - tau_G_v[1:(N + M) - 1]) ^ 2) * diffs_q)
+    
+    return(cvm)
+  }
