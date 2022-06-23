@@ -270,3 +270,134 @@ leaveout_ensemble <- function(data,
   
   return(result_table)
 }
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' @import dplyr
+#' @import scoringutils
+#' 
+#' @description 
+#' Assesses ensemble performance when leaving out models that are too similar
+#' 
+#'
+#' @param data data (subset or full) from the European Forecast hub
+#' @param avail_threshold mini
+#' @param avail_overlap_thresh minimum overlap availability for pair of models 
+#'          to be considered in distance calculation
+#' @param nmods number of models that should be kicked out
+#' @param model_dists optional; precalculated distance matrix (will be computed
+#'          if none is passed)
+#' @param dist_fun which distance function to use
+#' @param excl which models should be excluded from the ensemble experiment
+
+#' @export
+#' 
+
+model_similarity_kickout <- function(data, 
+                                     avail_threshold,
+                                     avail_overlap_threshold,
+                                     nmods,
+                                     model_dists = NULL,
+                                     dist_fun = cramers_dist,
+                                     excl = c("EuroCOVIDhub-baseline",
+                                              "EuroCOVIDhub-ensemble")){
+  
+  data <- data |>
+    filter(!model %in% excl,
+           availability >= avail_threshold)
+  
+  targets <- unique(data$target_type)
+  locs <- unique(data$location)
+  
+  
+  if(is.null(model_dists)){
+    model_dists <- model_dist(data, 
+                              avail_threshold, 
+                              avail_overlap_threshold,
+                              dist_fun)
+  }
+  
+  #result container
+  result_table <- NULL
+  
+  for (loc in locs){
+    for (target in targets){
+      
+      #print(paste0(loc, ".", target))
+      
+      #access model dist matrix
+      dist_matrix <- model_dists[[paste0(loc, ".", target)]]
+
+      subdat <- data |>
+        filter(location == loc,
+               target_type == target)
+  
+      for (nmod in 0:nmods){
+        
+        if(nmod > 0){
+          
+          #get pair of models with minimum distance
+          model_inds <- which(
+            dist_matrix == min(dist_matrix, na.rm = TRUE),
+            arr.ind = TRUE)[,1]
+        
+          #get sum of distance models have with others
+          mod1_overall_dist <- sum(dist_matrix[model_inds[1],], na.rm = TRUE)
+          mod2_overall_dist <- sum(dist_matrix[model_inds[2],], na.rm = TRUE)
+          
+          mod1 <- rownames(dist_matrix)[model_inds[1]]
+          mod2 <- colnames(dist_matrix)[model_inds[2]]
+          
+          if(mod1_overall_dist < mod2_overall_dist){
+            mod_kick <- mod1
+            mod_kick_ind <- model_inds[1]
+          } else {
+            mod_kick <- mod2
+            mod_kick_ind <- model_inds[2]
+            
+          }
+          
+          #print("ind for model kick is ")
+          #print(mod_kick_ind)
+          #eliminate corresponding row and column
+          dist_matrix[mod_kick_ind,] <- NA
+          dist_matrix[,mod_kick_ind] <- NA
+          
+
+        } else {
+          mod_kick <- NULL
+        }
+        
+        #print("model to kick is")
+        #print(mod_kick)
+        result_table <- make_ensemble(data, extra_excl = mod_kick) |>
+          make_ensemble(summary_function = mean,
+                        extra_excl = c(mod_kick, "median_ensemble")) |>
+          mutate(nmod = nmod) |>
+          filter(model %in% c("median_ensemble", 
+                              "mean_ensemble")) |>
+          scoringutils::score() |>
+          scoringutils::summarise_scores(by = c("model", "target_type", 
+                                                "location", "nmod",
+                                                "horizon")) |>
+          rbind(result_table)
+        
+          
+          
+        
+        
+        
+    
+        
+        #backdrop of random model kickout to gauge how effective kicking out model based on sim. is
+        #two version: by pairwise elimination vs. sum of distances
+        #analyze disagreement btw models kicked out for cases, deaths
+        
+        #judge by sum of other distances
+        
+      }
+    }
+  }
+  return(result_table)
+  
+}

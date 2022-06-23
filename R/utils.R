@@ -147,7 +147,8 @@ model_dist <- function(data,
                        dist_fun, 
                        excl = c("EuroCOVIDhub-baseline",
                                 "EuroCOVIDhub-ensemble"),
-                       normalize = FALSE
+                       normalize = FALSE,
+                       return_symmetric = TRUE
                        ){
    
   #remove models that are excluded or don't meet availability threshold
@@ -163,8 +164,6 @@ model_dist <- function(data,
     select(forecast_date, quantile, horizon) |>
     distinct() |>
     nrow()
-  
-  print(n_obs)
   
   #fill a list with a matrix for each combination of location and target_type
   # column of each matrix are the models, rows are the forecast dates
@@ -255,6 +254,12 @@ model_dist <- function(data,
       model_matrices[[comb]] <- 
         model_matrices[[comb]] / maxval
       
+    }
+    
+    #fill lower triangular with upper triangular values for symmetric matrix
+    if (return_symmetric){
+      model_matrices[[comb]][lower.tri(model_matrices[[comb]])] <- 
+        t(model_matrices[[comb]])[lower.tri(model_matrices[[comb]])]
     }
   }
   return(model_matrices)  
