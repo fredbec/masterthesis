@@ -13,7 +13,7 @@ make_ensemble(
   incl = NULL,
   strat = c("location", "forecast_date", "quantile", "horizon", "target_type"),
   extra_vars = c("target_end_date", "n", "population"),
-  verbose = FALSE
+  avail_threshold = NULL
 )
 }
 \arguments{
@@ -35,7 +35,8 @@ and the baseline)}
 
 \item{extra_vars}{any extra (redundant) variables that should stay in the data}
 
-\item{verbose}{should feedback on used models be printed}
+\item{avail_threshold}{minimum availability for models to be included in
+the ensemble}
 }
 \value{
 a data.table object that contains the ensemble forecasts in addition to the

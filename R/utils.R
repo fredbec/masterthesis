@@ -80,7 +80,7 @@ model_availability <- function(data, alldat = TRUE){
 #'        availability, or the original data.table including and extra column
 #'        with the availability values of the respective models (the default)
 #'
-#'       
+#' @export 
 
 
 getmodels <- function(data, 
@@ -129,7 +129,9 @@ getmodels <- function(data,
 #' 
 #' @description 
 #'
-#' Helper function that computes the discrete Wasserstein 2-metric
+#' Helper function that computes a distance measure for each pair of models
+#' in the European Forecast Hub (a forecast in the Hub is distributional
+#' and is comprised of a discrete set of 23 forecast quantiles)
 #' 
 #' @param data data (subset or full) from the European Forecast hub
 #' @param avail_threshold minimum availability for a model to be considered
@@ -138,8 +140,8 @@ getmodels <- function(data,
 #' @return either a data.frame with only the models and their respective
 #'        availability, or the original data.table including and extra column
 #'        with the availability values of the respective models (the default)
-#'
-#'       
+
+#' @export
 
 model_dist <- function(data, 
                        avail_threshold,
@@ -231,7 +233,6 @@ model_dist <- function(data,
             get(mod1), get(mod2), quantile
           )) |>
           dplyr::ungroup() |>
-          #dplyr::summarise(dist = mean(ddist)) |>
           #take average over all quantiles and forecast_dates
           dplyr::summarise(avg_dist = mean(dist)) |>
           dplyr::pull()
@@ -266,17 +267,21 @@ model_dist <- function(data,
 }
 
 
+
+ 
 #' @title COVID-19 Forecast Hub ensemble and model structure analysis
 #' @import dplyr
 #' 
-#' @description 
+#' @description Helper function to compute the Wasserstein 2 metric
+#'         for discrete quantiles
 #'
 #' @param q_F quantiles of distribution F
 #' @param q_G quantiles of distribution G
 #' @param tau quantile levels of F and G
 #' 
 #' @return Wasserstein distance 
-#'       
+ 
+#' @export       
        
 wasserstein_dist <- function(q_F, q_G, tau){
   return(sum(q_F-q_G)^2)
@@ -285,9 +290,7 @@ wasserstein_dist <- function(q_F, q_G, tau){
 
 #' @title COVID-19 Forecast Hub ensemble and model structure analysis
 #' 
-#' @description 
-#'
-#' Function to compute the Cramer distance. 
+#' @description Helper function to compute the Cramer distance. 
 #' Minimally adapted from: https://github.com/reichlab/covidHubUtils/blob/master/R/calc_cramers_dist_unequal_space.R
 #' 
 #' @param q_F quantiles of distribution F
@@ -295,7 +298,9 @@ wasserstein_dist <- function(q_F, q_G, tau){
 #' @param tau quantile levels of F and G
 #' 
 #' @return Cramer distance ()
-#'       
+
+#' @export       
+
 
 cramers_dist <- function(q_F , q_G, tau) {
     # check rules

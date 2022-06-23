@@ -7,7 +7,7 @@
 leaveout_ensemble(
   data,
   avail_threshold,
-  nmods = c(5, 6, 7, 8, 100),
+  nmods = c(5, 6, 7, 8),
   samples = 100,
   seed = 32,
   excl = c("EuroCOVIDhub-baseline", "EuroCOVIDhub-ensemble")
