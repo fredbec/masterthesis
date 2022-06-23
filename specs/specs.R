@@ -5,8 +5,17 @@ avail_threshold <- 0.35
 locs <- c("DE", "PL", "GB", "FR", "CZ")
 
 
+
+########## model_similarity_kickout#########
+model_similarity_kickout_avail_threshold <- 0.5
+model_similarity_kickout_avail_overlap_threshold <- 0.35
+model_similarity_kickout_dist_fun <- cramers_dist
+
 specs <- list(dates = dates,
               avail_threshold = avail_threshold,
-              locs = locs)
+              locs = locs,
+              model_similarity_kickout_avail_threshold = model_similarity_kickout_avail_threshold,
+              model_similarity_kickout_avail_overlap_threshold = model_similarity_kickout_avail_overlap_threshold,
+              model_similarity_kickout_dist_fun = model_similarity_kickout_dist_fun)
 
-rm(dates, avail_threshold, locs)
+rm(dates, avail_threshold, locs, model_similarity_kickout_avail_threshold, model_similarity_kickout_avail_overlap_threshold, model_similarity_kickout_dist_fun)
