@@ -329,9 +329,9 @@ model_similarity_kickout <- function(data,
       dist_matrix <- model_dists[[paste0(loc, ".", target)]]
 
       subdat <- data |>
-        filter(location == loc,
-               target_type == target)
-  
+        dplyr::filter(location == loc,
+                      target_type == target)
+      mod_kick <- NULL
       for (nmod in 0:nmods){
         
         if(nmod > 0){
@@ -349,14 +349,15 @@ model_similarity_kickout <- function(data,
           mod2 <- colnames(dist_matrix)[model_inds[2]]
           
           if(mod1_overall_dist < mod2_overall_dist){
-            mod_kick <- mod1
+            mod_kick <- c(mod_kick, mod1)
             mod_kick_ind <- model_inds[1]
           } else {
-            mod_kick <- mod2
+            mod_kick <- c(mod_kick, mod2)
             mod_kick_ind <- model_inds[2]
             
           }
           
+
           #print("ind for model kick is ")
           #print(mod_kick_ind)
           #eliminate corresponding row and column
@@ -364,18 +365,20 @@ model_similarity_kickout <- function(data,
           dist_matrix[,mod_kick_ind] <- NA
           
 
-        } else {
-          mod_kick <- NULL
         }
         
         #print("model to kick is")
         #print(mod_kick)
-        result_table <- make_ensemble(data, extra_excl = mod_kick) |>
+        
+        ##!!!!!!!!!!!!!!!!!Only one model is kicked here !!!!!!!!!!!!!!
+        #!!!!!!!!!!!!!!!! FIX IT !!!!!!!!!!!!
+        result_table <- make_ensemble(data, 
+                                      extra_excl = mod_kick) |>
           make_ensemble(summary_function = mean,
                         extra_excl = c(mod_kick, "median_ensemble")) |>
-          mutate(nmod = nmod) |>
-          filter(model %in% c("median_ensemble", 
-                              "mean_ensemble")) |>
+          dplyr::mutate(nmod = nmod) |>
+          dplyr::filter(model %in% c("median_ensemble",
+                                     "mean_ensemble")) |>
           scoringutils::score() |>
           scoringutils::summarise_scores(by = c("model", "target_type", 
                                                 "location", "nmod",
@@ -400,4 +403,129 @@ model_similarity_kickout <- function(data,
   }
   return(result_table)
   
+}
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' @import dplyr
+#' @import scoringutils
+#' 
+#' @description 
+#' Assesses ensemble performance by iteratively sampling given numbers of 
+#' model for the (mean/median) ensemble 
+#' 
+#'
+#' @param data data (subset or full) from the European Forecast hub
+#' @param avail_threshold minimum availability for models to be considered in the
+#'            sampling process 
+#' @param nmods number of models that should be sampled for each step
+#' @param samples how many random samples of models to draw 
+#' @param seed random seed for sampling
+#' @param excl which models should be excluded from the ensemble experiment
+
+#' @export
+
+
+kickout_ensemble <- function(data,
+                             avail_threshold, 
+                             nmods,
+                             samples,
+                             seed,
+                             excl = c("EuroCOVIDhub-baseline",
+                                      "EuroCOVIDhub-ensemble")){
+  
+  set.seed(seed)
+  
+  data <- data |>
+    dplyr::filter(!model %in% excl,
+                  availability >= avail_threshold)
+  
+  
+  #make model list per country (getmodels is a function in utils)
+  per_loc <- split(data,
+                   by = c("location", "target_type"))
+  
+  
+  #get all targets, locations
+  target_types <- unique(data$target_type)
+  locs <- unique(data$location)
+  locs_list <- lapply(locs, function(x) c(x))  #only individual locations for now
+  
+
+  #container for overall results
+  result_table <- NULL
+  
+  
+  for (nmod in nmods){
+    
+    score_tabs <- vector("list", samples)
+    
+    print(paste("nmod is", nmod))
+    for(i in 1:samples){
+      
+      if(i == 25){
+        print("halfway")
+      }
+      
+      #sample nmod models to randomly kick from ensemble
+      model_kick <- data |> 
+        dplyr::select(model, target_type, 
+                      location, forecast_date) |>
+        dplyr::distinct() |>
+        dplyr::group_by(forecast_date, 
+                        target_type, 
+                        location) |>
+        dplyr::slice_sample(n = nmod) |>
+        #identifier column for models to be kicked out after merging
+        dplyr::mutate(kickout = 1) |>
+        dplyr::arrange(forecast_date, location, target_type)
+      
+      
+      #merge with original data to obtain set of models for ensemble, 
+      #then make ensemble
+      ensembles <- data |>
+        dplyr::left_join(model_kick, 
+                         by = c("model", "target_type",
+                                "location", "forecast_date")) |>
+        #only keep those instances of models-target-loc combination
+        #that are not in model kick
+        dplyr::filter(is.na(kickout)) |>
+        dplyr::select(-kickout) |>
+        make_ensemble(summary_function = median) |>
+        make_ensemble(summary_function = mean, 
+                      extra_excl = "median_ensemble") |>
+        dplyr::filter(model %in% c("mean_ensemble",
+                                   "median_ensemble")) |>
+        dplyr::mutate(nmod = nmod)
+      
+      print(unique(ensembles$location))
+      #score current ensembles
+      score_tabs[[i]] <- ensembles |>
+        scoringutils::score() |>
+        scoringutils::summarise_scores(
+          by = c("model", "target_type",
+                 "location", "nmod")) |>
+        mutate(sample_id = i)
+      
+    }
+    
+    #average over score tabs and bind to data.table with unaveraged
+    #individual samples
+    temp <- data.table::rbindlist(score_tabs) |>
+      dplyr::group_by(model, target_type, 
+                      location, nmod) |>
+      dplyr::summarise_all(mean) |>
+      dplyr::ungroup() |>
+      data.table::as.data.table() |>
+      mutate(sample_id = "avg") |>
+      #bind to table with individual samples
+      rbind(data.table::rbindlist(score_tabs))
+    
+    
+    #bind to all previous results
+    result_table <- rbind(result_table, temp)
+  }
+  
+  return(result_table)
 }
