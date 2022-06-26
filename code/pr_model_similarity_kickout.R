@@ -1,4 +1,4 @@
-##run on 23 June
+##run on 26 June
 library(masterthesis)
 library(here)
 
@@ -10,6 +10,8 @@ avail_threshold <- specs$model_similarity_kickout_avail_threshold
 avail_overlap_threshold <- specs$model_similarity_kickout_avail_overlap_threshold
 dist_fun <- specs$model_similarity_kickout_dist_fun
 max_nmods <- specs$model_similarity_kickout_max_nmods
+nmods <- specs$model_similarity_kickout_nmods
+
 samples <- specs$model_similarity_kickout_number_random_samples
 seed <- specs$model_similarity_kickout_random_seed
 

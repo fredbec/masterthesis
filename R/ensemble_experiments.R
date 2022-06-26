@@ -331,7 +331,7 @@ model_similarity_kickout <- function(data,
         dplyr::filter(location == loc,
                       target_type == target)
       mod_kick <- NULL
-      for (nmod in 0:nmods){
+      for (nmod in 0:max_nmods){
         
         if(nmod > 0){
           

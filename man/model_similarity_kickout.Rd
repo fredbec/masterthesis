@@ -8,7 +8,7 @@ model_similarity_kickout(
   data,
   avail_threshold,
   avail_overlap_threshold,
-  nmods,
+  max_nmods,
   model_dists = NULL,
   dist_fun = cramers_dist,
   excl = c("EuroCOVIDhub-baseline", "EuroCOVIDhub-ensemble")
@@ -19,7 +19,8 @@ model_similarity_kickout(
 
 \item{avail_threshold}{mini}
 
-\item{nmods}{number of models that should be kicked out}
+\item{max_nmods}{maximum number of models that should be kicked out (all numbers
+lower as this will also be iterated through)}
 
 \item{model_dists}{optional; precalculated distance matrix (will be computed
 if none is passed)}
