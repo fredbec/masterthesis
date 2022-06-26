@@ -284,7 +284,8 @@ leaveout_ensemble <- function(data,
 #' @param avail_threshold mini
 #' @param avail_overlap_thresh minimum overlap availability for pair of models 
 #'          to be considered in distance calculation
-#' @param nmods number of models that should be kicked out
+#' @param max_nmods maximum number of models that should be kicked out (all numbers
+#'          lower as this will also be iterated through)
 #' @param model_dists optional; precalculated distance matrix (will be computed
 #'          if none is passed)
 #' @param dist_fun which distance function to use
@@ -296,7 +297,7 @@ leaveout_ensemble <- function(data,
 model_similarity_kickout <- function(data, 
                                      avail_threshold,
                                      avail_overlap_threshold,
-                                     nmods,
+                                     max_nmods,
                                      model_dists = NULL,
                                      dist_fun = cramers_dist,
                                      excl = c("EuroCOVIDhub-baseline",
@@ -322,8 +323,6 @@ model_similarity_kickout <- function(data,
   
   for (loc in locs){
     for (target in targets){
-      
-      #print(paste0(loc, ".", target))
       
       #access model dist matrix
       dist_matrix <- model_dists[[paste0(loc, ".", target)]]
@@ -358,8 +357,6 @@ model_similarity_kickout <- function(data,
           }
           
 
-          #print("ind for model kick is ")
-          #print(mod_kick_ind)
           #eliminate corresponding row and column
           dist_matrix[mod_kick_ind,] <- NA
           dist_matrix[,mod_kick_ind] <- NA
@@ -367,12 +364,8 @@ model_similarity_kickout <- function(data,
 
         }
         
-        #print("model to kick is")
-        #print(mod_kick)
         
-        ##!!!!!!!!!!!!!!!!!Only one model is kicked here !!!!!!!!!!!!!!
-        #!!!!!!!!!!!!!!!! FIX IT !!!!!!!!!!!!
-        result_table <- make_ensemble(data, 
+        result_table <- make_ensemble(subdat, 
                                       extra_excl = mod_kick) |>
           make_ensemble(summary_function = mean,
                         extra_excl = c(mod_kick, "median_ensemble")) |>
@@ -384,12 +377,6 @@ model_similarity_kickout <- function(data,
                                                 "location", "nmod",
                                                 "horizon")) |>
           rbind(result_table)
-        
-          
-          
-        
-        
-        
     
         
         #backdrop of random model kickout to gauge how effective kicking out model based on sim. is
@@ -461,12 +448,8 @@ kickout_ensemble <- function(data,
     
     score_tabs <- vector("list", samples)
     
-    print(paste("nmod is", nmod))
     for(i in 1:samples){
       
-      if(i == 25){
-        print("halfway")
-      }
       
       #sample nmod models to randomly kick from ensemble
       model_kick <- data |> 
@@ -499,7 +482,6 @@ kickout_ensemble <- function(data,
                                    "median_ensemble")) |>
         dplyr::mutate(nmod = nmod)
       
-      print(unique(ensembles$location))
       #score current ensembles
       score_tabs[[i]] <- ensembles |>
         scoringutils::score() |>

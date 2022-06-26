@@ -9,7 +9,7 @@ source(here("code", "load_clean_data.R"))
 avail_threshold <- specs$model_similarity_kickout_avail_threshold
 avail_overlap_threshold <- specs$model_similarity_kickout_avail_overlap_threshold
 dist_fun <- specs$model_similarity_kickout_dist_fun
-nmods <- specs$model_similarity_kickout_nmods
+max_nmods <- specs$model_similarity_kickout_max_nmods
 samples <- specs$model_similarity_kickout_number_random_samples
 seed <- specs$model_similarity_kickout_random_seed
 
@@ -33,7 +33,7 @@ model_dists <- readRDS(here("results", "model_similarity_kickout_model_dists.RDS
 kickout_results <- model_similarity_kickout(hub_data, 
                                             avail_threshold = avail_threshold,
                                             avail_overlap_threshold = avail_overlap_threshold,
-                                            nmods = 3,
+                                            max_nmods = 3,
                                             model_dists = model_dists)
 
 saveRDS(kickout_results, here("results", "model_similarity_kickout_results.RDS"))
