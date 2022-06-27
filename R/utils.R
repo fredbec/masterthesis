@@ -351,4 +351,37 @@ cramers_dist <- function(q_F , q_G, tau) {
       sum(((tau_F_v[1:(N + M) - 1] - tau_G_v[1:(N + M) - 1]) ^ 2) * diffs_q)
     
     return(cvm)
-  }
+}
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @description Helper function to transform output from model_dist
+#' 
+#' @param model_dist_mat single matrix from model_dist output (list)
+#' 
+#' @return matrix as data.table
+
+#' @export   
+
+
+model_dists_to_dt <- function(model_dist_mat){
+  
+  #for changing to factor
+  model_order <- colnames(model_dist_mat)
+  
+  #transform to data.frame
+  model_dists_dt <- model_dist_mat |>
+    data.table(keep.rownames = TRUE) |>
+    #id is first column
+    melt(id = 1) |>
+    rename(model1 = rn,
+           model2 = variable,
+           distance = value) |>
+    mutate(model1 = factor(model1, 
+                           levels = model_order),
+           model2 = factor(model2, 
+                           levels = model_order))
+  
+  return(model_dists_dt)
+}

@@ -74,41 +74,69 @@ plot_leaveout <- function(score_data,
 #' @import dplyr 
 #' @import ggplot2
 #' @description 
-#' Plots the results of leaveout_ensemble
+#' Plots the results of model_dist as heatmaps
 #'
 #' @param model_dists output from model_similarity
+#' @param which_combs which combinations of location and target_type
+#'          should be plotted (required format: GB.Deaths, DE.Cases,...)
 #' @param saveplot should plot output be saved
-#' @param path
+#' @param path where plot should be saves
 #' 
 #' 
 #' @export
 #' 
 
 plot_model_similarity <- function(model_dists,
+                                  which_combs = NULL,
                                   saveplot = TRUE,
-                                  path = here("plots", "model_similarity.pdf")){
+                                  path = here("plots", 
+                                              "model_similarity.pdf"),
+                                  plotsize = c(width = 12.5, 
+                                               height = 9)){
+  
+  #don't filter if which_combs argument is NULL
+  if(is.null(which_combs)){
+    which_combs <- names(model_dists)
+  }
+  
+  #make one data.table from all matrices 
+  model_dists_dts <- lapply(model_dists, 
+                            model_dists_to_dt) |>
+    data.table::rbindlist(idcol = TRUE) |>
+    filter(.id %in% which_combs) |>
+    #for plotting, looks nicer (i.e. GB.Deaths to GB - Deaths)
+    mutate(.id = gsub("\\.", " - ", .id))
   
   
-  dist_plot <- model_dists |>
-    data.table(keep.rownames = TRUE) |>
-    melt(id = 1) |>
-    rename(model1 = rn,
-           model2 = variable,
-           distance = value) |>
-    mutate(model1 = factor(model1, levels = order)) |>
-    ggplot(aes(x = model1, 
-               y = model2, 
-               fill = distance)) +
-    geom_tile() + 
-    theme(axis.text.x = 
-            element_text(angle = 90, vjust = 0.5, hjust=1))
+  #make plot
+  dist_plot <- ggplot2::ggplot(model_dists_dts,
+                               aes(x = model1,
+                                   y = model2,
+                                   fill = distance)) +
+    ggplot2::geom_tile() + 
+    #free scale, otherwise all models would be in each heatmap (lots of white)
+    ggplot2::facet_wrap(~.id, scales = "free") +
+    viridis::scale_fill_viridis(option = "rocket", 
+                                direction = -1, 
+                                na.value = "white") +
+    ggplot2::theme(axis.title.x=element_blank(),
+                   axis.ticks.x=element_blank(),
+                   axis.title.y = element_blank(),
+                   axis.ticks.y = element_blank(),
+                   axis.text = element_text(size=6.5),
+                   plot.title = element_text(size = 8),
+                   #vertical text
+                   axis.text.x = 
+                     element_text(angle = 90, vjust = 0.5, hjust=1),
+                   )
   
-  print(plot)
+  print(dist_plot)
   
   if(saveplot){
     ggplot2::ggsave(
       filename = path,
-      width = 12, height = 9
+      width = plotsize['width'], 
+      height = plotsize['height']
     )
   }
   
