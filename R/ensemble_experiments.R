@@ -369,7 +369,9 @@ model_similarity_kickout <- function(data,
                                       extra_excl = mod_kick) |>
           make_ensemble(summary_function = mean,
                         extra_excl = c(mod_kick, "median_ensemble")) |>
-          dplyr::mutate(nmod = nmod) |>
+          dplyr::mutate(nmod = nmod,
+                        mod_kick = paste(mod_kick,
+                                         collapse = ", ")) |>
           dplyr::filter(model %in% c("median_ensemble",
                                      "mean_ensemble")) |>
           scoringutils::score() |>
@@ -377,7 +379,8 @@ model_similarity_kickout <- function(data,
                                                 "location", "nmod",
                                                 "horizon")) |>
           rbind(result_table)
-    
+        
+
         
         #backdrop of random model kickout to gauge how effective kicking out model based on sim. is
         #two version: by pairwise elimination vs. sum of distances
@@ -487,7 +490,8 @@ kickout_ensemble <- function(data,
         scoringutils::score() |>
         scoringutils::summarise_scores(
           by = c("model", "target_type",
-                 "location", "nmod")) |>
+                 "location", "nmod",
+                 "horizon")) |>
         mutate(sample_id = i)
       
     }
@@ -496,7 +500,8 @@ kickout_ensemble <- function(data,
     #individual samples
     temp <- data.table::rbindlist(score_tabs) |>
       dplyr::group_by(model, target_type, 
-                      location, nmod) |>
+                      location, nmod,
+                      horizon) |>
       dplyr::summarise_all(mean) |>
       dplyr::ungroup() |>
       data.table::as.data.table() |>

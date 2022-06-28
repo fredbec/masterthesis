@@ -35,7 +35,7 @@ model_dists <- readRDS(here("results", "model_similarity_kickout_model_dists.RDS
 kickout_results <- model_similarity_kickout(hub_data, 
                                             avail_threshold = avail_threshold,
                                             avail_overlap_threshold = avail_overlap_threshold,
-                                            max_nmods = 3,
+                                            max_nmods = max_nmods,
                                             model_dists = model_dists)
 
 saveRDS(kickout_results, here("results", "model_similarity_kickout_results.RDS"))
