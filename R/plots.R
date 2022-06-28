@@ -103,9 +103,9 @@ plot_model_similarity <- function(model_dists,
   model_dists_dts <- lapply(model_dists, 
                             model_dists_to_dt) |>
     data.table::rbindlist(idcol = TRUE) |>
-    filter(.id %in% which_combs) |>
+    dplyr::filter(.id %in% which_combs) |>
     #for plotting, looks nicer (i.e. GB.Deaths to GB - Deaths)
-    mutate(.id = gsub("\\.", " - ", .id))
+    dplyr::mutate(.id = gsub("\\.", " - ", .id))
   
   
   #make plot
@@ -144,60 +144,140 @@ plot_model_similarity <- function(model_dists,
 }
 
 
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import ggplot2
+#' @import gridExtra
+#' @description 
+#' Plots the results of model_dist as heatmaps
+#'
+#' @param model_dists output from model_similarity
+#' @param which_combs which combinations of location and target_type
+#'          should be plotted (required format: GB.Deaths, DE.Cases,...)
+#' @param saveplot should plot output be saved
+#' @param path where plot should be saves
+#' 
+#' 
+#' @export
+#' 
+
 
 plot_kickout_results <- function(model_kickout_results,
                                  random_kickout_results,
-                                 target, loc, model_type,
-                                 score = "interval_score"){
+                                 plot_score = "interval_score",
+                                 saveplot = TRUE,
+                                 path = here("plots", 
+                                             "model_similarity_kickout.pdf"),
+                                 plotsize = c(width = 9,
+                                              height = 12)){
   
+  #prepare random_model_kickout
   #stratify by horizon
-  random_model_kickout_subset <- random_kickout_results |>
-    group_by(model, target_type, location, nmod, sample_id) |>
-    summarise_at(names(random_model_kickout_new)[6:12], mean) |>
-    ungroup() |>
-    filter(model == model_type,
-           target_type == target,
-           location == loc,
-           nmod %in% c(1,2,3,4)) |> 
-    group_by(nmod) |>
-    summarise(p05 = quantile(get(score), probs = c(0.05)),
-              p25 = quantile(get(score), probs = c(0.25)),
-              p50 = quantile(get(score), probs = c(0.5)),
-              p75 = quantile(get(score), probs = c(0.75)),
-              p95 = quantile(get(score), probs = c(0.95)))
+  random_kickout_results <- random_kickout_results |>
+    dplyr::group_by(nmod, model, target_type, location, horizon) |>
+    #get score quantiles of random kickout
+    dplyr::summarise(
+      p05 = quantile(get(plot_score), probs = c(0.05)),
+      p25 = quantile(get(plot_score), probs = c(0.25)),
+      p50 = quantile(get(plot_score), probs = c(0.5)),
+      p75 = quantile(get(plot_score), probs = c(0.75)),
+      p95 = quantile(get(plot_score), probs = c(0.95))
+      )
+
   
+  #get results for nmod = 0 
+  refvals <- model_kickout |>
+    dplyr::filter(nmod == 0) |>
+    dplyr::rename(refval = plot_score) |>
+    dplyr::select(model, target_type, location, 
+                  horizon, refval)
+
   
-  model_kickout_subset <- model_kickout_results |> 
-    filter(nmod > 0,
-           model == model_type,
-           target_type == target,
-           location == loc) |>
-    group_by(nmod) |>
-    summarise(interval_score = mean(interval_score))
-  
-  joined_dat <- inner_join(random_model_kickout_subset,
-                           model_kickout_subset) |>
-    mutate(nmod = factor(nmod))
-  
-  
-  refval <- model_kickout |>
-    filter(nmod == 0,
-           model == model_type,
-           target_type == target,
-           location == loc) |>
-    summarise(score = mean(get(score))) |>
-    pull()
-  
-  
-  myplot <- ggplot(joined_dat,
-         aes(x = nmod, y = interval_score, group = 1)) +
-    geom_line(color = "purple") +
-    geom_line(aes(x = nmod, y = p50), size = 2) +
-    geom_ribbon(aes(x = nmod, ymin = p25, ymax = p75), fill = "red", alpha = 0.35) +
-    geom_ribbon(aes(x = nmod, ymin = p05, ymax = p95), fill = "red", alpha = 0.15) + 
-    geom_hline(aes(yintercept = refval))
-  
-  print(myplot)
+  #merge refval and random_kickout into model_kickout results
+  joined_dat <- model_kickout_results |> 
+    dplyr::filter(nmod > 0) |>
+    dplyr::rename(plot_score = plot_score) |>
+    dplyr::select(model, target_type, location, 
+                  horizon, nmod, plot_score) |>
+    dplyr::inner_join(refvals, by = c("model", "target_type", 
+                                      "location", "horizon")) |>
+    dplyr::inner_join(random_kickout_results,
+               by = c("model", "nmod", "target_type", 
+                      "location", "horizon")) |>
+    dplyr::mutate(nmod = factor(nmod))
   
     
+  
+
+  model_sim_plots <- list()
+  targets <- unique(joined_dat$target_type)
+  locs <- unique(joined_dat$location)
+  
+  for(loc in locs){
+    for(target in targets){
+    
+      model_sim_plots[[paste0(loc, ".", target)]] <- 
+        joined_dat |>
+        dplyr::filter(target_type == target, location == loc) |>
+        ggplot2::ggplot(
+          aes(x = nmod, y = plot_score, group = 1)) +
+        ggplot2::geom_line(
+          aes(linetype = 'similarity_kickout')) +
+        
+        #refvalue (horizontal line)
+        ggplot2::geom_hline(aes(yintercept = refval, 
+                                linetype = 'hub-ensemble')) +
+        #ggplot2::geom_line(aes(x = nmod, y = p50), size = 1) +
+        
+        ###shaded areas for quantiles###
+        ggplot2::geom_ribbon(
+          aes(x = nmod, ymin = p25, ymax = p75, alpha = 'Q50'), 
+          fill = "blue") +
+        ggplot2::geom_ribbon(
+          aes(x = nmod, ymin = p05, ymax = p95, alpha = 'Q90'), 
+          fill = "blue") + 
+        ggplot2::geom_ribbon(
+          aes(x = nmod, ymin = p50, ymax = p50, alpha = 'Median'), 
+          fill = "black") + 
+        
+        ###make Legends###
+        ggplot2::scale_alpha_manual(
+          name='Interval',
+          breaks=c('Q50', 'Q90', 'Median'),
+          values=c('Q50'=0.35, 'Q90'=0.15, 'Median' = 1)) +
+        ggplot2::scale_linetype_manual(
+          name = 'Type',
+          breaks = c('similarity_kickout', 'hub-ensemble'),
+          values = c('similarity_kickout' = 'dashed',
+                     'hub-ensemble' = 'dotted')) +
+        #fix grey empty space at the edges
+        ggplot2::scale_x_discrete(limits = factor(c(1,2,3,4)), 
+                                  expand = c(0, 0)) +
+        ggplot2::facet_wrap(model~horizon, scales = "free", 
+                            nrow = 2, ncol = 4) +
+        ggplot2::ggtitle(paste0(loc, " - ", target))
+        
+        
+      
+    }
+  }
+  
+  pdf(file = path, width = 9, height = 12)
+  for(loc in locs){
+  gridExtra::grid.arrange(
+    model_sim_plots[[paste0(loc, ".Deaths")]], 
+    model_sim_plots[[paste0(loc, ".Cases")]],
+    nrow = 2, ncol = 1) 
+  }
+  dev.off()
+
+  #if(saveplot){
+  #  ggplot2::ggsave(
+  #    filename = path,
+  #    plot = arrangeGrob(grobs = myplot, nrow = 1, ncol =1 ),
+  #    width = plotsize['width'], 
+  #    height = plotsize['height']
+  #  )
+  #}
 }

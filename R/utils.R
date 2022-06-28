@@ -372,16 +372,16 @@ model_dists_to_dt <- function(model_dist_mat){
   
   #transform to data.frame
   model_dists_dt <- model_dist_mat |>
-    data.table(keep.rownames = TRUE) |>
+    data.table::data.table(keep.rownames = TRUE) |>
     #id is first column
-    melt(id = 1) |>
-    rename(model1 = rn,
-           model2 = variable,
-           distance = value) |>
-    mutate(model1 = factor(model1, 
-                           levels = model_order),
-           model2 = factor(model2, 
-                           levels = model_order))
+    data.table::melt(id = 1) |>
+    dplyr::rename(model1 = rn,
+                  model2 = variable,
+                  distance = value) |>
+    dplyr::mutate(model1 = factor(model1, 
+                                  levels = model_order),
+                  model2 = factor(model2, 
+                                  levels = model_order))
   
   return(model_dists_dt)
 }
