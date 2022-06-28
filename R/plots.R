@@ -142,3 +142,62 @@ plot_model_similarity <- function(model_dists,
   
   
 }
+
+
+
+plot_kickout_results <- function(model_kickout_results,
+                                 random_kickout_results,
+                                 target, loc, model_type,
+                                 score = "interval_score"){
+  
+  #stratify by horizon
+  random_model_kickout_subset <- random_kickout_results |>
+    group_by(model, target_type, location, nmod, sample_id) |>
+    summarise_at(names(random_model_kickout_new)[6:12], mean) |>
+    ungroup() |>
+    filter(model == model_type,
+           target_type == target,
+           location == loc,
+           nmod %in% c(1,2,3,4)) |> 
+    group_by(nmod) |>
+    summarise(p05 = quantile(get(score), probs = c(0.05)),
+              p25 = quantile(get(score), probs = c(0.25)),
+              p50 = quantile(get(score), probs = c(0.5)),
+              p75 = quantile(get(score), probs = c(0.75)),
+              p95 = quantile(get(score), probs = c(0.95)))
+  
+  
+  model_kickout_subset <- model_kickout_results |> 
+    filter(nmod > 0,
+           model == model_type,
+           target_type == target,
+           location == loc) |>
+    group_by(nmod) |>
+    summarise(interval_score = mean(interval_score))
+  
+  joined_dat <- inner_join(random_model_kickout_subset,
+                           model_kickout_subset) |>
+    mutate(nmod = factor(nmod))
+  
+  
+  refval <- model_kickout |>
+    filter(nmod == 0,
+           model == model_type,
+           target_type == target,
+           location == loc) |>
+    summarise(score = mean(get(score))) |>
+    pull()
+  
+  
+  myplot <- ggplot(joined_dat,
+         aes(x = nmod, y = interval_score, group = 1)) +
+    geom_line(color = "purple") +
+    geom_line(aes(x = nmod, y = p50), size = 2) +
+    geom_ribbon(aes(x = nmod, ymin = p25, ymax = p75), fill = "red", alpha = 0.35) +
+    geom_ribbon(aes(x = nmod, ymin = p05, ymax = p95), fill = "red", alpha = 0.15) + 
+    geom_hline(aes(yintercept = refval))
+  
+  print(myplot)
+  
+    
+}
