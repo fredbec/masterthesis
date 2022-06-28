@@ -73,6 +73,8 @@ plot_leaveout <- function(score_data,
 #' 
 #' @import dplyr 
 #' @import ggplot2
+#' @import viridis
+#' 
 #' @description 
 #' Plots the results of model_dist as heatmaps
 #'
@@ -150,14 +152,14 @@ plot_model_similarity <- function(model_dists,
 #' @import ggplot2
 #' @import gridExtra
 #' @description 
-#' Plots the results of model_dist as heatmaps
+#' Plots the results of model_similarity_kickout
 #'
-#' @param model_dists output from model_similarity
-#' @param which_combs which combinations of location and target_type
-#'          should be plotted (required format: GB.Deaths, DE.Cases,...)
+#' @param model_kickout_results output from model_similarity_kickout
+#' @param random_kickout_results output from kickout_ensemble
+#' @param plot_score which scoring function to plot
 #' @param saveplot should plot output be saved
 #' @param path where plot should be saves
-#' 
+#' @param plotsize size of plotting output
 #' 
 #' @export
 #' 
@@ -271,13 +273,114 @@ plot_kickout_results <- function(model_kickout_results,
     nrow = 2, ncol = 1) 
   }
   dev.off()
+  
+}
 
-  #if(saveplot){
-  #  ggplot2::ggsave(
-  #    filename = path,
-  #    plot = arrangeGrob(grobs = myplot, nrow = 1, ncol =1 ),
-  #    width = plotsize['width'], 
-  #    height = plotsize['height']
-  #  )
-  #}
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import ggplot2
+#' @import viridis 
+#'
+#' @description 
+#' Plots model availability
+#'
+#' @param data full data (or subset of) from European Forecast Hub
+#' @param saveplot should plotting output be saved
+#' @param path where plotting output should be saved
+#' 
+#' @export
+#' 
+#' 
+
+plot_model_availability <- function(data,
+                                    saveplot = TRUE,
+                                    path = (here("plots", 
+                                                 "availability.pdf"))){
+  
+  
+  plot_model_avail_total <- data |>
+      dplyr::group_by(forecast_date, location, target_type) |>
+      dplyr::summarise(nmods = length(unique(model))) |>
+      dplyr::ungroup() |>
+      ggplot2::ggplot(
+        aes(x = forecast_date, y = nmods,
+            group = location, 
+            color = location)) +
+      ggplot2::geom_line() + 
+      ggplot2::labs(title = "Total Model Availability") +
+      ggplot2::facet_grid(~ target_type) +
+      ggplot2::ylim(5, 25)
+  
+  plot_model_avail_indiv <- data |>
+      dplyr::select(model, location, 
+             target_type, availability) |>
+      dplyr::distinct() |>
+      ggplot2::ggplot(aes(x = location, y = model,
+                          fill = availability)) +
+      ggplot2::geom_tile()+
+      ggplot2::facet_wrap(~target_type) + 
+      viridis::scale_fill_viridis(option = "rocket") +
+      ggplot2::theme(
+        axis.text.y = element_text(angle = 0, size = 7)) +
+      ggplot2::labs(title = "Individual Model Availability")
+  
+  if(saveplot){
+    pdf(file = path)
+    print(plot_model_avail_total)
+    print(plot_model_avail_indiv)
+    dev.off()
+  }
+}
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import ggplot2
+#' @import RColorBrewer
+#'
+#' @description 
+#' Plots trajectories of Deaths and Cases
+#'
+#' @param data full data (or subset of) from European Forecast Hub
+#' @param saveplot should plotting output be saved
+#' @param path where plotting output should be saved
+#' 
+#' @export
+#' 
+
+
+plot_trajectories <- function(data,
+                              saveplot = TRUE,
+                              path = here("plots", "trajectories.pdf")){
+ 
+  trajectories <- data |>
+    dplyr::filter(horizon == 1) |>
+    dplyr::mutate(
+      incidence = 100000 * (true_value / population)) |> #for easier comparison
+    dplyr::select(
+      location, target_end_date, true_value, 
+      target_type, incidence) |>
+    dplyr::distinct() |>
+    ggplot2::ggplot(
+      aes(x = target_end_date, y = incidence,
+          group = location, color = location)) +
+    ggplot2::geom_line(size = 1.2) + 
+    ggplot2::scale_color_brewer(palette = "GnBu") + 
+    facet_wrap(~target_type,
+               scales = "free") #plots need different scales
+  
+  if(saveplot){
+    pdf(file = path,
+        height = 8.3, 
+        width = 14.7)
+    print(trajectories)
+    dev.off()
+  }
+
 }

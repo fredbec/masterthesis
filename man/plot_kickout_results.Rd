@@ -14,15 +14,18 @@ plot_kickout_results(
 )
 }
 \arguments{
+\item{model_kickout_results}{output from model_similarity_kickout}
+
+\item{random_kickout_results}{output from kickout_ensemble}
+
+\item{plot_score}{which scoring function to plot}
+
 \item{saveplot}{should plot output be saved}
 
 \item{path}{where plot should be saves}
 
-\item{model_dists}{output from model_similarity}
-
-\item{which_combs}{which combinations of location and target_type
-should be plotted (required format: GB.Deaths, DE.Cases,...)}
+\item{plotsize}{size of plotting output}
 }
 \description{
-Plots the results of model_dist as heatmaps
+Plots the results of model_similarity_kickout
 }
