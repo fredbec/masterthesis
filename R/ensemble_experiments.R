@@ -100,9 +100,11 @@ best_performers_ensemble <- function(data,
       dplyr::filter(n >= window - may_miss) |> #threshold to include model
       dplyr::ungroup() |>
       scoringutils::score() |>
-      scoringutils::summarise_scores(by = c("model", "location", "target_type")) |>
+      scoringutils::summarise_scores(
+        by = c("model", "location", "target_type")) |>
       dplyr::group_by(location, target_type) |>
-      dplyr::filter(get(score) %in% sort(get(score))[1:nmods]) |>
+      dplyr::slice_min(order_by = get(score), 
+                       n = nmods) |>
       dplyr::select(model, location, target_type)
     
     
@@ -150,10 +152,18 @@ best_performers_ensemble <- function(data,
     
     bestperf_ens <- rbind(bestperf_ens, ens_preds)
     
+    
   }
   
+  ##score ensemble
+  score_best_ens <- bestperf_ens |>
+    score() |>
+    scoringutils::summarise_scores(by = c("model", "target_type",
+                                          "location")) 
+  
+  
   if(return_model_data){
-    return(list(bestperf_ens, model_matrices))
+    return(list(bestperf_ens, model_matrices, score_best_ens))
   } else {
     return(bestperf_ens)
   }
