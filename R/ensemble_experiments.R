@@ -117,6 +117,7 @@ best_performers_ensemble <- function(data,
     }
     
     
+    
     #fill list of model matrices with above function
     for(comb in names(model_matrices)){
       if(comb == "all"){
@@ -130,9 +131,10 @@ best_performers_ensemble <- function(data,
         comb_models <- best_models |>
           dplyr::filter(location == filters[1],
                         target_type == filters[2])
-        
+
         model_matrices[[comb]][i,] <- match_models(comb_models,
                                                    model_matrices[[comb]])
+  
         
       }
     }
@@ -155,11 +157,41 @@ best_performers_ensemble <- function(data,
     
   }
   
+  #for each comb only keep columns of models that actually forecast that comb
+  for(comb in names(model_matrices)){
+    filters <- strsplit(comb, split = "[.]")[[1]]
+
+    present_models <- data |>
+      dplyr::filter(location == filters[1],
+                    target_type == filters[2]) |>
+      select(model) |>
+      distinct() |>
+      pull()
+    model_matrices[[comb]] <- 
+      model_matrices[[comb]][, present_models]
+  }
+  
   ##score ensemble
   score_best_ens <- bestperf_ens |>
-    score() |>
-    scoringutils::summarise_scores(by = c("model", "target_type",
-                                          "location")) 
+    scoringutils::score() |>
+    scoringutils::summarise_scores(
+      by = c("model", "target_type",
+             "location", "horizon")) |>
+    dplyr::mutate(best_perf = 1)
+  
+  
+  normal_ens <- hub_data |>
+    make_ensemble(mean) |>
+    make_ensemble(extra_excl = c("mean_ensemble")) |>
+    filter(model %in% c("mean_ensemble", "median_ensemble")) |>
+    scoringutils::score() |>
+    scoringutils::summarise_scores(
+      by = c("model", "target_type",
+             "location", "horizon")) |>
+    dplyr::mutate(best_perf = 0)
+  
+  score_best_ens <- score_best_ens |>
+    rbind(normal_ens)
   
   
   if(return_model_data){
@@ -255,6 +287,7 @@ leaveout_ensemble <- function(data,
             dplyr::mutate(nmod = nmod)
           
           #score resulting ensembles
+          
           score_tabs[[i]] <- ensembles |>
             scoringutils::score() |>
             scoringutils::summarise_scores(by = c("model", "target_type", 
