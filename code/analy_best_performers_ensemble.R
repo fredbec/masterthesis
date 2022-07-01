@@ -27,21 +27,9 @@ saveRDS(best_performers_results[[3]],
 best_performers_scores <- readRDS(here("results", 
                                        "best_performers_scores.RDS"))
 
-best_performers_scores |>
-  dplyr::mutate(best_perf = factor(best_perf,
-                                   levels = c(0,1),
-                                   labels = c("hub-ens",
-                                              "best-perf-ens")),
-                model = factor(model,
-                               levels = c("mean_ensemble",
-                                          "median_ensemble"),
-                               labels = c("mean-ens",
-                                          "median-ens"))) |>
-  dplyr::rename(method = model,
-                strategy = best_perf) |>
-  ggplot2::ggplot(aes(x = horizon, y = interval_score)) +
-  ggplot2::geom_line(aes(color = method,
-                         linetype = strategy)) +
-  ggplot2::facet_wrap(location ~ target_type,
-                      nrow = 5, ncol = 2,
-                      scales = "free")
+plot_best_performers_scores(best_performers_scores)
+
+
+best_performers_models <- readRDS(here("results", "best_performers_chosen_models.RDS"))
+
+plot_best_performers_models(best_performers_models, hub_data)

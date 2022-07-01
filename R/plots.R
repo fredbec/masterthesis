@@ -333,6 +333,9 @@ plot_model_availability <- function(data,
     print(plot_model_avail_total)
     print(plot_model_avail_indiv)
     dev.off()
+  } else {
+    print(plot_model_avail_total)
+    print(plot_model_avail_indiv)
   }
 }
 
@@ -381,6 +384,168 @@ plot_trajectories <- function(data,
         width = 14.7)
     print(trajectories)
     dev.off()
+  } else {
+    print(trajectories)
   }
 
 }
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import ggplot2
+#'
+#' @description 
+#' Plots score results of best performers
+#'
+#' @param best_performers_scores score results from running 
+#'            best_performers_ensemble
+#' @param saveplot should plotting output be saved
+#' @param path where plotting output should be saved
+#' 
+#' @export
+#' 
+
+
+
+plot_best_performers_scores <- 
+  function(best_performers_scores,
+           saveplot = TRUE,
+           path = here("plots","best_performers_scores.pdf")
+           ){
+  
+  
+  best_performers_score_plot <- best_performers_scores |>
+    dplyr::mutate(best_perf = factor(best_perf,
+                                     levels = c(0,1),
+                                     labels = c("hub-ens",
+                                                "best-perf-ens")),
+                  model = factor(model,
+                                 levels = c("mean_ensemble",
+                                            "median_ensemble"),
+                                 labels = c("mean-ens",
+                                            "median-ens"))) |>
+    dplyr::rename(method = model,
+                  strategy = best_perf) |>
+    ggplot2::ggplot(aes(x = horizon, y = interval_score)) +
+    ggplot2::geom_line(aes(color = method,
+                           linetype = strategy)) +
+    ggplot2::facet_wrap(location ~ target_type,
+                        nrow = 5, ncol = 2,
+                        scales = "free") +
+    ggtitle("Best performers scores")
+  
+  
+  if(saveplot){
+    pdf(path)
+    print(best_performers_score_plot)
+    dev.off()
+    
+  } else {
+    print(best_performers_score_plot)
+  }
+}
+
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import ggplot2
+#'
+#' @description 
+#' Plots model pick results of best_performers
+#'
+#' @param best_performers_models model picking results from running 
+#'            best_performers_ensemble
+#' @param data full data (or subset of) from European Forecast Hub
+#' @param saveplot should plotting output be saved
+#' @param path where plotting output should be saved
+#' 
+#' @export
+#' 
+#' 
+#' 
+
+plot_best_performers_models <- 
+  function(best_performers_models,
+           data,
+           saveplot = TRUE,
+           path = here("plots", "best_performers_models.pdf")){
+    
+    tables <- list()
+    for(comb in names(best_performers_models[2:length(names(best_performers_models))])){
+      id <- strsplit(comb, split = "[.]")[[1]]
+      
+      tables[[comb]] <- best_performers_models[[comb]] |>
+        colSums() |>
+        t() |> t() |>
+        data.table(keep.rownames = TRUE) |>
+        mutate(location = id[1],
+               target_type = id[2])
+      
+    }
+    
+    best_models_data <- rbindlist(tables) |>
+      rename(model = rn,
+             count = V1)
+    
+    model_types <- data |>
+      mutate(model_type = replace(model_type, 
+                                  model_type=="ensemble", "other"))|>
+      select(model, model_type) |>
+      distinct()
+
+    
+    best_models_plot <- best_models_data |>
+      dplyr::inner_join(model_types, by = c("model")) |>
+      dplyr::group_by(location, target_type) |>
+      dplyr::arrange(count, .by_group = TRUE) |>
+      dplyr::mutate(model = replace(model, count < 12, "other")) |>
+      ggplot2::ggplot(aes(x = location, y = count, fill = model)) +
+      ggplot2::geom_bar(stat = "identity", position = "stack") +
+      ggplot2::facet_wrap(~target_type) +
+      ggplot2::ggtitle("Chosen models")
+      #ggplot2::scale_fill_manual(
+      #  values = diverge_hsv(length(unique(best_models_data$model))))
+    
+    model_type_plot <- best_models_data |>
+      dplyr::inner_join(model_types, by = c("model")) |>
+      ggplot2::ggplot(aes(x = location, y = count, fill = model_type)) +
+      ggplot2::geom_bar(stat = "identity", position = "stack") +
+      ggplot2::facet_wrap(~target_type) +
+      ggplot2::ggtitle("Model types chosen models")
+    
+    model_type_compare_plot <- data |>
+      dplyr::select(model, location, target_type, model_type) |>
+      dplyr::filter(model_type != "ensemble") |>
+      dplyr::distinct() |>
+      dplyr::mutate(count = 1) |>
+      ggplot2::ggplot(aes(x = location, fill = model_type)) +
+      ggplot2::geom_bar(position = "fill") +
+      ggplot2::facet_wrap(~target_type) +
+      ggplot2::ggtitle("Model types overall")
+
+    
+    if(saveplot){
+      pdf(file = path, width = 12, height = 9)
+      
+      gridExtra::grid.arrange(
+        best_models_plot,
+        model_type_plot,
+        model_type_compare_plot,
+        layout_matrix = rbind(c(1, 1),
+                              c(2, 3))) 
+      
+      dev.off()
+    } else {
+      print(best_models_plot)
+      print(model_type_plot)
+      print(model_type_compare_plot)
+    }
+    
+    
+  }
