@@ -49,7 +49,8 @@ best_performers_ensemble <- function(data,
   locs <- unique(data$location)
   targets <- unique(data$target_type)
   
-  
+  ########################### CHECK THIS##################
+  ###could just be length(dates)################
   stop_ind <- length(dates) - window #not window-1 since we still need one obs for forecasting
   
   #result containers
@@ -558,4 +559,110 @@ kickout_ensemble <- function(data,
   }
   
   return(result_table)
+}
+
+
+
+#only for one location now
+all_combs_ensemble <- function(data, 
+                               nmod = 3, 
+                               window = 5,
+                               init_weeks = 5,
+                               avail_threshold = 0.5,
+                               avail_overlap_threshold = 0.1,
+                               excl = c("EuroCOVIDhub-baseline",
+                                        "EuroCOVIDhub-ensemble")){
+  data <- data |>
+    filter(!model %in% excl,
+           availability >= avail_threshold)
+  
+  fc_dates <- data |>
+    select(forecast_date) |>
+    distinct() |>
+    pull() |>
+    sort()
+  
+  result_dat <- NULL
+  
+  for(i in (init_weeks+1):length(fc_dates)){
+
+    fc_date <- as.Date(fc_dates[i])
+    
+    
+    subdat <- data |>
+      filter(forecast_date == fc_dates[i])
+
+    avail_models <- unique(subdat$model)
+    
+    all_combs <- combn(avail_models, nmod) |> t()
+    print(fc_date)
+    print(nrow(all_combs))
+    for(j in 1:nrow(all_combs)){
+      ens_comb <- all_combs[j,]
+      ens_dat <- subdat |>
+        filter(model %in% ens_comb)
+      
+
+      ######forecast_date <= or <
+      hist_dist <- data |>
+        filter(model %in% ens_comb, 
+               forecast_date < as.Date(fc_date)) |>
+        model_dist(avail_threshold, 
+                   avail_overlap_threshold, 
+                   cramers_dist)
+      ######### remove [[1]]
+      mean_hist_dist <- mean(hist_dist[[1]], na.rm = TRUE)
+      ##check if only upper tri
+      sd_hist_dist <- sd(hist_dist[[1]], na.rm = TRUE)
+      
+      #recent history dates (according to window)
+      recent_dates <- seq.Date(
+        fc_date - (window * 7), #not window +1
+        fc_date - 7,
+        by = 7
+      )
+      
+      
+      #saving some time at init 
+      if(i == (init_weeks+1)){
+        mean_recent_dist <- mean_hist_dist
+        sd_recent_dist <- sd_hist_dist
+      } else {
+      
+        recent_dist <- data |>
+          filter(model %in% ens_comb,
+                 forecast_date %in% recent_dates) |>
+          model_dist(avail_threshold, 
+                     avail_overlap_threshold, 
+                     cramers_dist)
+        
+        ######### remove [[1]]
+        mean_recent_dist <- mean(recent_dist[[1]], na.rm = TRUE)
+        sd_recent_dist <- sd(recent_dist[[1]], na.rm = TRUE)
+        
+      }
+      
+      ens_dat <- ens_dat |>
+        make_ensemble(mean) |>
+        make_ensemble(extra_excl = "mean_ensemble") |>
+        filter(model %in% c("mean_ensemble",
+                            "median_ensemble")) |>
+        mutate(inc_models = paste(ens_comb, collapse = ";"),
+               nmod = nmod,
+               mean_hist_dist = mean_hist_dist,
+               sd_hist_dist = sd_hist_dist,
+               mean_recent_dist = mean_recent_dist,
+               sd_recent_dist = sd_recent_dist)
+      
+      result_dat <- result_dat |>
+        rbind(ens_dat)
+      
+
+    }
+  }
+  return(result_dat)
+  #print(data)
+  #compute complete historic similarity
+  
+  #compute recent model similarity
 }
