@@ -176,79 +176,42 @@ model_dist <- function(data,
                            length = length(list_names))
   names(model_matrices) <- list_names
   
-  #each list element is the same initial matrix
-  model_matrices <- lapply(model_matrices, function(x) 
-    matrix(ncol = length(models),
-           nrow = length(models),
-           dimnames = list(models, models)
-           ))
   
   
   #loop over each combination of target and location
   for (comb in names(model_matrices)){ 
+    
     #split up combination of location and target
     filters <- strsplit(comb, split = "[.]")[[1]]
-    
+  
+    #get relevant subset of data
     subdat <- data |>
       dplyr::filter(location == filters[1],
                     target_type == filters[2])
     
-    model_combs <- combn(unique(subdat$model), 2) |> t()
+    #make all pairwise combinations of models
+    subdat_models <- unique(subdat$model)
+    model_combs <- combn(subdat_models, 2) |> t()
     
-    for (i in 1:nrow(model_combs)){
-      
-      #for easier readability in pipe
-      #these are the column names for the 2 models' preds after reshape
-      mod1 <- paste0("prediction.", model_combs[i,1])
-      mod2 <- paste0("prediction.", model_combs[i,2])
-
-      model_comb_dat <- subdat |>
-        dplyr::filter(model %in% model_combs[i,]) |> #get two relevant models
-        dplyr::select(forecast_date, quantile, horizon, 
-                      model, prediction) |>
-        #reshape such that each models' prediction are own column
-        reshape(idvar = c("forecast_date", "quantile", "horizon"), 
-                timevar = "model",
-                direction = "wide") |>
-        #check for overall overlap in model availability
-        mutate(both_avail = as.numeric(!is.na(get(mod1))&
-                                         !is.na(get(mod2))))
-      
-      
-      avail_overlap <- model_comb_dat |>
-        summarise(overlap = mean(both_avail) * (n() / n_obs)) |>
-        pull()
-      
-      if(avail_overlap < avail_overlap_threshold){
-        model_matrices[[comb]][model_combs[i,1], 
-                               model_combs[i,2]] <- NA
-
-      } else {
-        dist_val <- model_comb_dat |>
-          filter(!is.na(get(mod1)),
-                 !is.na(get(mod2))) |>
-          dplyr::group_by(forecast_date, horizon) |>
-          #compute distance metric
-          dplyr::summarise(dist = dist_fun(
-            get(mod1), get(mod2), quantile
-          )) |>
-          dplyr::ungroup() |>
-          #take average over all quantiles and forecast_dates
-          dplyr::summarise(avg_dist = mean(dist)) |>
-          dplyr::pull()
-        
-        model_matrices[[comb]][model_combs[i,1], 
-                               model_combs[i,2]] <- dist_val
-        
-      }
-
-    }
     
-    #return(model_matrices[[comb]])
-    #remove models with no predictions for each target-location 
-    model_matrices[[comb]] <- 
-      model_matrices[[comb]][unique(subdat$model), 
-                             unique(subdat$model)]
+    #compute distance for all model_combs
+    #result is a vector, transfer to matrix after
+    vec_result <- apply(model_combs, 1, function(x) 
+      compute_pair_dist(x, subdat, n_obs, 
+                        avail_overlap_threshold, cramers_dist)
+      )
+  
+    mat_result <- matrix(NA, 
+      length(subdat_models),length(subdat_models),
+      dimnames = list(subdat_models, subdat_models)
+      )
+    #fill lower and upper triangular
+    mat_result[lower.tri(mat_result)] <- vec_result
+    mat_result <- t(mat_result)
+    mat_result[lower.tri(mat_result)] <- vec_result
+    
+    #assign to result list
+    model_matrices[[comb]] <- mat_result
     
     if (normalize){
       maxval <- max(model_matrices[[comb]], na.rm = TRUE)
@@ -256,18 +219,61 @@ model_dist <- function(data,
         model_matrices[[comb]] / maxval
       
     }
-    
-    #fill lower triangular with upper triangular values for symmetric matrix
-    if (return_symmetric){
-      model_matrices[[comb]][lower.tri(model_matrices[[comb]])] <- 
-        t(model_matrices[[comb]])[lower.tri(model_matrices[[comb]])]
-    }
+  
   }
   return(model_matrices)  
 }
 
 
 
+compute_pair_dist <- function(model_combs, 
+                              subdat, 
+                              n_obs, 
+                              avail_overlap_threshold, 
+                              dist_fun){
+  #for easier readability in pipe
+  #these are the column names for the 2 models' preds after reshape
+  mod1 <- paste0("prediction.", model_combs[1])
+  mod2 <- paste0("prediction.", model_combs[2])
+  
+
+  model_comb_dat <- subdat |>
+    dplyr::filter(model %in% model_combs) |> #get two relevant models
+    dplyr::select(forecast_date, quantile, horizon, 
+                  model, prediction) |>
+    #reshape such that each models' prediction are own column
+    reshape(idvar = c("forecast_date", "quantile", "horizon"), 
+            timevar = "model",
+            direction = "wide") |>
+    #check for overall overlap in model availability
+    mutate(both_avail = as.numeric(!is.na(get(mod1))&
+                                     !is.na(get(mod2))))
+  
+  
+  avail_overlap <- model_comb_dat |>
+    summarise(overlap = mean(both_avail) * (n() / n_obs)) |>
+    pull()
+  
+  if(avail_overlap < avail_overlap_threshold){
+    
+    return(NA)
+  } else {
+    dist_val <- model_comb_dat |>
+      filter(!is.na(get(mod1)),
+             !is.na(get(mod2))) |>
+      dplyr::group_by(forecast_date, horizon) |>
+      #compute distance metric
+      dplyr::summarise(dist = dist_fun(
+        get(mod1), get(mod2), quantile
+      )) |>
+      dplyr::ungroup() |>
+      #take average over all quantiles and forecast_dates
+      dplyr::summarise(avg_dist = mean(dist)) |>
+      dplyr::pull()
+    
+    return(dist_val)
+  }
+}
  
 #' @title COVID-19 Forecast Hub ensemble and model structure analysis
 #' @import dplyr
