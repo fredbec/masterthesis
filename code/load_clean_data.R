@@ -18,7 +18,7 @@ hub_data <- rbindlist(
 )
 
 #load model_types and rename column for merging
-model_types <- read.csv(here("scraper", "metadata_extended.csv")) |>
+model_types <- read.csv(here("scraper", "metadata_extended4.csv")) |>
   select(model_abbr, model_type)|>
   rename(model = model_abbr) |>
   mutate(model = gsub("\n| ","", model))
