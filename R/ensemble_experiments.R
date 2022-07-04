@@ -588,59 +588,74 @@ all_combs_ensemble <- function(data,
 
     fc_date <- as.Date(fc_dates[i])
     
-    
     subdat <- data |>
       filter(forecast_date == fc_dates[i])
 
     avail_models <- unique(subdat$model)
+ 
     
-    all_combs <- combn(avail_models, nmod) |> t()
-    print(fc_date)
-    print(nrow(all_combs))
-    for(j in 1:nrow(all_combs)){
-      ens_comb <- all_combs[j,]
-      ens_dat <- subdat |>
-        filter(model %in% ens_comb)
-      
-
+    ######forecast_date <= or <
+    hist_dist_all <- data |>
+      filter(model %in% avail_models,
+             forecast_date < as.Date(fc_date)) |>
+      model_dist(avail_threshold,
+                 avail_overlap_threshold,
+                 cramers_dist)
+    hist_dist_all <- hist_dist_all[[1]]
+    
+    
+    #recent history dates (according to window)
+    recent_dates <- seq.Date(
+      fc_date - (window * 7), #not window +1
+      fc_date - 7,
+      by = 7
+    )
+    
+    #saving some time at init 
+    if(i == (init_weeks+1)){
+      recent_dist_all <- hist_dist_all
+    } else {
       ######forecast_date <= or <
-      hist_dist <- data |>
-        filter(model %in% ens_comb, 
-               forecast_date < as.Date(fc_date)) |>
+      recent_dist_all <- data |>
+        filter(model %in% avail_models,
+               forecast_date %in% recent_dates) |>
         model_dist(avail_threshold, 
                    avail_overlap_threshold, 
                    cramers_dist)
-      ######### remove [[1]]
-      mean_hist_dist <- mean(hist_dist[[1]], na.rm = TRUE)
-      ##check if only upper tri
-      sd_hist_dist <- sd(hist_dist[[1]], na.rm = TRUE)
       
-      #recent history dates (according to window)
-      recent_dates <- seq.Date(
-        fc_date - (window * 7), #not window +1
-        fc_date - 7,
-        by = 7
-      )
+      recent_dist_all <- recent_dist_all[[1]]
+    }
+    
+    #update avail_models (sometimes a model is available at fc_date,
+    #but not in the history before)
+    ############ALSO NEED TO DO THIS SEP. FOR RECENT#########
+    avail_models <- rownames(hist_dist_all)
+    
+    #make all possible combinations of size nmod
+    all_combs <- combn(avail_models, nmod) |> t()
+    
+    for(j in 1:nrow(all_combs)){
+      ens_comb <- all_combs[j,]
       
+      ens_dat <- subdat |>
+        filter(model %in% ens_comb)
       
-      #saving some time at init 
-      if(i == (init_weeks+1)){
-        mean_recent_dist <- mean_hist_dist
-        sd_recent_dist <- sd_hist_dist
-      } else {
+      #make all pairs from ens_comb
+      ens_combs <- combn(ens_comb, 2) |> t()
       
-        recent_dist <- data |>
-          filter(model %in% ens_comb,
-                 forecast_date %in% recent_dates) |>
-          model_dist(avail_threshold, 
-                     avail_overlap_threshold, 
-                     cramers_dist)
-        
-        ######### remove [[1]]
-        mean_recent_dist <- mean(recent_dist[[1]], na.rm = TRUE)
-        sd_recent_dist <- sd(recent_dist[[1]], na.rm = TRUE)
-        
-      }
+      #compute historical distance metrics
+      hist_dist_mat <- apply(ens_combs, 1, 
+                             function(x) hist_dist_all[x[1], x[2]])
+      mean_hist_dist <- mean(hist_dist_mat, na.rm = TRUE)
+      sd_hist_dist <- sd(hist_dist_mat, na.rm = TRUE)
+
+      
+      #compute recent distance metrics
+      recent_dist_mat <- apply(ens_combs, 1, 
+                               function(x) recent_dist_all[x[1], x[2]])
+      mean_recent_dist <- mean(recent_dist_mat, na.rm = TRUE)
+      sd_recent_dist <- sd(recent_dist_mat, na.rm = TRUE)
+
       
       ens_dat <- ens_dat |>
         make_ensemble(mean) |>
@@ -649,7 +664,7 @@ all_combs_ensemble <- function(data,
                             "median_ensemble")) |>
         mutate(inc_models = paste(ens_comb, collapse = ";"),
                nmod = nmod,
-               mean_hist_dist = mean_hist_dist,
+               mean_hist_dist = mean_hist_dist, 
                sd_hist_dist = sd_hist_dist,
                mean_recent_dist = mean_recent_dist,
                sd_recent_dist = sd_recent_dist)
@@ -661,8 +676,4 @@ all_combs_ensemble <- function(data,
     }
   }
   return(result_dat)
-  #print(data)
-  #compute complete historic similarity
-  
-  #compute recent model similarity
 }
