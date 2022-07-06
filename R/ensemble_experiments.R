@@ -563,6 +563,28 @@ kickout_ensemble <- function(data,
 
 
 
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' @import dplyr
+#' @import scoringutils
+#' 
+#' @description 
+#' Samples ALL combinations of possible ensembles of size n at given timepoint,
+#' scores them and computes average pairwise historical and recent distance
+#' 
+#' 
+#'
+#' @param data data (subset or full) from the European Forecast hub
+#' @param nmod number of models to sample at each date
+#' @param window window size for recent distance computation
+#' @param init_weeks number of weeks left out at beginning for init
+#' @param avail_threshold minimum availability for models to be considered in the
+#'            sampling process 
+#' @param avail_overlap_threshold minimum common availability for model pair
+#' @param excl which models should be excluded from the ensemble experiment
+
+#' @export
+
 all_combs_ensemble <- function(data, 
                                nmod = 3, 
                                window = 5,
