@@ -39,7 +39,37 @@
 \vspace{2cm}
 \section{Introduction}
 \input{introduction.tex}
-
+\section{Data}
+To be included in the Hub's ensemble and thus in this analysis, models had to provide a full set of 23 quantiles for all four horizons.
+\section{Forecasting and Ensembles}
+\subsection{Ensemble Forecasts}
+They have a long tradition in weather forecasting, where they show consistently improving performance over single models. \\
+An ensemble aggregates models, thereby unifying their respective knowledge/signals into a single forecast.\\
+Ray_2020: "Multiple studies of epidemic forecasting have shown that ensemble forecasts, which incorporate multiple model predictions into a combined forecast, consistently perform well and often outperform most if not all individual models (Viboud et al. 2018; Johansson et al. 2019; McGowan et al. 2019; Reich, Brooks, et al. 2019)."
+\section{Scoring}
+Suppose that $y$ is the realisation of a random variable under the true data-generating distribution $G$. The forecasting problem is defined by trying to issue a predictive probability distribution $F$ for the future realisation of this random variable. Further, denote $s(F,G)$ for the expectation of $\text{E}[s(F,y)]$. We then say that scoring rule $s$ is \textit{proper}, if 
+\[s(G,G) \leq s(F,G).\]
+Put into words, this means that the scoring function is minimized if the true data-generating distribution is issued as the forecast distribution. Likewise, the scoring rule $s$ is \textit{strictly proper}, if 
+\[s(G,G) < s(F,G).\] 
+A (strictly) proper scoring rule thus incentivizes the forecaster to issue his or her true belief for the predictive probability distribution.\\
+This notion of the propriety of scoring rules originated with \todos{Winkler and Murphy (1968)} and its importance in the forecasting world (hmpf) cannot be overstated - if a scoring rule for distributional forecasts is not proper, it could, for instance, incentivize a forecaster to report a more confident estimate than he or she actually believes in \todos{Thorarinsdottir 2013}. \\
+\subsection{Scoring rules}
+\subsubsection{Weighted Interval Score}
+\cite{bracher_evaluating_2021} that's where it's at
+\section{Ensemble Experiments}
+\subsection{Model Types}
+These compartmental models, via a set of differential equations, explicitly model how members of the population transition through the states of being susceptible, (exposed), infected, and recovered/removed \cite{taylor_combining_2021}.
+\cite{taylor_combining_2021} conjecture that during periods of low incidence, mechanistic models should perform better than statistical ones. This is due to the fact that random statistical fluctuations can still occur, but statistical models might, somehow, latch on to these too eagerly and proceed to forecast exponential growth where there is none.
+\subsection{Model Similarity}
+We now turn to the issue of model similarity in ensembles. As expanded upon in Section \todos{XX}, ensemble models are widely regarded to be successful due to the fact that they counteract/mitigate individual model biases and furthermore reduce variance by aggregating a number of models. Regarding the first point of mitigating bias, it is thus conceivable that ensembling approaches could be less successful if some of the included models are too similar. To illustrate this, recall the , thereby skewing 
+%include plot of scaled model similarity
+%plot of model performance with respect to number of models kicked out
+%analyze which models are actually similar 
+This notion has some mention (\todos{find better word}) in the literature. For example, in \cite{bosse_comparing_2021}, the authors mention that they purposefully did not submit one of their models for inclusion in the forecast hub's ensemble, as there was concern that it could be too similar to another model they already submitted. However, this decision based on the two models' similarity in modeling setup (shortly explain), rather than on an actual judgment of how close their predictions were. Nevertheless, they did find that both models improved the ensemble if included \todos{(find out if this was actually true)}. We now want to do a more systematic review of this concept - since we will consider more models across more countries, we hope to get a more accurate picture.\\
+\begin{figure}
+\centering
+\includegraphics[width = 0.95\textwidth]{../plots/model_similarity.pdf}
+\end{figure}
 \newpage
 \bibliography{references}
 \bibliographystyle{plainnat}
