@@ -581,8 +581,9 @@ all_combs_ensemble <- function(data,
   combos <- paste(rep(locs, each = length(targets)), 
                   targets, sep = ".")
   
-  #init result container (for all ensemble predictions)
-  all_ensemble_data <- NULL
+  #init result container 
+  all_ensemble_data <- NULL #for all ensemble predictions
+  all_dist_dt <- NULL #for all pairwise distances
   
   for(comb in combos){
     print(comb)
@@ -628,7 +629,9 @@ all_combs_ensemble <- function(data,
                    cramers_dist)
       #result is a list with one element, extract it
       hist_dist_all <- hist_dist_all[[1]]
-      
+      hist_dist_dt <- model_dists_to_dt(hist_dist_all) |>
+        rename(historical_distance = distance)
+
       
       #####compute recent distance####
       #recent history dates (according to window)
@@ -641,6 +644,8 @@ all_combs_ensemble <- function(data,
       #and recent time frames are the same 
       if(i == (init_weeks+1)){
         recent_dist_all <- hist_dist_all
+        recent_dist_dt <- hist_dist_dt |>
+          rename(recent_distance = historical_distance)
       } else {
         recent_dist_all <- subdat |>
           filter(model %in% avail_models,
@@ -650,7 +655,19 @@ all_combs_ensemble <- function(data,
                      cramers_dist)
         #result is a list with one element, extract it
         recent_dist_all <- recent_dist_all[[1]]
+        recent_dist_dt <- model_dists_to_dt(recent_dist_all) |>
+          rename(recent_distance = distance)
       }
+      
+      #make a data.table with all pairwise distances (recent and historical)
+      temp_all_dist_dt <- full_join(recent_dist_dt, 
+                               hist_dist_dt,
+                               by = c("model1", "model2")) |>
+        mutate(location = loc,
+               target_type = target,
+               forecast_date = fc_date)
+      all_dist_dt <- rbind(all_dist_dt, temp_all_dist_dt)      
+      
       
       #update avail_models (sometimes a model is available at fc_date,
       #but not in the history before)
@@ -707,5 +724,5 @@ all_combs_ensemble <- function(data,
     }
   }
   
-  return(all_ensemble_data)
+  return(list(all_ensemble_data, all_dist_dt))
 }
