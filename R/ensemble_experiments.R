@@ -630,10 +630,9 @@ all_combs_ensemble <- function(data,
     #at each date, build ensemble and compute average pairwise historical and 
     #recent distance in ensemble
     for(i in (init_weeks+1):length(fc_dates)){
-      print(i)
       #get current forecast data
       fc_date <- as.Date(fc_dates[i])
-      
+      print(fc_date)
       #get data subset at fc_date
       fc_date_data <- subdat |>
         filter(forecast_date == fc_dates[i])
@@ -718,8 +717,17 @@ all_combs_ensemble <- function(data,
         sd_hist_dist <- sd(hist_dist_mat, na.rm = TRUE)
         
         #compute recent distance metrics
-        recent_dist_mat <- apply(ens_combs, 1, 
-                                 function(x) recent_dist_all[x[1], x[2]])
+        recent_dist_mat <- tryCatch(
+          {
+          apply(ens_combs, 1,
+                function(x) recent_dist_all[x[1], x[2]])
+          },
+          error = function(e){ 
+            print(paste0(fc_date, ens_comb))
+            print(e)
+            },
+          finally = {})
+        
         mean_recent_dist <- mean(recent_dist_mat, na.rm = TRUE)
         sd_recent_dist <- sd(recent_dist_mat, na.rm = TRUE)
         
