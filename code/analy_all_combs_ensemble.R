@@ -18,8 +18,8 @@ myres <- all_combs_ensemble(test_data, mymoddist, avail_threshold = 0.3)
 #end_time - start_time
 
 
-saveRDS(myres[[1]], here("results", "all_combs_ensemble_local_ens.RDS"))
-saveRDS(myres[[2]], here("results", "all_combs_ensemble_local_dists.RDS"))
+saveRDS(myres[[1]], here("results", "all_combs_ensemble_server_ens.RDS"))
+saveRDS(myres[[2]], here("results", "all_combs_ensemble_server_dists.RDS"))
 
 
 #before doing main run
