@@ -391,7 +391,8 @@ compute_pair_dist_by_fc_date <-
       model1 = model_combs[1], 
       model2 = model_combs[2],
       forecast_date = unique(subdat$forecast_date),
-      avg_dist = NA
+      avg_dist = NA,
+      avail_overlap = avail_overlap
     )
     
   } else {
@@ -417,12 +418,19 @@ compute_pair_dist_by_fc_date <-
       model2 = model_combs[2]
     )
     
+    avail_dat <- data.frame(
+      model1 = model_combs[1],
+      model2 = model_combs[2],
+      avail_overlap = avail_overlap
+    )
+    
     #join with dist_dat (unavailable dates are now explicitly NAs)
     dist_dat <- dplyr::full_join(
       dist_dat, na_dat, 
       by = c("forecast_date", "model1", "model2")) |>
       dplyr::arrange(model1, model2, forecast_date) |>
-      dplyr::relocate(model1, model2)
+      dplyr::relocate(model1, model2) |>
+      left_join(avail_dat, by = c("model1", "model2"))
     
     return(dist_dat)
   }
