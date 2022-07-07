@@ -3,11 +3,12 @@ library(masterthesis)
 
 source(here("code", "load_clean_data.R"))
 
+test_data <- hub_data |> filter(location == "DE", target_type == "Cases")
 
 #change avail
 #devtools::load_all()
 #start_time <- Sys.time()
-myres <- all_combs_ensemble(hub_data, avail_threshold = 0.3)
+myres <- all_combs_ensemble(test_data, avail_threshold = 0.3)
 #end_time <- Sys.time()
 #end_time - start_time
 
