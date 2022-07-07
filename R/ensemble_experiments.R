@@ -630,7 +630,7 @@ all_combs_ensemble <- function(data,
     #at each date, build ensemble and compute average pairwise historical and 
     #recent distance in ensemble
     for(i in (init_weeks+1):length(fc_dates)){
-      
+      print(i)
       #get current forecast data
       fc_date <- as.Date(fc_dates[i])
       
