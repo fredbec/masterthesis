@@ -646,9 +646,13 @@ all_combs_ensemble <- function(data,
 
       #make all possible combinations of size nmod
       all_combs <- combn(avail_models, nmod) |> t()
+      
+      mylist <- vector("list", length = nrow(all_combs))
+      for(j in 1:nrow(all_combs)){
+        #current combination
+        ens_comb <- all_combs[j,]
     
-      make_comb_ens <- function(ens_comb, fc_date_data){
-        ens_dat <- fc_date_data |>
+        mylist[[j]] <- fc_date_data |>
           filter(model %in% ens_comb) |>
           make_ensemble(mean) |>
           make_ensemble(extra_excl = "mean_ensemble") |>
@@ -657,20 +661,16 @@ all_combs_ensemble <- function(data,
           #add in info about included models and distance measures
           mutate(inc_models = paste(ens_comb, collapse = ";"),
                  nmod = length(ens_comb))
+    
+        
+      
       }
-      
-      all_ensemble_data_temp <- apply(all_combs, 1, function(x)
-        make_comb_ens(x, fc_date_data)
-        ) |>
-        data.table::rbindlist()
-      
       
       all_ensemble_data <- rbind(
-        all_ensemble_data, all_ensemble_data_temp
+        all_ensemble_data, data.table::rbindlist(mylist)
       )
-      
-      }
     }
+  }
   
   return(all_ensemble_data)
 }
