@@ -723,12 +723,14 @@ all_combs_ensemble <- function(data,
                   function(x) recent_dist_all[x[1], x[2]])
           },
           error = function(e){ 
-            print(paste0(fc_date, ens_comb))
-            print(e)
+            return(NA)
           },
           finally = {})
         
         mean_recent_dist <- mean(recent_dist_mat, na.rm = TRUE)
+        if(is.nan(mean_recent_dist)){
+          mean_recent_dist <- NA
+        }
         sd_recent_dist <- sd(recent_dist_mat, na.rm = TRUE)
         
         
