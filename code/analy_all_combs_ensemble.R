@@ -8,14 +8,14 @@ test_data <- hub_data |> filter(location == "DE",
                                 forecast_date < "2021-05-01")
 
 devtools::load_all()
-mymoddist <- model_dist_by_fc_date(test_data, 0.3, 0.01, cramers_dist)
+#mymoddist <- model_dist_by_fc_date(test_data, 0.3, 0.01, cramers_dist)
 
 #change avail
 #devtools::load_all()
-#start_time <- Sys.time()
+start_time <- Sys.time()
 myres <- all_combs_ensemble(test_data, mymoddist, avail_threshold = 0.3)
-#end_time <- Sys.time()
-#end_time - start_time
+end_time <- Sys.time()
+end_time - start_time
 
 
 saveRDS(myres[[1]], here("results", "all_combs_ensemble_local_ens.RDS"))

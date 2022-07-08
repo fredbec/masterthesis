@@ -643,99 +643,34 @@ all_combs_ensemble <- function(data,
       #vector of available models
       avail_models <- unique(fc_date_data$model)
       
-      
-      hist_dist_all <- model_dist_data |>
-        filter(location == loc,
-               target_type == target,
-               forecast_date < as.Date(fc_date)) |>
-        group_by(model1, model2) |>
-        summarise(historical_distance = mean(avg_dist))
-      
 
-      
-      #####compute recent distance####
-      #recent history dates (according to window)
-      recent_dates <- seq.Date(
-        fc_date - (window * 7), #not window +1
-        fc_date - 7,
-        by = 7
-      )
-      
-      recent_dist_all <- model_dist_data |>
-        filter(location == loc,
-               target_type == target,
-               forecast_date %in% recent_dates) |>
-        group_by(model1, model2) |>
-        summarise(recent_distance = mean(avg_dist))
-      
-      
-      #make a data.table with all pairwise distances (recent and historical)
-      temp_all_dist_dt <- full_join(recent_dist_all, 
-                                    hist_dist_all,
-                               by = c("model1", "model2")) |>
-        mutate(location = loc,
-               target_type = target,
-               forecast_date = fc_date)
-    
-      
       #make all possible combinations of size nmod
       all_combs <- combn(avail_models, nmod) |> t()
-      
-      for(j in 1:nrow(all_combs)){
-        #current combination
-        ens_comb <- all_combs[j,]
-        print(ens_comb)
-        
-        #data with only those models 
+    
+      make_comb_ens <- function(ens_comb, fc_date_data){
         ens_dat <- fc_date_data |>
-          filter(model %in% ens_comb)
-        
-        
-        #all pairs from ens_comb, to extract from distance matrices
-        ens_combs <- combn(ens_comb, 2) |> t()
-        #compute historical distance metrics
-        
-        hist_dist_mat <- apply(
-          ens_combs, 1,
-          function(x) filter(hist_dist_all, model1 == x[1] & model2 == x[2] |
-                               model2 == x[1] & model1 == x[2])) |>
-          data.table::rbindlist()
-        
-        mean_hist_dist <- mean(hist_dist_mat$historical_distance, na.rm = TRUE)
-        sd_hist_dist <- sd(hist_dist_mat$historical_distance, na.rm = TRUE)
-        
-        #compute recent distance metrics
-        
-        recent_dist_mat <- apply(
-          ens_combs, 1,
-          function(x) filter(recent_dist_all, model1 == x[1] & model2 == x[2] |
-                               model2 == x[1] & model1 == x[2])) |>
-          data.table::rbindlist()
-        
-        mean_recent_dist <- mean(recent_dist_mat$recent_distance, na.rm = TRUE)
-        sd_recent_dist <- sd(recent_dist_mat$recent_distance, na.rm = TRUE)
-        
-        #build ensembles
-        ens_dat <- ens_dat |>
+          filter(model %in% ens_comb) |>
           make_ensemble(mean) |>
           make_ensemble(extra_excl = "mean_ensemble") |>
           filter(model %in% c("mean_ensemble",
                               "median_ensemble")) |>
           #add in info about included models and distance measures
           mutate(inc_models = paste(ens_comb, collapse = ";"),
-                 nmod = nmod,
-                 mean_hist_dist = mean_hist_dist, 
-                 sd_hist_dist = sd_hist_dist,
-                 mean_recent_dist = mean_recent_dist,
-                 sd_recent_dist = sd_recent_dist)
-        
-        #bind to previous results
-        all_ensemble_data <- all_ensemble_data |>
-          rbind(ens_dat)
-        
+                 nmod = length(ens_comb))
+      }
+      
+      all_ensemble_data_temp <- apply(all_combs, 1, function(x)
+        make_comb_ens(x, fc_date_data)
+        ) |>
+        data.table::rbindlist()
+      
+      
+      all_ensemble_data <- rbind(
+        all_ensemble_data, all_ensemble_data_temp
+      )
+      
       }
     }
-  }
   
-  return(list(all_ensemble_data, all_dist_dt))
+  return(all_ensemble_data)
 }
