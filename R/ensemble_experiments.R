@@ -585,8 +585,7 @@ kickout_ensemble <- function(data,
 
 #' @export
 
-all_combs_ensemble <- function(data,
-                               model_dist_data,
+all_combs_ensemble <- function(data, 
                                nmod = 3, 
                                window = 5,
                                init_weeks = 5,
@@ -633,7 +632,6 @@ all_combs_ensemble <- function(data,
     for(i in (init_weeks+1):length(fc_dates)){
       #get current forecast data
       fc_date <- as.Date(fc_dates[i])
-      
       print(fc_date)
       #get data subset at fc_date
       fc_date_data <- subdat |>
@@ -643,14 +641,18 @@ all_combs_ensemble <- function(data,
       avail_models <- unique(fc_date_data$model)
       
       
-      hist_dist_all <- model_dist_data |>
-        filter(location == loc,
-               target_type == target,
+      #####compute historical distance#####
+      hist_dist_all <- subdat |>
+        filter(model %in% avail_models,
                forecast_date < as.Date(fc_date)) |>
-        group_by(model1, model2) |>
-        summarise(historical_distance = mean(avg_dist))
+        model_dist(avail_threshold,
+                   avail_overlap_threshold,
+                   cramers_dist)
+      #result is a list with one element, extract it
+      hist_dist_all <- hist_dist_all[[1]]
+      hist_dist_dt <- model_dists_to_dt(hist_dist_all) |>
+        rename(historical_distance = distance)
       
-
       
       #####compute recent distance####
       #recent history dates (according to window)
@@ -659,23 +661,39 @@ all_combs_ensemble <- function(data,
         fc_date - 7,
         by = 7
       )
-      
-      recent_dist_all <- model_dist_data |>
-        filter(location == loc,
-               target_type == target,
-               forecast_date %in% recent_dates) |>
-        group_by(model1, model2) |>
-        summarise(recent_distance = mean(avg_dist))
-      
+      #saving some time at initial forecast_date, as historical
+      #and recent time frames are the same 
+      if(i == (init_weeks+1)){
+        recent_dist_all <- hist_dist_all
+        recent_dist_dt <- hist_dist_dt |>
+          rename(recent_distance = historical_distance)
+      } else {
+        recent_dist_all <- subdat |>
+          filter(model %in% avail_models,
+                 forecast_date %in% recent_dates) |>
+          model_dist(avail_threshold, 
+                     avail_overlap_threshold, 
+                     cramers_dist)
+        #result is a list with one element, extract it
+        recent_dist_all <- recent_dist_all[[1]]
+        recent_dist_dt <- model_dists_to_dt(recent_dist_all) |>
+          rename(recent_distance = distance)
+      }
       
       #make a data.table with all pairwise distances (recent and historical)
-      temp_all_dist_dt <- full_join(recent_dist_all, 
-                                    hist_dist_all,
-                               by = c("model1", "model2")) |>
+      temp_all_dist_dt <- full_join(recent_dist_dt, 
+                                    hist_dist_dt,
+                                    by = c("model1", "model2")) |>
         mutate(location = loc,
                target_type = target,
                forecast_date = fc_date)
-    
+      all_dist_dt <- rbind(all_dist_dt, temp_all_dist_dt)      
+      
+      
+      #update avail_models (sometimes a model is available at fc_date,
+      #but not in the history before)
+      avail_models <- rownames(hist_dist_all)
+      
       
       #make all possible combinations of size nmod
       all_combs <- combn(avail_models, nmod) |> t()
@@ -683,7 +701,6 @@ all_combs_ensemble <- function(data,
       for(j in 1:nrow(all_combs)){
         #current combination
         ens_comb <- all_combs[j,]
-        print(ens_comb)
         
         #data with only those models 
         ens_dat <- fc_date_data |>
@@ -692,27 +709,28 @@ all_combs_ensemble <- function(data,
         
         #all pairs from ens_comb, to extract from distance matrices
         ens_combs <- combn(ens_comb, 2) |> t()
+        
         #compute historical distance metrics
-        
-        hist_dist_mat <- apply(
-          ens_combs, 1,
-          function(x) filter(hist_dist_all, model1 == x[1] & model2 == x[2] |
-                               model2 == x[1] & model1 == x[2])) |>
-          data.table::rbindlist()
-        
-        mean_hist_dist <- mean(hist_dist_mat$historical_distance, na.rm = TRUE)
-        sd_hist_dist <- sd(hist_dist_mat$historical_distance, na.rm = TRUE)
+        hist_dist_mat <- apply(ens_combs, 1, 
+                               function(x) hist_dist_all[x[1], x[2]])
+        mean_hist_dist <- mean(hist_dist_mat, na.rm = TRUE)
+        sd_hist_dist <- sd(hist_dist_mat, na.rm = TRUE)
         
         #compute recent distance metrics
+        recent_dist_mat <- tryCatch(
+          {
+            apply(ens_combs, 1,
+                  function(x) recent_dist_all[x[1], x[2]])
+          },
+          error = function(e){ 
+            print(paste0(fc_date, ens_comb))
+            print(e)
+          },
+          finally = {})
         
-        recent_dist_mat <- apply(
-          ens_combs, 1,
-          function(x) filter(recent_dist_all, model1 == x[1] & model2 == x[2] |
-                               model2 == x[1] & model1 == x[2])) |>
-          data.table::rbindlist()
+        mean_recent_dist <- mean(recent_dist_mat, na.rm = TRUE)
+        sd_recent_dist <- sd(recent_dist_mat, na.rm = TRUE)
         
-        mean_recent_dist <- mean(recent_dist_mat$recent_distance, na.rm = TRUE)
-        sd_recent_dist <- sd(recent_dist_mat$recent_distance, na.rm = TRUE)
         
         #build ensembles
         ens_dat <- ens_dat |>
