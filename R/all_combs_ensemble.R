@@ -1,0 +1,146 @@
+all_combs_ensemble2 <- function(data,
+                                model_dist_data,
+                                nmod = 3, 
+                                window = 5,
+                                init_weeks = 5,
+                                avail_threshold = 0.5,
+                                avail_overlap_threshold = 0.1,
+                                excl = c("EuroCOVIDhub-baseline",
+                                         "EuroCOVIDhub-ensemble")){
+  data <- data |>
+    filter(!model %in% excl,
+           availability >= avail_threshold)
+  
+  locs <- unique(data$location)
+  targets <- unique(data$target_type)
+  
+  combos <- paste(rep(locs, each = length(targets)), 
+                  targets, sep = ".")
+  
+  #init result container 
+  all_ensemble_data <- NULL #for all ensemble predictions
+
+  for(comb in combos){
+    print(comb)
+    
+    #get location and target
+    filters <- strsplit(comb, split = "[.]")[[1]]
+    loc <- filters[1]
+    target <- filters[2]
+    
+    subdat <- data |>
+      filter(location == loc,
+             target_type == target)
+    
+    fc_dates <- subdat |>
+      select(forecast_date) |>
+      distinct() |>
+      pull() |>
+      sort()
+    
+    subdat_dist <- model_dist_data |>
+      filter(location == loc,
+             target_type == target)
+    
+    
+    #go over all forecast dates, get all combinations of models of size nmod 
+    #at each date, build ensemble and compute average pairwise historical and 
+    #recent distance in ensemble
+    for(i in (init_weeks+1):length(fc_dates)){
+      #get current forecast data
+      fc_date <- as.Date(fc_dates[i])
+      print(fc_date)
+      
+          
+      #get data subset at fc_date
+      fc_date_data <- subdat |>
+        filter(forecast_date == fc_dates[i])
+      
+      #vector of available models
+      avail_models <- unique(fc_date_data$model)
+      
+      
+      #####compute historical distance#####
+      
+      hist_dist_all <- subdat_dist |>
+        filter(forecast_date < fc_date) |>
+        group_by(model1, model2) |>
+        summarise(distavg = mean(dist, na.rm = TRUE)) |>
+        mutate(distavg = ifelse(is.nan(distavg), NA, distavg)) |>
+        model_dists_to_mat()
+      
+      
+      #####compute recent distance####
+      #recent history dates (according to window)
+      recent_dates <- seq.Date(
+        fc_date - (window * 7), #not window +1
+        fc_date - 7,
+        by = 7
+      )
+      recent_dist_all <- subdat_dist |>
+        filter(forecast_date %in% recent_dates) |>
+        group_by(model1, model2) |>
+        summarise(distavg = mean(dist, na.rm = TRUE)) |>
+        mutate(distavg = ifelse(is.nan(distavg), NA, distavg)) |>
+        model_dists_to_mat()
+      
+      
+      all_combs <- combn(avail_models, nmod) |> t()
+      
+      
+      for(j in 1:nrow(all_combs)){
+        #current combination
+        ens_comb <- all_combs[j,]
+        
+        #data with only those models 
+        ens_dat <- fc_date_data |>
+          filter(model %in% ens_comb)
+        
+        
+        #all pairs from ens_comb, to extract from distance matrices
+        ens_combs <- combn(ens_comb, 2) |> t()
+        
+        #compute historical distance metrics
+        hist_dist_mat <- apply(ens_combs, 1, 
+                               function(x) hist_dist_all[x[1], x[2]])
+        mean_hist_dist <- mean(hist_dist_mat, na.rm = TRUE)
+        if(is.nan(mean_hist_dist)){
+          mean_hist_dist <- NA
+        }
+        sd_hist_dist <- sd(hist_dist_mat, na.rm = TRUE)
+        
+        #compute recent distance metrics
+        recent_dist_mat <- apply(ens_combs, 1,
+                                 function(x) recent_dist_all[x[1], x[2]])
+        
+        mean_recent_dist <- mean(recent_dist_mat, na.rm = TRUE)
+        if(is.nan(mean_recent_dist)){
+          mean_recent_dist <- NA
+        }
+        sd_recent_dist <- sd(recent_dist_mat, na.rm = TRUE)
+        
+        
+        #build ensembles
+        ens_dat <- ens_dat |>
+          make_ensemble(mean) |>
+          make_ensemble(extra_excl = "mean_ensemble") |>
+          filter(model %in% c("mean_ensemble",
+                              "median_ensemble")) |>
+          #add in info about included models and distance measures
+          mutate(inc_models = paste(ens_comb, collapse = ";"),
+                 nmod = nmod,
+                 mean_hist_dist = mean_hist_dist, 
+                 sd_hist_dist = sd_hist_dist,
+                 mean_recent_dist = mean_recent_dist,
+                 sd_recent_dist = sd_recent_dist)
+        
+        #bind to previous results
+        all_ensemble_data <- all_ensemble_data |>
+          rbind(ens_dat)
+        
+      }
+    
+    }
+  }
+  return(all_ensemble_data)
+}

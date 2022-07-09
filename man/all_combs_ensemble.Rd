@@ -6,6 +6,7 @@
 \usage{
 all_combs_ensemble(
   data,
+  model_dist_data,
   nmod = 3,
   window = 5,
   init_weeks = 5,
