@@ -33,8 +33,8 @@ check2 |> filter(inc_models == "DSMPG-bayes;FIAS_FZJ-Epi1Ger;epiforecasts-EpiExp
 
 checkall <- full_join(check1, check2, by = c("model", "quantile", "horizon", "inc_models", "forecast_date"))
 
-saveRDS(myres[[1]], here("results", "all_combs_ensemble_local_ens.RDS"))
-saveRDS(myres[[2]], here("results", "all_combs_ensemble_local_dists.RDS"))
+saveRDS(myres[[1]], here("results", "all_combs_ensemble_server_ens.RDS"))
+saveRDS(myres[[2]], here("results", "all_combs_ensemble_server_dists.RDS"))
 
 
 #before doing main run
