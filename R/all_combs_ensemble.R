@@ -136,8 +136,8 @@ all_combs_ensemble2 <- function(data,
         recent_dist_mat <- apply(ens_combs, 1,
                                  function(x) recent_dist_all[x[1], x[2]])
         mean_recent_dist <-
-          ifelse(is.nan(mean(recent_dist_mat, na.rm = TRUE),
-                        NA, mean(recent_dist_mat, na.rm = TRUE)))
+          ifelse(is.nan(mean(recent_dist_mat, na.rm = TRUE)),
+                 NA, mean(recent_dist_mat, na.rm = TRUE))
         sd_recent_dist <- sd(recent_dist_mat, na.rm = TRUE)
         
         
