@@ -5,7 +5,8 @@ source(here("code", "load_clean_data.R"))
 
 test_data <- hub_data |> filter(location == "DE", 
                                 target_type == "Cases",
-                                forecast_date < "2021-05-08")
+                                forecast_date < "2021-07-30")
+
 
 mymoddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
@@ -26,15 +27,15 @@ end_time <- Sys.time()
 end_time - start_time
 
 
-check1 <- myres2 |> mutate(from2 = 1)
-check2 <- myres3[[1]] |> mutate(from3 = 1)
+#check1 <- myres2 |> mutate(from2 = 1)
+#check2 <- myres3[[1]] |> mutate(from3 = 1)
 
-check2 |> filter(inc_models == "DSMPG-bayes;FIAS_FZJ-Epi1Ger;epiforecasts-EpiExpert_Rt")
+#check2 |> filter(inc_models == "DSMPG-bayes;FIAS_FZJ-Epi1Ger;epiforecasts-EpiExpert_Rt")
 
-checkall <- full_join(check1, check2, by = c("model", "quantile", "horizon", "inc_models", "forecast_date"))
+#checkall <- full_join(check1, check2, by = c("model", "quantile", "horizon", "inc_models", "forecast_date"))
 
-saveRDS(myres[[1]], here("results", "all_combs_ensemble_server_ens.RDS"))
-saveRDS(myres[[2]], here("results", "all_combs_ensemble_server_dists.RDS"))
+saveRDS(myres2, here("results", "all_combs_ensemble_server_ens_branch2.RDS"))
+saveRDS(myres3[[1]], here("results", "all_combs_ensemble_server_ens_branch3.RDS"))
 
 
 #before doing main run
