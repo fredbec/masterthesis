@@ -50,14 +50,16 @@ all_combs_ensemble2 <- function(data,
              target_type == target)
     
     
+    
     #go over all forecast dates, get all combinations of models of size nmod 
     #at each date, build ensemble and compute average pairwise historical and 
     #recent distance in ensemble
+    
+    #init fc_date result list
+    fc_date_ensemble_data <- vector(mode = "list",
+                                    length = length(fc_dates) - init_weeks)
+    
     for(i in (init_weeks+1):length(fc_dates)){
-      
-      #init fc_date result list
-      fc_date_ensemble_data <- vector(mode = "list",
-                                      length = length(fc_dates) - init_weeks)
       
       #get current forecast data
       fc_date <- as.Date(fc_dates[i])
@@ -161,9 +163,11 @@ all_combs_ensemble2 <- function(data,
         
       }
       
-      fc_date_ensemble_data[[i]] <- 
-        data.table(rbindlist(comb_ensemble_data))
-    
+      all_comb_ensemble_data <- data.table::rbindlist(comb_ensemble_data)
+      
+      fc_date_ensemble_data[[(i-init_weeks)]] <- 
+        all_comb_ensemble_data
+      
     }
     
     all_ensemble_data <- rbind(
