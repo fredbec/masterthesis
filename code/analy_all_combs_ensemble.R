@@ -12,10 +12,12 @@ mymoddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 devtools::load_all()
 #mymoddist <- model_dist_by_fc_date(test_data, 0.3, 0.01, cramers_dist)
 
-
+start_time <- Sys.time()
 myres <- all_combs_ensemble2(hub_data, mymoddist, avail_threshold = 0)
+end_time <- Sys.time()
+end_time - start_time
 
-saveRDS(myres2, here("results", "all_combs_ensemble_server_fullrun.RDS"))
+saveRDS(myres, here("results", "all_combs_ensemble_server_fullrun.RDS"))
 
 
 #mylist <- myres2 |> 
