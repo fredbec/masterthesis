@@ -21,10 +21,10 @@ end_time <- Sys.time()
 end_time - start_time
 
 
-start_time <- Sys.time()
-myres3 <- all_combs_ensemble3(test_data, avail_threshold = 0)
-end_time <- Sys.time()
-end_time - start_time
+#start_time <- Sys.time()
+#myres3 <- all_combs_ensemble3(test_data, avail_threshold = 0)
+#end_time <- Sys.time()
+#end_time - start_time
 
 
 #check1 <- myres2 |> mutate(from2 = 1)
@@ -34,8 +34,8 @@ end_time - start_time
 
 #checkall <- full_join(check1, check2, by = c("model", "quantile", "horizon", "inc_models", "forecast_date"))
 
-saveRDS(myres2, here("results", "all_combs_ensemble_server_ens_branch2.RDS"))
-saveRDS(myres3[[1]], here("results", "all_combs_ensemble_server_ens_branch3.RDS"))
+saveRDS(myres2, here("results", "all_combs_ensemble_server_ens_branch2_test.RDS"))
+#saveRDS(myres3[[1]], here("results", "all_combs_ensemble_server_ens_branch3.RDS"))
 
 
 #before doing main run
