@@ -158,8 +158,6 @@ all_combs_ensemble2 <- function(data,
         
         #bind to previous results
         comb_ensemble_data[[j]] <- ens_dat
-        all_ensemble_data <- all_ensemble_data |>
-          rbind(ens_dat)
         
       }
       
