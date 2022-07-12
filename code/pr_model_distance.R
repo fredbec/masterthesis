@@ -35,7 +35,7 @@ end_time <- Sys.time()
 print("time for nmod = 3 is")
 end_time - start_time
 
-res_list3 <- data.table::split(res_nmod3, by = "location")
+res_list3 <- split(res_nmod3, by = "location")
 #save results
 sapply(names(res_list), function(loc) 
   saveRDS(here("results", "all_combs_ensemble", paste0("nmod3_", loc, ".RDS"))))
@@ -47,7 +47,7 @@ res_nmod4 <- all_combs_ensemble(hub_data, moddist, nmod = 4, avail_threshold = 0
 end_time <- Sys.time()
 end_time - start_time
 
-res_list4 <- data.table::split(res_nmod4, by = "location")
+res_list4 <- split(res_nmod4, by = "location")
 
 
 sapply(names(res_list), function(loc) 
@@ -60,7 +60,7 @@ res_nmod5 <- all_combs_ensemble(hub_data, moddist, nmod = 5, avail_threshold = 0
 end_time <- Sys.time()
 end_time - start_time
 
-res_list5 <- data.table::split(res_nmod5, by = "location")
+res_list5 <- split(res_nmod5, by = "location")
 
 
 sapply(names(res_list), function(loc) 
