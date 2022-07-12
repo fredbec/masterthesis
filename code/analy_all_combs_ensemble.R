@@ -3,7 +3,7 @@ library(masterthesis)
 
 source(here("code", "load_clean_data.R"))
 
-#test_data <- hub_data |> filter(location == "DE",
+#test_data <- hub_data |> filter(location == "DE", target_type == "Cases",
 #                                forecast_date < "2021-05-01")
 
 
@@ -12,15 +12,27 @@ mymoddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 devtools::load_all()
 #mymoddist <- model_dist_by_fc_date(test_data, 0.3, 0.01, cramers_dist)
 
-start_time <- Sys.time()
+#start_time <- Sys.time()
+#myres <- 
+
 myres <- all_combs_ensemble2(hub_data, mymoddist, avail_threshold = 0)
-end_time <- Sys.time()
-end_time - start_time
+#myres_wohor <- myres
+#end_time <- Sys.time()
+#end_time - start_time
 
-saveRDS(myres, here("results", "all_combs_ensemble_server_fullrun.RDS"))
+saveRDS(myres, here("results", "all_combs_ensemble_server_fullrun_byhor.RDS"))
 
+#myres2 <- myres |> group_by(location, target_type, inc_models , model, quantile, forecast_date) |>
+#  summarise(mean_hist_dist = mean(hist_dist_mean)) |>
+#  ungroup() |>
+#  data.frame() |>
+#  data.table()
 
-#mylist <- myres2 |> 
+#check2 <- check2 |>
+#  data.frame() |>
+#  data.table()
+
+#mylist <- myres |> 
 #  data.table() |>
 #  split(by = "horizon")
 
@@ -33,27 +45,48 @@ saveRDS(myres, here("results", "all_combs_ensemble_server_fullrun.RDS"))
 #    model_dists_to_mat()
 #)
 
-#ens_combs <- c("itwm-dSEIR", "LANL-GrowthRate", "USC-SIkJalpha") |>
+#ens_combs <- c("itwm-dSEIR", "LANL-GrowthRate", "MUNI-ARIMA") |>
 #  combn(2) |> t()
+
+#mylist <- list()
+#for (i in 1:4){
+#  mylist[[i]] <- rep(NA, 3)
+#}
 
 #byhor <- lapply(mylist2, function(mat)
 #  apply(ens_combs, 1, 
-#        function(x) mat[x[1], x[2]])
-#  )
+#        function(x) mat[x[1], x[2]]))
 
 
-#check1 <- myres2 |>
+
+#mean_hist_dist <- byhor |>
+#  sapply(function(x) c(mymean = ifelse(is.nan(mean(x, na.rm = TRUE)), NA, mean(x, na.rm = TRUE)),
+#         mysd = sd(x),
+ #        hist_pairs_avail = 3 - sum(is.na(x)))) |>
+#  t() |>
+#  data.table() |>
+#  mutate(horizon = 1:4)
+  
+#save how many models available
+
+
+#byhor_df <- data.frame(
+#  horizon = 1:4,
+#  hist_dist = mean_hist_dist
+#)
+
+
+#check1 <- myres |>
 #  group_by(model1, model2) |>
 #  summarise(distavg = mean(dist, na.rm = TRUE)) |>
 #  mutate(distavg = 
 #           ifelse(is.nan(distavg), NA, distavg)) |>
 #  model_dists_to_mat()
-#
+
 #check1_avg <- apply(ens_combs, 1, 
 #                    function(x) check1[x[1], x[2]])
 
 
-#myres_wohor <- myres2
 
 ###################################
 

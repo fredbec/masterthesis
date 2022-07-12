@@ -34,6 +34,7 @@ all_combs_ensemble2 <- function(data,
 
   #loop over all loc+target combinations
   for(comb in combos){
+    print(comb)
 
     #get location and target
     filters <- strsplit(comb, split = "[.]")[[1]]
@@ -63,7 +64,7 @@ all_combs_ensemble2 <- function(data,
       
       #get current forecast data
       fc_date <- as.Date(fc_dates[i])
-
+      #print(fc_date)
           
       #get data subset at fc_date
       fc_date_data <- subdat |>
@@ -88,19 +89,32 @@ all_combs_ensemble2 <- function(data,
       #historical (all past)
       hist_dist_all <- subdat_dist |>
         filter(forecast_date < fc_date) |>
-        group_by(model1, model2) |>
-        summarise(distavg = mean(dist, na.rm = TRUE)) |>
-        mutate(distavg = 
-                 ifelse(is.nan(distavg), NA, distavg)) |>
-        model_dists_to_mat()
+        data.table() |>
+        split(by = "horizon") 
+      
+      hist_dist_all <- lapply(hist_dist_all, function(dat)
+        dat |>
+          group_by(model1, model2) |>
+          summarise(avgdist = mean(dist, na.rm = TRUE)) |>
+          mutate(avgdist = ifelse(is.nan(avgdist), NA, avgdist)) |>
+          model_dists_to_mat()
+        )
+      
+      
       #recent (only past weeks in current window)
       recent_dist_all <- subdat_dist |>
-        filter(forecast_date %in% recent_dates) |>
+        filter(forecast_date %in% recent_dates)  |>
+        data.table() |>
+        split(by = "horizon") 
+      
+      recent_dist_all <- lapply(recent_dist_all, function(dat)
+        dat |>
         group_by(model1, model2) |>
         summarise(distavg = mean(dist, na.rm = TRUE)) |>
         mutate(distavg = 
                  ifelse(is.nan(distavg), NA, distavg)) |>
         model_dists_to_mat()
+      )
       
       
       #initialize result container for combo
@@ -123,24 +137,52 @@ all_combs_ensemble2 <- function(data,
         
         
         ########compute distance metrics for ens_comb#####
-        #extract all pairwise distances
-        hist_dist_mat <- apply(ens_combs, 1, 
-                               function(x) hist_dist_all[x[1], x[2]])
+        #extract all pairwise distances, by horizon
+        
+        hist_dist_mat <- lapply(hist_dist_all, function(mat)
+          apply(ens_combs, 1, 
+                function(x) mat[x[1], x[2]])
+          ) |>
+          sapply(function(x) c(hist_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)),
+                                             NA, mean(x, na.rm = TRUE)),
+                               hist_dist_sd = sd(x),
+                               hist_pairs_avail = nmod - sum(is.na(x)))) |>
+          t() |>
+          data.table() |>
+          mutate(horizon = 1:4)
+        
+        
+        recent_dist_mat <- lapply(recent_dist_all, function(mat)
+          apply(ens_combs, 1, 
+                function(x) mat[x[1], x[2]])
+        ) |>
+          sapply(function(x) c(recent_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)),
+                                                       NA, mean(x, na.rm = TRUE)),
+                               recent_dist_sd = sd(x),
+                               recent_pairs_avail = nmod - sum(is.na(x)))) |>
+          t() |>
+          data.table() |>
+          mutate(horizon = 1:4)
+        
+        
+        #return(hist_dist_mat)
         #compute mean and standard deviation
         #if all values are NA, need to specify to return NA
         #rather than NaN
-        mean_hist_dist <- 
-          ifelse(is.nan(mean(hist_dist_mat, na.rm = TRUE)),
-                 NA, mean(hist_dist_mat, na.rm = TRUE))
-        sd_hist_dist <- sd(hist_dist_mat, na.rm = TRUE)
+        #mean_hist_dist <- 
+        #  ifelse(is.nan(mean(hist_dist_mat, na.rm = TRUE)),
+        #         NA, mean(hist_dist_mat, na.rm = TRUE))
+        #sd_hist_dist <- sd(hist_dist_mat, na.rm = TRUE)
+        
+        #return(list(mean_hist_dist, sd_hist_dist))
         
         #same for recent distance metrics
-        recent_dist_mat <- apply(ens_combs, 1,
-                                 function(x) recent_dist_all[x[1], x[2]])
-        mean_recent_dist <-
-          ifelse(is.nan(mean(recent_dist_mat, na.rm = TRUE)),
-                 NA, mean(recent_dist_mat, na.rm = TRUE))
-        sd_recent_dist <- sd(recent_dist_mat, na.rm = TRUE)
+        #recent_dist_mat <- apply(ens_combs, 1,
+        #                         function(x) recent_dist_all[x[1], x[2]])
+        #mean_recent_dist <-
+        #  ifelse(is.nan(mean(recent_dist_mat, na.rm = TRUE)),
+        #         NA, mean(recent_dist_mat, na.rm = TRUE))
+        #sd_recent_dist <- sd(recent_dist_mat, na.rm = TRUE)
         
         
         ###########build ensembles#########
@@ -151,11 +193,11 @@ all_combs_ensemble2 <- function(data,
                               "median_ensemble")) |>
           #add in info about included models and distance measures
           mutate(inc_models = paste(ens_comb, collapse = ";"),
-                 nmod = nmod,
-                 mean_hist_dist = mean_hist_dist, 
-                 sd_hist_dist = sd_hist_dist,
-                 mean_recent_dist = mean_recent_dist,
-                 sd_recent_dist = sd_recent_dist)
+                 nmod = nmod) |>
+          left_join(hist_dist_mat, 
+                    by = c("horizon")) |>
+          left_join(recent_dist_mat,
+                    by = c("horizon"))
         
         
         #bind to previous results
