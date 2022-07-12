@@ -28,16 +28,14 @@ saveRDS(pairwise_model_dist, here("results", "pairwise_model_dists.RDS"))
 ###############run all_combs_ensemble################
 moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
-test_dat <- hub_data |> 
-  filter(location %in% c("DE", "PL"),
-         forecast_date < as.Date("2021-05-05"))
-
 #nmod = 3 run
 start_time <- Sys.time()
-res_nmod3 <- all_combs_ensemble(test_dat, moddist, nmod = 3, avail_threshold = 0)
+res_nmod3 <- all_combs_ensemble(hub_data, moddist, nmod = 3, avail_threshold = 0)
 end_time <- Sys.time()
 print("time for nmod = 3 is")
 end_time - start_time
+
+
 
 res_list3 <- split(res_nmod3, by = "location")
 #save results
@@ -49,23 +47,25 @@ sapply(names(res_list3), function(loc)
 start_time <- Sys.time()
 res_nmod4 <- all_combs_ensemble(hub_data, moddist, nmod = 4, avail_threshold = 0)
 end_time <- Sys.time()
+print("time for nmod = 4 is")
 end_time - start_time
 
 res_list4 <- split(res_nmod4, by = "location")
 
 
 sapply(names(res_list4), function(loc) 
-  saveRDS(here("results", "all_combs_ensemble", paste0("nmod4_", loc, ".RDS"))))
+  saveRDS(res_list4[[loc]], here("results", "all_combs_ensemble", paste0("nmod4_", loc, ".RDS"))))
 
 
 #nmod = 5 run
 start_time <- Sys.time()
 res_nmod5 <- all_combs_ensemble(hub_data, moddist, nmod = 5, avail_threshold = 0)
 end_time <- Sys.time()
+print("time for nmod = 5 is")
 end_time - start_time
 
 res_list5 <- split(res_nmod5, by = "location")
 
 
 sapply(names(res_list5), function(loc) 
-  saveRDS(here("results", "all_combs_ensemble", paste0("nmod5_", loc, ".RDS"))))
+  saveRDS(res_list5[[loc]], here("results", "all_combs_ensemble", paste0("nmod5_", loc, ".RDS"))))
