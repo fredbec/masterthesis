@@ -227,7 +227,27 @@ model_dist <- function(data,
 
 
 
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' @import dplyr
+#' 
+#' @description 
+#'
+#' Helper function that computes a distance measure for each pair of models
+#' in the European Forecast Hub (a forecast in the Hub is distributional
+#' and is comprised of a discrete set of 23 forecast quantiles)
+#' 
+#' @param data data (subset or full) from the European Forecast hub
+#' @param avail_threshold minimum availability for a model to be considered
+#' @param avail_overlap_threshold minimum availability overlap for a model pair  
+#' to have their distance computed
+#' @param dist_fun which distance function to use
+#' @param excl models to exclude from the calculation
+#' 
+#' @return either a data.frame with only the models and their respective
+#'        availability, or the original data.table including and extra column
+#'        with the availability values of the respective models (the default)
 
+#' @export
 
 model_dist_by_fc_date <- 
   function(data, 
@@ -289,8 +309,7 @@ model_dist_by_fc_date <-
         dplyr::mutate(location = filters[1],
                       target_type = filters[2])
         
-      
-
+    
 
       #assign to result list
       comb_distances[[comb]] <- dt_result
@@ -378,24 +397,30 @@ compute_pair_dist_by_fc_date <-
             direction = "wide") |>
     #check for overall overlap in model availability
     mutate(both_avail = as.numeric(!is.na(get(mod1))&
-                                     !is.na(get(mod2))))
+                                     !is.na(get(mod2)))) |>
+    #otherwise things get a little jumbled, producing warnings in
+    #distance computation
+    arrange(forecast_date, horizon, quantile)
   
   
   avail_overlap <- model_comb_dat |>
     summarise(overlap = mean(both_avail) * (n() / n_obs)) |>
     pull()
   
+  
   if(avail_overlap < avail_overlap_threshold){
     
     dist_dat <- data.frame(
       model1 = model_combs[1], 
       model2 = model_combs[2],
-      forecast_date = unique(subdat$forecast_date),
-      avg_dist = NA,
+      forecast_date = rep(unique(subdat$forecast_date), each = 4),
+      horizon = rep(1:4, times = length(unique(subdat$forecast_date))),
+      dist = NA,
       avail_overlap = avail_overlap
     )
     
   } else {
+    
     dist_dat <- model_comb_dat |>
       filter(!is.na(get(mod1)),
              !is.na(get(mod2))) |>
@@ -405,17 +430,16 @@ compute_pair_dist_by_fc_date <-
         get(mod1), get(mod2), quantile
       )) |>
       dplyr::ungroup() |>
-      dplyr::group_by(forecast_date) |>
-      #take average over all quantiles 
-      dplyr::summarise(avg_dist = mean(dist)) |>
       dplyr::mutate(model1 = model_combs[1],
                     model2 = model_combs[2]) 
     
+    
     #fill dist_dat with NAs at unavailable forecast_dates
     na_dat <- data.frame(
-      forecast_date = unique(subdat$forecast_date),
       model1 = model_combs[1], 
-      model2 = model_combs[2]
+      model2 = model_combs[2],
+      forecast_date = rep(unique(subdat$forecast_date), each = 4),
+      horizon = rep(1:4, times = length(unique(subdat$forecast_date)))
     )
     
     avail_dat <- data.frame(
@@ -427,13 +451,14 @@ compute_pair_dist_by_fc_date <-
     #join with dist_dat (unavailable dates are now explicitly NAs)
     dist_dat <- dplyr::full_join(
       dist_dat, na_dat, 
-      by = c("forecast_date", "model1", "model2")) |>
+      by = c("forecast_date", "model1", "model2", "horizon")) |>
       dplyr::arrange(model1, model2, forecast_date) |>
       dplyr::relocate(model1, model2) |>
       left_join(avail_dat, by = c("model1", "model2"))
     
-    return(dist_dat)
   }
+  return(dist_dat)
+  
 }
 
 
@@ -553,4 +578,39 @@ model_dists_to_dt <- function(model_dist_mat){
                                   levels = model_order))
   
   return(model_dists_dt)
+}
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @description Helper function to transform output from model_dist
+#' 
+#' @param model_dist_mat single matrix from model_dist output (list)
+#' 
+#' @return matrix as data.table
+
+#' @export   
+
+model_dists_to_mat <- function(model_dist_dt){
+  
+  model_dist_dt_rep <- model_dist_dt |>
+    rename(model1 = model2,
+           model2 = model1)
+  
+  model_dist_dt <- rbind(
+    model_dist_dt_rep, model_dist_dt
+  )
+  
+  colrownames <- sort(unique(unlist(model_dist_dt[1:2])))
+  # construct 0 matrix of correct dimensions with row and column names
+  model_dist_mat <- matrix(NA, length(colrownames), 
+                  length(colrownames), 
+                  dimnames = list(colrownames, colrownames))
+  
+  # fill in the matrix with matrix indexing on row and column names
+  model_dist_mat[as.matrix(model_dist_dt[c("model1", "model2")])] <- 
+    model_dist_dt[[names(model_dist_dt)[3]]]
+  
+  return(model_dist_mat)
 }
