@@ -44,6 +44,8 @@ moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
 
 #nmod = 4 run
+hub_data <- hub_data |>
+  filter(location %in% c("DE", "PL"))
 start_time <- Sys.time()
 res_nmod4 <- all_combs_ensemble(hub_data, moddist, nmod = 4, avail_threshold = 0)
 end_time <- Sys.time()
@@ -58,6 +60,7 @@ sapply(names(res_list4), function(loc)
 
 
 #nmod = 5 run
+
 start_time <- Sys.time()
 res_nmod5 <- all_combs_ensemble(hub_data, moddist, nmod = 5, avail_threshold = 0)
 end_time <- Sys.time()
