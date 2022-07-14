@@ -45,29 +45,39 @@ moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
 
 #nmod = 4 run
-hub_data <- hub_data |>
-  filter(location %in% c("DE"))
+hub_data_part1 <- hub_data |>
+  filter(location %in% c("DE"),
+         forecast_date < "2021-08-23")
+
 start_time <- Sys.time()
-res_nmod4 <- all_combs_ensemble(hub_data, moddist, nmod = 4, avail_threshold = 0)
+res_nmod4 <- all_combs_ensemble(hub_data_part1, moddist, nmod = 4, avail_threshold = 0)
 end_time <- Sys.time()
-print("time for nmod = 4 is")
+print("time for nmod = 4 part 1 is")
 end_time - start_time
 
-half1 <- res_nmod4 |> 
-  filter(forecast_date < "2021-09-21")
+saveRDS(res_nmod4, here("results", "all_combs_ensemble", "nmod4DE_half1.RDS"))
+rm(res_nmod4)
+rm(hub_data_part1)
 
-half2 <- res_nmod4 |>
-  filter(forecast_date >= "2021-09-21")
 
-saveRDS(half1, here("results", "all_combs_ensemble", "nmod4DE_half1.RDS"))
-saveRDS(half2, here("results", "all_combs_ensemble", "nmod4DE_half2.RDS"))
+hub_data_part2 <- hub_data |>
+  filter(location %in% c("DE"),
+         forecast_date >= "2021-07-19")
 
-print("try to save all")
-saveRDS(res_nmod4, here("results", "all_combs_ensemble", "nmod4DEsingle.RDS"))
+start_time <- Sys.time()
+res_nmod4 <- all_combs_ensemble(hub_data_part2, moddist, nmod = 4, avail_threshold = 0)
+end_time <- Sys.time()
+print("time for nmod = 4 part 2 is")
+end_time - start_time
 
-print("or is the problem here")
-res_list4 <- split(res_nmod4, by = "location")
-saveRDS(res_list4[["DE"]], here("results", "all_combs_ensemble", "nmod4DEsingle2.RDS"))
+saveRDS(res_nmod4, here("results", "all_combs_ensemble", "nmod4DE_half2.RDS"))
+
+#print("try to save all")
+#saveRDS(res_nmod4, here("results", "all_combs_ensemble", "nmod4DEsingle.RDS"))
+
+#print("or is the problem here")
+#res_list4 <- split(res_nmod4, by = "location")
+#saveRDS(res_list4[["DE"]], here("results", "all_combs_ensemble", "nmod4DEsingle2.RDS"))
 
 
 
