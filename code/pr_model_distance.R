@@ -45,34 +45,50 @@ moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
 
 #nmod = 4 run
-hub_data_part1 <- hub_data |>
-  filter(location %in% c("DE"),
-         forecast_date < "2021-07-30")
+locs <- unique(hub_data$location)
+targets <- unique(hub_data$target_type)
 
-start_time <- Sys.time()
-print("is it killed yet")
-res_nmod4 <- all_combs_ensemble(hub_data_part1, moddist, nmod = 4, avail_threshold = 0)
-print("and here")
-end_time <- Sys.time()
-print("time for nmod = 4 part 1 is")
-end_time - start_time
+comp_times <- NULL
 
-saveRDS(res_nmod4, here("results", "all_combs_ensemble", "nmod4DE_half1.RDS"))
-rm(res_nmod4)
-rm(hub_data_part1)
-
-
-hub_data_part2 <- hub_data |>
-  filter(location %in% c("DE"),
-         forecast_date >= "2021-07-19")
-
-start_time <- Sys.time()
-res_nmod4 <- all_combs_ensemble(hub_data_part2, moddist, nmod = 4, avail_threshold = 0)
-end_time <- Sys.time()
-print("time for nmod = 4 part 2 is")
-end_time - start_time
-
-saveRDS(res_nmod4, here("results", "all_combs_ensemble", "nmod4DE_half2.RDS"))
+for (loc in locs){
+  print(loc)
+  
+  #Deaths
+  subdat <- hub_data |>
+    filter(location == loc,
+           target_type == "Deaths")
+  
+  start_time <- Sys.time()
+  res_de <- all_combs_ensemble(
+    subdat, moddist, nmod = 4, avail_threshold = 0)
+  end_time <- Sys.time()
+  run_time <- end_time - start_time
+  saveRDS(res_de, 
+          here("results", "all_combs_ensemble", paste0("nmod4_", loc, "_Deaths.RDS")))
+  rm(res_de)
+  comp_times <- rbind(comp_times,
+                      data.frame(location = loc,
+                                 target_type = "Deaths", 
+                                 comp_time = run_time))
+  
+  #Cases
+  subdat <- hub_data |>
+    filter(location == loc,
+           target_type == "Cases")
+  
+  start_time <- Sys.time()
+  res_ca <- all_combs_ensemble(
+    subdat, moddist, nmod = 4, avail_threshold = 0)
+  end_time <- Sys.time()
+  run_time <- end_time - start_time
+  saveRDS(res_ca, 
+          here("results", "all_combs_ensemble", paste0("nmod4_", loc, "_Cases.RDS")))
+  rm(res_ca)
+  comp_times <- rbind(comp_times,
+                      data.frame(location = loc,
+                                 target_type = "Cases", 
+                                 comp_time = run_time))  
+}
 
 #print("try to save all")
 #saveRDS(res_nmod4, here("results", "all_combs_ensemble", "nmod4DEsingle.RDS"))
