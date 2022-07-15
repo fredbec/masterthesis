@@ -47,7 +47,7 @@ moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 #nmod = 4 run
 hub_data_part1 <- hub_data |>
   filter(location %in% c("DE"),
-         forecast_date < "2021-08-23")
+         forecast_date < "2021-07-30")
 
 start_time <- Sys.time()
 res_nmod4 <- all_combs_ensemble(hub_data_part1, moddist, nmod = 4, avail_threshold = 0)
