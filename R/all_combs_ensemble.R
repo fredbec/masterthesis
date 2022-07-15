@@ -84,6 +84,7 @@ all_combs_ensemble <- function(data,
       
       #get current forecast data
       fc_date <- as.Date(fc_dates[i])
+      print(fc_date)
 
       #get data subset at fc_date
       fc_date_data <- subdat |>
