@@ -50,7 +50,9 @@ hub_data_part1 <- hub_data |>
          forecast_date < "2021-07-30")
 
 start_time <- Sys.time()
+print("is it killed yet")
 res_nmod4 <- all_combs_ensemble(hub_data_part1, moddist, nmod = 4, avail_threshold = 0)
+print("and here")
 end_time <- Sys.time()
 print("time for nmod = 4 part 1 is")
 end_time - start_time
