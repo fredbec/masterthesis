@@ -45,7 +45,7 @@ moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
 
 #nmod = 4 run
-locs <- unique(hub_data$location)
+locs <- c("DE", "PL")
 targets <- unique(hub_data$target_type)
 
 comp_times <- NULL
@@ -87,8 +87,11 @@ for (loc in locs){
   comp_times <- rbind(comp_times,
                       data.frame(location = loc,
                                  target_type = "Cases", 
-                                 comp_time = run_time))  
+                                 comp_time = run_time))
+  
 }
+saveRDS(comp_imtes,
+        here("results", "all_combs_ensemble", "comp_times.RDS"))
 
 #print("try to save all")
 #saveRDS(res_nmod4, here("results", "all_combs_ensemble", "nmod4DEsingle.RDS"))
