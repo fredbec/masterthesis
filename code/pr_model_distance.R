@@ -45,7 +45,7 @@ moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
 
 #nmod = 4 run
-locs <- c("DE", "PL")
+locs <- unique(hub_data$location)
 targets <- unique(hub_data$target_type)
 
 comp_times <- NULL
@@ -60,11 +60,11 @@ for (loc in locs){
   
   start_time <- Sys.time()
   res_de <- all_combs_ensemble(
-    subdat, moddist, nmod = 4, avail_threshold = 0)
+    subdat, moddist, nmod = 5, avail_threshold = 0)
   end_time <- Sys.time()
   run_time <- end_time - start_time
   saveRDS(res_de, 
-          here("results", "all_combs_ensemble", paste0("nmod4_", loc, "_Deaths.RDS")))
+          here("results", "all_combs_ensemble", paste0("nmod5_", loc, "_Deaths.RDS")))
   rm(res_de)
   comp_times <- rbind(comp_times,
                       data.frame(location = loc,
@@ -78,11 +78,11 @@ for (loc in locs){
   
   start_time <- Sys.time()
   res_ca <- all_combs_ensemble(
-    subdat, moddist, nmod = 4, avail_threshold = 0)
+    subdat, moddist, nmod = 5, avail_threshold = 0)
   end_time <- Sys.time()
   run_time <- end_time - start_time
   saveRDS(res_ca, 
-          here("results", "all_combs_ensemble", paste0("nmod4_", loc, "_Cases.RDS")))
+          here("results", "all_combs_ensemble", paste0("nmod5_", loc, "_Cases.RDS")))
   rm(res_ca)
   comp_times <- rbind(comp_times,
                       data.frame(location = loc,
@@ -90,7 +90,7 @@ for (loc in locs){
                                  comp_time = run_time))
   
 }
-saveRDS(comp_imtes,
+saveRDS(comp_times,
         here("results", "all_combs_ensemble", "comp_times.RDS"))
 
 #print("try to save all")
