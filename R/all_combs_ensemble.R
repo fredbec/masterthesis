@@ -33,7 +33,9 @@ all_combs_ensemble <- function(data,
   #availability threshold
   data <- data |>
     filter(!model %in% excl,
-           availability >= avail_threshold)
+           availability >= avail_threshold) |>
+    #take out redundant columns
+    select(-one_of("n", "population", "target_end_date", "model_type"))
   
   
   #make all combinations of location+target (for looping)
@@ -164,9 +166,10 @@ all_combs_ensemble <- function(data,
           ) |> 
           sapply(function(x) #this returns a df-esque object with summary statistics
             c(hist_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)), #if all NA, also return NA and not NaN
-                                      NA, mean(x, na.rm = TRUE)),
-              hist_dist_sd = sd(x),
-              hist_pairs_avail = nmod - sum(is.na(x)))) |> #how many pairwise dists are available
+                                      NA, round(mean(x, na.rm = TRUE)), 2),
+              hist_dist_sd = round(sd(x), 2),
+              hist_pairs_avail = 
+                choose(nmod, 2) - sum(is.na(x)))) |> #how many pairwise dists are available
           t() |>
           data.table() |>
           mutate(horizon = 1:4)
@@ -178,9 +181,10 @@ all_combs_ensemble <- function(data,
           ) |>
           sapply(function(x) 
             c(recent_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)), #if all NA, also return NA and not NaN
-                                        NA, mean(x, na.rm = TRUE)),
-              recent_dist_sd = sd(x),
-              recent_pairs_avail = nmod - sum(is.na(x)))) |> #how many pairwise dists are available
+                                        NA, round(mean(x, na.rm = TRUE)),2),
+              recent_dist_sd = round(sd(x),2),
+              recent_pairs_avail = 
+                choose(nmod, 2) - sum(is.na(x)))) |> #how many pairwise dists are available
           t() |>
           data.table() |>
           mutate(horizon = 1:4)
@@ -224,5 +228,17 @@ all_combs_ensemble <- function(data,
       data.table::rbindlist(fc_date_ensemble_data)
     )
   }
+  
+  if(length(unique(all_ensemble_data$location))==1){
+    all_ensemble_data <- all_ensemble_data |> select(-location)
+  }
+  
+  if(length(unique(all_ensemble_data$target_type))==1){
+    all_ensemble_data <- all_ensemble_data |> select(-target_type)
+  }
+  
+  all_ensemble_data <- all_ensemble_data |>
+    select(-one_of("availability", "nmod"))
+  
   return(all_ensemble_data)
 }
