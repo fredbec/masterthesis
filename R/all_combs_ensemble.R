@@ -33,9 +33,7 @@ all_combs_ensemble <- function(data,
   #availability threshold
   data <- data |>
     filter(!model %in% excl,
-           availability >= avail_threshold) |>
-    #take out redundant columns
-    select(-one_of("n", "population", "target_end_date", "model_type"))
+           availability >= avail_threshold) 
   
   
   #make all combinations of location+target (for looping)
@@ -238,7 +236,9 @@ all_combs_ensemble <- function(data,
   }
   
   all_ensemble_data <- all_ensemble_data |>
-    select(-one_of("availability", "nmod"))
+    select(-one_of("availability", "nmod", "n", "population", "target_end_date", "model_type"))
+  
+
   
   return(all_ensemble_data)
 }
