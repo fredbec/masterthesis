@@ -57,13 +57,14 @@ for (loc in locs){
   subdat <- hub_data |>
     filter(location == loc,
            target_type == "Deaths", 
-           forecast_date <= "2021-08-16")
+           forecast_date <= "2021-06-21")
   
   start_time <- Sys.time()
   res_de <- all_combs_ensemble(
     subdat, moddist, nmod = 5, avail_threshold = 0)
   end_time <- Sys.time()
   run_time <- end_time - start_time
+  print(run_time)
   saveRDS(res_de, 
           here("results", "all_combs_ensemble", paste0("nmod5_", loc, "_Deaths_part1.RDS")))
   rm(res_de)
@@ -77,13 +78,15 @@ for (loc in locs){
   subdat <- hub_data |>
     filter(location == loc,
            target_type == "Deaths",
-           forecast_date >= "2021-07-19")
+           forecast_date >= "2021-05-24" & 
+             forecast_date <= "2021-10-11")
   
   start_time <- Sys.time()
   res_de <- all_combs_ensemble(
     subdat, moddist, nmod = 5, avail_threshold = 0)
   end_time <- Sys.time()
   run_time <- end_time - start_time
+  print(run_time)
   saveRDS(res_de, 
           here("results", "all_combs_ensemble", paste0("nmod5_", loc, "_Deaths_part2.RDS")))
   rm(res_de)
@@ -92,42 +95,86 @@ for (loc in locs){
                                  target_type = "Deaths_p2", 
                                  comp_time = run_time))
   
+  #Deaths part 3
+  subdat <- hub_data |>
+    filter(location == loc,
+           target_type == "Deaths",
+           forecast_date >= "2021-09-13")
+  
+  start_time <- Sys.time()
+  res_de <- all_combs_ensemble(
+    subdat, moddist, nmod = 5, avail_threshold = 0)
+  end_time <- Sys.time()
+  run_time <- end_time - start_time
+  print(run_time)
+  saveRDS(res_de, 
+          here("results", "all_combs_ensemble", paste0("nmod5_", loc, "_Deaths_part3.RDS")))
+  rm(res_de)
+  comp_times <- rbind(comp_times,
+                      data.frame(location = loc,
+                                 target_type = "Deaths_p3", 
+                                 comp_time = run_time))
+  
+  
   #Cases part 1
   subdat <- hub_data |>
     filter(location == loc,
            target_type == "Cases",
-           forecast_date <= "2021-08-16")
+           forecast_date <= "2021-06-21")
   
   start_time <- Sys.time()
   res_ca <- all_combs_ensemble(
     subdat, moddist, nmod = 5, avail_threshold = 0)
   end_time <- Sys.time()
   run_time <- end_time - start_time
+  print(run_time)
   saveRDS(res_ca, 
           here("results", "all_combs_ensemble", paste0("nmod5_", loc, "_Cases_part1.RDS")))
   rm(res_ca)
   comp_times <- rbind(comp_times,
                       data.frame(location = loc,
-                                 target_type = "Case_p1", 
+                                 target_type = "Cases_p1", 
                                  comp_time = run_time))
   
   #Cases part 2
   subdat <- hub_data |>
     filter(location == loc,
            target_type == "Cases",
-           forecast_date >= "2021-07-19")
+           forecast_date >= "2021-05-24" & 
+             forecast_date <= "2021-10-11")
   
   start_time <- Sys.time()
   res_ca <- all_combs_ensemble(
     subdat, moddist, nmod = 5, avail_threshold = 0)
   end_time <- Sys.time()
   run_time <- end_time - start_time
+  print(run_time)
   saveRDS(res_ca, 
           here("results", "all_combs_ensemble", paste0("nmod5_", loc, "_Cases_part2.RDS")))
   rm(res_ca)
   comp_times <- rbind(comp_times,
                       data.frame(location = loc,
-                                 target_type = "Case_p2", 
+                                 target_type = "Cases_p2", 
+                                 comp_time = run_time))
+  
+  #Cases part 3
+  subdat <- hub_data |>
+    filter(location == loc,
+           target_type == "Cases",
+           forecast_date >= "2021-09-13")
+  
+  start_time <- Sys.time()
+  res_ca <- all_combs_ensemble(
+    subdat, moddist, nmod = 5, avail_threshold = 0)
+  end_time <- Sys.time()
+  run_time <- end_time - start_time
+  print(run_time)
+  saveRDS(res_ca, 
+          here("results", "all_combs_ensemble", paste0("nmod5_", loc, "_Cases_part3.RDS")))
+  rm(res_ca)
+  comp_times <- rbind(comp_times,
+                      data.frame(location = loc,
+                                 target_type = "Cases_p3", 
                                  comp_time = run_time))
   
 }
