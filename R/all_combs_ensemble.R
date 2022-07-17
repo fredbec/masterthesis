@@ -166,7 +166,7 @@ all_combs_ensemble <- function(data,
           ) |> 
           sapply(function(x) #this returns a df-esque object with summary statistics
             c(hist_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)), #if all NA, also return NA and not NaN
-                                      NA, round(mean(x, na.rm = TRUE)), 2),
+                                      NA, round(mean(x, na.rm = TRUE), 2)),
               hist_dist_sd = round(sd(x), 2),
               hist_pairs_avail = 
                 choose(nmod, 2) - sum(is.na(x)))) |> #how many pairwise dists are available
@@ -181,7 +181,7 @@ all_combs_ensemble <- function(data,
           ) |>
           sapply(function(x) 
             c(recent_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)), #if all NA, also return NA and not NaN
-                                        NA, round(mean(x, na.rm = TRUE)),2),
+                                        NA, round(mean(x, na.rm = TRUE),2)),
               recent_dist_sd = round(sd(x),2),
               recent_pairs_avail = 
                 choose(nmod, 2) - sum(is.na(x)))) |> #how many pairwise dists are available
