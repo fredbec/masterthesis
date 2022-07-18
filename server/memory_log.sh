@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 echo "      date     time $(free -m | grep total | sed -E 's/^    (.*)/\1/g')" >> server/usage.txt
-for i in `seq 0 30`; do
+for i in `seq 0 180`; do
     echo "$(date '+%Y-%m-%d %H:%M:%S') $(free -m | grep Mem: | sed 's/Mem://g')" >> server/usage.txt
-    sleep 5s
+    sleep 10s
 done
