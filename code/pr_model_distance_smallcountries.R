@@ -35,7 +35,7 @@ for(nmod in nmods){
     
     saveRDS(res_loc, 
             here("results", "all_combs_ensemble", paste0("nmod", nmod, "_", loc, ".RDS")))
-    
+    rm(res_loc)
     
     
     comp_times <- rbind(comp_times,
