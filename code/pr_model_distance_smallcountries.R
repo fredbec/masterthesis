@@ -2,6 +2,7 @@ library(here)
 library(masterthesis)
 library(data.table)
 library(dplyr)
+library(parallel)
 
 source(here("code", "load_clean_data.R"))
 
