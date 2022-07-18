@@ -23,13 +23,19 @@ for(nmod in nmods){
     all_combs_ensemble(filter(hub_data, location == loc), moddist, nmod = nmod,
                        avail_threshold = 0),
     mc.cores = 3
-    )
+  )
   end_time <- Sys.time()
   run_time <- end_time - start_time
 
-  saveRDS(allres,
-          here("results", "all_combs_ensemble", paste0("nmod", nmod, "_smallcountries.RDS")))
-  nrow_res <- nrow(allres)
+  lapply(allres, function(loc)
+         saveRDS(allres[loc],
+          here("results", "all_combs_ensemble", paste0("nmod", nmod, "_", loc, ".RDS")))
+         )
+  
+  nrow_res <- lapply(allres, nrow) |>
+    unlist() |>
+    mean()
+  
   rm(allres)
   
   comp_times <- rbind(comp_times,
