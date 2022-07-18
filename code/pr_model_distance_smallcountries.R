@@ -14,7 +14,7 @@ locs <- as.list(c("GB", "CZ", "FR"))
 hub_data <- hub_data |>
   filter(location %in% locs)
 
-nmods <- c(6,7,8,9)
+nmods <- c(10,11,12)
 
 comp_times <- NULL
 for(nmod in nmods){
