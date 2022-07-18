@@ -24,11 +24,12 @@ for(nmod in nmods){
                        avail_threshold = 0),
     mc.cores = 3
   )
+  names(allres) <- locs
   end_time <- Sys.time()
   run_time <- end_time - start_time
 
-  lapply(allres, function(loc)
-         saveRDS(allres[loc],
+  lapply(names(allres), function(loc)
+         saveRDS(allres[[loc]],
           here("results", "all_combs_ensemble", paste0("nmod", nmod, "_", loc, ".RDS")))
          )
   
