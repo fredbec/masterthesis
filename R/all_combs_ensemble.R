@@ -94,6 +94,12 @@ all_combs_ensemble <- function(data,
       #get all available models at forecast_date
       #also all combinations of models of size nmod
       avail_models <- unique(fc_date_data$model)
+      
+      #stop if there are less available models than nmod
+      if(length(avail_models) <= nmod){
+        next
+      }
+      
       all_combs <- combn(avail_models, nmod) |> t()
       
       
