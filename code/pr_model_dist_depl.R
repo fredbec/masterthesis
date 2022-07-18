@@ -9,7 +9,7 @@ source(here("code", "load_clean_data.R"))
 moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
 locs <- c("DE", "PL")
-targets <- unique(hub_data$target_type)
+targets <- as.list(unique(hub_data$target_type))
 
 
 nmod <- 5
@@ -18,7 +18,7 @@ for (loc in locs){
   subdat <- filter(hub_data, location == loc)
   
   start_time <- Sys.time()
-  allres <- mclapply(targ, function(targ)
+  allres <- mclapply(targets, function(targ)
     all_combs_ensemble(filter(hub_data, target_type == targ), moddist, nmod = nmod,
                        avail_threshold = 0),
     mc.cores = 2
