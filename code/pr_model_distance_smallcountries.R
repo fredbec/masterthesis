@@ -14,7 +14,7 @@ locs <- as.list(c("GB", "CZ", "FR"))
 hub_data <- hub_data |>
   filter(location %in% locs)
 
-nmods <- c(3,4,5,6,7)
+nmods <- c(6,7,8,9)
 
 comp_times <- NULL
 for(nmod in nmods){
@@ -43,4 +43,6 @@ for(nmod in nmods){
                       data.frame(nrow = nrow_res, 
                                  nmod = nmod,
                                  comp_time = run_time))
+  
+  saveRDS(comp_times, here("results", "all_combs_ensemble", "comp_times_smallcountries.RDS"))
 }
