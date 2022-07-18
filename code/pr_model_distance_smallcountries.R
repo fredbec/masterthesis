@@ -13,7 +13,7 @@ locs <- c("GB", "CZ", "FR")
 hub_data <- hub_data |>
   filter(location %in% locs)
 
-nmods <- c(5,6,7,8)
+nmods <- c(3,4,5,6,7,8)
 
 comp_times <- NULL
 
