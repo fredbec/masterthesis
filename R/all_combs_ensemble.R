@@ -162,9 +162,10 @@ all_combs_ensemble <- function(data,
         ens_dat <- fc_date_data |>
           filter(model %in% ens_comb)
         
+        
         ########compute distance metrics for ens_comb#####
         #extract all pairwise distances, by horizon
-        hist_dist_mat <- lapply(hist_dist_all, function(mat)
+        hist_dist_df <- lapply(hist_dist_all, function(mat)
           apply(ens_combs, 1,  #extracts pairwise distances
                 function(x) mat[x[1], x[2]])
           ) |> 
@@ -179,7 +180,7 @@ all_combs_ensemble <- function(data,
           mutate(horizon = 1:4)
         
         #same as above
-        recent_dist_mat <- lapply(recent_dist_all, function(mat)
+        recent_dist_df <- lapply(recent_dist_all, function(mat)
           apply(ens_combs, 1, 
                 function(x) mat[x[1], x[2]])
           ) |>
@@ -198,16 +199,17 @@ all_combs_ensemble <- function(data,
         ###########build ensembles#########
         ens_dat <- ens_dat |>
           make_ensemble(mean) |>
-          make_ensemble(extra_excl = "mean_ensemble") |>
+          make_ensemble(median, 
+                        extra_excl = "mean_ensemble") |>
           filter(model %in% c("mean_ensemble",
                               "median_ensemble")) |>
           #add in info about included models and distance measures
           mutate(inc_models = paste(ens_comb, collapse = ";"),
                  nmod = nmod) |>
           #join with distance dataframes
-          left_join(hist_dist_mat,
+          left_join(hist_dist_df,
                     by = c("horizon")) |>
-          left_join(recent_dist_mat,
+          left_join(recent_dist_df,
                     by = c("horizon"))
         
         
@@ -233,6 +235,7 @@ all_combs_ensemble <- function(data,
     )
   }
   
+  #remove some redudant columns (less storage requirements)
   if(length(unique(all_ensemble_data$location))==1){
     all_ensemble_data <- all_ensemble_data |> select(-location)
   }
