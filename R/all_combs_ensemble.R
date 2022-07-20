@@ -33,7 +33,7 @@ all_combs_ensemble <- function(data,
   #availability threshold
   data <- data |>
     filter(!model %in% excl,
-           availability >= avail_threshold)
+           availability >= avail_threshold) 
   
   
   #make all combinations of location+target (for looping)
@@ -84,6 +84,7 @@ all_combs_ensemble <- function(data,
       
       #get current forecast data
       fc_date <- as.Date(fc_dates[i])
+      print(fc_date)
 
       #get data subset at fc_date
       fc_date_data <- subdat |>
@@ -93,6 +94,12 @@ all_combs_ensemble <- function(data,
       #get all available models at forecast_date
       #also all combinations of models of size nmod
       avail_models <- unique(fc_date_data$model)
+      
+      #stop if there are less available models than nmod
+      if(length(avail_models) <= nmod){
+        next
+      }
+      
       all_combs <- combn(avail_models, nmod) |> t()
       
       
@@ -155,31 +162,34 @@ all_combs_ensemble <- function(data,
         ens_dat <- fc_date_data |>
           filter(model %in% ens_comb)
         
+        
         ########compute distance metrics for ens_comb#####
         #extract all pairwise distances, by horizon
-        hist_dist_mat <- lapply(hist_dist_all, function(mat)
+        hist_dist_df <- lapply(hist_dist_all, function(mat)
           apply(ens_combs, 1,  #extracts pairwise distances
                 function(x) mat[x[1], x[2]])
           ) |> 
           sapply(function(x) #this returns a df-esque object with summary statistics
             c(hist_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)), #if all NA, also return NA and not NaN
-                                      NA, mean(x, na.rm = TRUE)),
-              hist_dist_sd = sd(x),
-              hist_pairs_avail = nmod - sum(is.na(x)))) |> #how many pairwise dists are available
+                                      NA, round(mean(x, na.rm = TRUE), 2)),
+              hist_dist_sd = round(sd(x), 2),
+              hist_pairs_avail = 
+                choose(nmod, 2) - sum(is.na(x)))) |> #how many pairwise dists are available
           t() |>
           data.table() |>
           mutate(horizon = 1:4)
         
         #same as above
-        recent_dist_mat <- lapply(recent_dist_all, function(mat)
+        recent_dist_df <- lapply(recent_dist_all, function(mat)
           apply(ens_combs, 1, 
                 function(x) mat[x[1], x[2]])
           ) |>
           sapply(function(x) 
             c(recent_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)), #if all NA, also return NA and not NaN
-                                        NA, mean(x, na.rm = TRUE)),
-              recent_dist_sd = sd(x),
-              recent_pairs_avail = nmod - sum(is.na(x)))) |> #how many pairwise dists are available
+                                        NA, round(mean(x, na.rm = TRUE),2)),
+              recent_dist_sd = round(sd(x),2),
+              recent_pairs_avail = 
+                choose(nmod, 2) - sum(is.na(x)))) |> #how many pairwise dists are available
           t() |>
           data.table() |>
           mutate(horizon = 1:4)
@@ -188,17 +198,14 @@ all_combs_ensemble <- function(data,
         
         ###########build ensembles#########
         ens_dat <- ens_dat |>
-          make_ensemble(mean) |>
-          make_ensemble(extra_excl = "mean_ensemble") |>
-          filter(model %in% c("mean_ensemble",
-                              "median_ensemble")) |>
+          make_ensemble_minimal() |>
           #add in info about included models and distance measures
           mutate(inc_models = paste(ens_comb, collapse = ";"),
                  nmod = nmod) |>
           #join with distance dataframes
-          left_join(hist_dist_mat,
+          left_join(hist_dist_df,
                     by = c("horizon")) |>
-          left_join(recent_dist_mat,
+          left_join(recent_dist_df,
                     by = c("horizon"))
         
         
@@ -223,5 +230,16 @@ all_combs_ensemble <- function(data,
       data.table::rbindlist(fc_date_ensemble_data)
     )
   }
+  
+  #remove some redudant columns (less storage requirements)
+  if(length(unique(data$location))==1){
+    all_ensemble_data <- all_ensemble_data |> select(-location)
+  }
+  
+  if(length(unique(data$target_type))==1){
+    all_ensemble_data <- all_ensemble_data |> select(-target_type)
+  }
+  
+  
   return(all_ensemble_data)
 }
