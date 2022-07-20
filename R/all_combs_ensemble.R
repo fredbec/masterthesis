@@ -232,11 +232,11 @@ all_combs_ensemble <- function(data,
   }
   
   #remove some redudant columns (less storage requirements)
-  if(length(unique(all_ensemble_data$location))==1){
+  if(length(unique(data$location))==1){
     all_ensemble_data <- all_ensemble_data |> select(-location)
   }
   
-  if(length(unique(all_ensemble_data$target_type))==1){
+  if(length(unique(data$target_type))==1){
     all_ensemble_data <- all_ensemble_data |> select(-target_type)
   }
   
