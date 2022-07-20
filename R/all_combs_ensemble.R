@@ -198,11 +198,7 @@ all_combs_ensemble <- function(data,
         
         ###########build ensembles#########
         ens_dat <- ens_dat |>
-          make_ensemble(mean) |>
-          make_ensemble(median, 
-                        extra_excl = "mean_ensemble") |>
-          filter(model %in% c("mean_ensemble",
-                              "median_ensemble")) |>
+          make_ensemble_minimal() |>
           #add in info about included models and distance measures
           mutate(inc_models = paste(ens_comb, collapse = ";"),
                  nmod = nmod) |>
@@ -244,10 +240,6 @@ all_combs_ensemble <- function(data,
     all_ensemble_data <- all_ensemble_data |> select(-target_type)
   }
   
-  all_ensemble_data <- all_ensemble_data |>
-    select(-one_of("availability", "nmod", "n", "population", "target_end_date", "model_type"))
-  
-
   
   return(all_ensemble_data)
 }
