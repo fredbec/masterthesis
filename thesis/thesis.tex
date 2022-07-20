@@ -39,13 +39,11 @@
 \vspace{2cm}
 \section{Introduction}
 \input{introduction.tex}
-\section{Data}
-To be included in the Hub's ensemble and thus in this analysis, models had to provide a full set of 23 quantiles for all four horizons.
 \section{Forecasting and Ensembles}
 \subsection{Ensemble Forecasts}
 They have a long tradition in weather forecasting, where they show consistently improving performance over single models. \\
 An ensemble aggregates models, thereby unifying their respective knowledge/signals into a single forecast.\\
-Ray_2020: "Multiple studies of epidemic forecasting have shown that ensemble forecasts, which incorporate multiple model predictions into a combined forecast, consistently perform well and often outperform most if not all individual models (Viboud et al. 2018; Johansson et al. 2019; McGowan et al. 2019; Reich, Brooks, et al. 2019)."
+Ray2020: "Multiple studies of epidemic forecasting have shown that ensemble forecasts, which incorporate multiple model predictions into a combined forecast, consistently perform well and often outperform most if not all individual models (Viboud et al. 2018; Johansson et al. 2019; McGowan et al. 2019; Reich, Brooks, et al. 2019)."
 \section{Scoring}
 Suppose that $y$ is the realisation of a random variable under the true data-generating distribution $G$. The forecasting problem is defined by trying to issue a predictive probability distribution $F$ for the future realisation of this random variable. Further, denote $s(F,G)$ for the expectation of $\text{E}[s(F,y)]$. We then say that scoring rule $s$ is \textit{proper}, if 
 \[s(G,G) \leq s(F,G).\]
@@ -54,8 +52,33 @@ Put into words, this means that the scoring function is minimized if the true da
 A (strictly) proper scoring rule thus incentivizes the forecaster to issue his or her true belief for the predictive probability distribution.\\
 This notion of the propriety of scoring rules originated with \todos{Winkler and Murphy (1968)} and its importance in the forecasting world (hmpf) cannot be overstated - if a scoring rule for distributional forecasts is not proper, it could, for instance, incentivize a forecaster to report a more confident estimate than he or she actually believes in \todos{Thorarinsdottir 2013}. \\
 \subsection{Scoring rules}
+\subsubsection{PIT}
+\subsubsection{Coverage}
 \subsubsection{Weighted Interval Score}
-\cite{bracher_evaluating_2021} that's where it's at
+Here, we introduce the \ac{wis}, which is the main scoring function used within this thesis \cite{bracher_evaluating_2021}. It is designed for use on probabilistic forecasts \cite{european_covid-19_forecast_hub_european_2021} $F$ that are issued as a set of discrete central prediction intervals, each with nominal coverage level $\alpha$ - or, put differently, as a set of symmetric predictive quantiles $q$ which directly translate to central prediction intervals. \\
+Each central prediction interval can be scored via the interval score \citep{gneiting_strictly_2007}
+\begin{equation}
+IS_{\alpha}(F, y) = (u-l) + \frac{2}{\alpha}(l - y)\mathbb{1}(y < l) + \frac{2}{\alpha}(y - u)\mathbb{1}(y > u),
+\end{equation}
+where $\mathbb{1}$ is the indicator function, returning 1 if the condition inside the parentheses is fulfilled and 0 otherwise. The three summands each have an intuitive interpretation. The first $(u-l)$ expresses the width of the central prediction interval and thus the sharpness of the predictive distribution $F$. The second and third summands express under- and over-prediction, respectively. They assign a penalty if the true observed quantity $y$ falls below (above) the lower (upper) endpoint $l$ ($u$) of the prediction interval. These penalties are furthermore scaled by the nominal coverage level: a smaller $\alpha$, which corresponds to a higher nominal coverage rate, induces a higher penalty if $y$ does fall outside one of the endpoints. \\
+\cite{bracher_evaluating_2021} extend this score for use on a predictive distribution $F$ that consists of a set of such intervals, each with unique coverage level $\alpha$. The set of interval scores is gathered and aggregated into the weighted interval score
+\begin{equation}
+WIS_{\alpha_{0:K}}(F,y) = \frac{1}{K + 1/2}\left(w_{0}|y-m| + \sum_{k=1}^{K}\left(w_k IS_{\alpha_{k}}(F, y)\right)\right),
+\end{equation}
+where we usually set for the quantile weights $w_k = \frac{\alpha_{k}}{2}$, and for the median weight $w_{0} = \frac{1}{2}$.\\
+It can be shown that the \ac{wis} is an approximation of the \ac{crps}, a well-known scoring function that measures the distance between the predictive and true distribution 
+\begin{equation}
+CRPS(F, x) = \int_{-\infty}^{\infty} \left(F(y) - \mathbb{1}(y \geq x) \right)^2dy.
+\end{equation}
+\section{Data}
+The data used in this thesis stem from the European forecast(ing) hub, which was instigated by the \ac{ecdc} in 2021 and collates forecasts for Covid-19 cases and deaths from independent modeling teams across Europe \cite{european_covid-19_forecast_hub_european_2021}. Its primary goal is to "provide reliable information about the near-term epidemiology of the COVID-19 pandemic to the research and policy communities and the general public" \todos{newer} \citep{sherratt_draft_nodate}. In general, a modeling hub is a coordinated effort, in which one or more common prediction targets, as well as a common format for prediction, are agreed upon / implemented. This serves the purpose of facilitating model evaluation and development by making model predictions comparable, as well as making predictions suitable for aggregation, that is, for ensemble predictions. \\
+The "hub" format has some precedence both in the realm of climatology as well as in epidemiology, for example in forecasting influenza in the United States \cite{reich_collaborative_2019} as well as dengue fever in ... \cite{johansson_open_2019}. For these seasonal diseases, prediction targets were total number of cases in a season or the height of the peak, while in the case of Covid-19 and the European forecast(ing) hub, the common prediction target are weekly incidence Covid-19 case and death counts in 32 \todos{(check)} European countries, later also hospitalization rates. Forecasts are issued in a probabilistic manner, namely as a set of 23 quantiles of the predictive distribution, at non-equally-spaced levels between 0.01 and 0.99 (namely $\tau = 0.01, 0.025, 0.05, 0.1, 0.15, ..., 0.85, 0.9, 0.95, 0.975, 0.99$).
+To be included in the Hub's ensemble and thus in this analysis, models had to provide a full set of 23 quantiles for all four horizons.\\
+Include example plots of individual and ensemble predictions.\\
+Talk about how the ensemble paradigm has also held here, with citations to both Eu and Us FCH.\\
+Talk about truth data source, and potential data issues.
+\subsection{Hub Data}
+Issued as 23 quantiles. Mostly use \ac{wis}, which corresponds to giving slightly larger weight to intervals with large nominal coverage, as compared to \ac{crps} \citep{bracher_evaluating_2021}.
 \section{Ensemble Experiments}
 \subsection{Model Types}
 These compartmental models, via a set of differential equations, explicitly model how members of the population transition through the states of being susceptible, (exposed), infected, and recovered/removed \cite{taylor_combining_2021}.
