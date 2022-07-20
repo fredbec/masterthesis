@@ -13,9 +13,8 @@ window <- specs$all_combs_ensemble_window
 init_weeks <- specs$all_combs_ensemble_init_weeks
 avail_threshold <- specs$all_combs_ensemble_avail_threshold
 
-nmod <- 5
-window <- 5
-no_weeks <- 3
+nmod <- 8
+no_weeks <- 1
 
 #number of cores for mclapply
 no_mc.cores <- 4
