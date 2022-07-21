@@ -100,8 +100,24 @@ all_combs_ensemble <- function(data,
         next
       }
       
-      all_combs <- combn(avail_models, nmod) |> t()
-      
+      all_combs <- tryCatch(
+        expr = {
+          
+          combn(avail_models, nmod) |> t()
+        },
+        error = function(e){
+          
+          print(fc_date)
+          print(comb)
+          print(avail_models)
+          c("next")
+        },
+        finally = { }
+      )
+      if(length(all_combs)==1){
+        next
+      }
+
       
       #vector of recent dates (to compute recent distance)
       #according to window size

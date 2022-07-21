@@ -17,7 +17,7 @@ nmod <- 8
 no_weeks <- 1
 
 #number of cores for mclapply
-no_mc.cores <- 4
+no_mc.cores <- 3
 
 
 #this just gets the forecast dates that end up in the result dataframe
