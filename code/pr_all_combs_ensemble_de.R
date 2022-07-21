@@ -74,7 +74,7 @@ for(i in 1:num_its){
                        avail_threshold = avail_threshold,
                        nmod = nmod, window = window,
                        init_weeks = init_weeks),
-    mc.cores = no_mc.cores
+    mc.cores = no_mc.cores[i]
   )
   
   #name result list
@@ -105,7 +105,7 @@ for(i in 1:num_its){
                                  set = i))
   
   #save intermediary results in case of crash
-  saveRDS(comp_times, here("results", "all_combs_ensemble", "comp_times_plde.RDS"))
+  saveRDS(comp_times, here("results", "all_combs_ensemble", "comp_times_de.RDS"))
   
   #prep for next iteration
   lwr <- upr + 1
