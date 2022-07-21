@@ -8,13 +8,16 @@ source(here("code", "load_clean_data.R"))
 
 moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
-locs <- specs$all_combs_ensemble_big_countries
+loc <- "DE"
 window <- specs$all_combs_ensemble_window
 init_weeks <- specs$all_combs_ensemble_init_weeks
 avail_threshold <- specs$all_combs_ensemble_avail_threshold
 
 nmod <- 8
 no_weeks <- 1
+
+#subset hub_data for only DE
+hub_data <- filter(hub_data, location == loc)
 
 #scheduler of cores for mclapply
 no_mc.cores = c(2, rep(1, 12), rep(2, 5), rep(3, 6))
@@ -68,7 +71,7 @@ for(i in 1:num_its){
   #make results, with mclapply
   allres <- mclapply(curr_fc_dates_list, function(fcdates)
     
-    all_combs_ensemble(filter(hub_data, location == loc, 
+    all_combs_ensemble(filter(hub_data,
                               forecast_date %in% fcdates),
                        model_dist = moddist,
                        avail_threshold = avail_threshold,
