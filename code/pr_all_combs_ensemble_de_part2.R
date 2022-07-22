@@ -58,12 +58,12 @@ fc_dates_list <- make_date_list(fcdates, no_weeks, window)
 comp_times <- NULL
 
 
-lwr <- 1
+lwr <- 12
 for(i in 1:num_its){
   if(i < 12){
     next
   }
-  
+
   #get current `no_mc.cores` elements from fc_dates_list
   num_sets <- no_mc.cores[i]
   upr <- (lwr + num_sets) - 1
