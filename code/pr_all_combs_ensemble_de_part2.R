@@ -88,7 +88,7 @@ for(i in 1:num_its){
     
     saveRDS(allres_ca,
             here("results", "all_combs_ensemble", 
-                 paste0("nmod", nmod, "_", loc,"_set",num, "_Cases.RDS")))
+                 paste0("nmod", nmod, "_", loc,"_set12", "_Cases.RDS")))
     
     end_time <- Sys.time()
     run_time_ca <- end_time - start_time
@@ -109,7 +109,7 @@ for(i in 1:num_its){
     
     saveRDS(allres_de,
             here("results", "all_combs_ensemble", 
-                 paste0("nmod", nmod, "_", loc,"_set",num, "_Deaths.RDS")))
+                 paste0("nmod", nmod, "_", loc,"_set12", "_Deaths.RDS")))
     
     run_time_de <- Sys.time() - end_time
     
