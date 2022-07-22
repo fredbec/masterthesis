@@ -77,7 +77,7 @@ for(i in 1:num_its){
     
     allres_ca <- mclapply(curr_fc_dates_list, function(fcdates)
       
-      all_combs_ensemble(filter(hub_data, target_type == "Cases"
+      all_combs_ensemble(filter(hub_data, target_type == "Cases",
                                 forecast_date %in% fcdates),
                          model_dist = moddist,
                          avail_threshold = avail_threshold,
@@ -98,7 +98,7 @@ for(i in 1:num_its){
     
     allres_de <- mclapply(curr_fc_dates_list, function(fcdates)
       
-      all_combs_ensemble(filter(hub_data, target_type == "Deaths"
+      all_combs_ensemble(filter(hub_data, target_type == "Deaths",
                                 forecast_date %in% fcdates),
                          model_dist = moddist,
                          avail_threshold = avail_threshold,
