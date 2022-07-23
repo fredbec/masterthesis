@@ -20,7 +20,7 @@ no_weeks <- 1
 hub_data <- filter(hub_data, location == loc)
 
 #scheduler of cores for mclapply
-no_mc.cores = c(2, rep(1, 12), rep(2, 5), rep(3, 6))
+no_mc.cores = c(2, rep(1, 12), rep(1, 10), rep(2, 9))
 #number of iterations needed to go over list
 num_its = length(no_mc.cores)
 
@@ -58,9 +58,9 @@ fc_dates_list <- make_date_list(fcdates, no_weeks, window)
 comp_times <- NULL
 
 
-lwr <- 12
+lwr <- 14
 for(i in 1:num_its){
-  if(i < 12){
+  if(i < 14){
     next
   }
 
@@ -69,10 +69,12 @@ for(i in 1:num_its){
   upr <- (lwr + num_sets) - 1
   curr_fc_dates_list <- fc_dates_list[lwr:upr]
   
+  print(paste0("this is set", i))
+  print(curr_fc_dates_list)
   #record computation time
   start_time <- Sys.time()
   #make results, with mclapply
-  
+  if(FALSE){
   if(i == 12){
     
     allres_ca <- mclapply(curr_fc_dates_list, function(fcdates)
@@ -170,6 +172,7 @@ for(i in 1:num_its){
     
     #save intermediary results in case of crash
     saveRDS(comp_times, here("results", "all_combs_ensemble", "comp_times_de_part2.RDS"))
+  }
   }
   #prep for next iteration
   lwr <- upr + 1
