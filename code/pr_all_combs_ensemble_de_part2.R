@@ -74,7 +74,6 @@ for(i in 1:num_its){
   #record computation time
   start_time <- Sys.time()
   #make results, with mclapply
-  if(FALSE){
   if(i == 12){
     
     allres_ca <- mclapply(curr_fc_dates_list, function(fcdates)
@@ -172,7 +171,6 @@ for(i in 1:num_its){
     
     #save intermediary results in case of crash
     saveRDS(comp_times, here("results", "all_combs_ensemble", "comp_times_de_part2.RDS"))
-  }
   }
   #prep for next iteration
   lwr <- upr + 1
