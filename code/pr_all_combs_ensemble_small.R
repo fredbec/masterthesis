@@ -13,7 +13,7 @@ moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 #load specs
 #load locs as list for mclapply (distribute locs across cpus)
 locs <- as.list(specs$all_combs_ensemble_small_countries)
-nmods <- specs$all_combs_ensemble_small_nmod
+nmods <- c(3,5,7,9)
 window <- specs$all_combs_ensemble_window
 init_weeks <- specs$all_combs_ensemble_init_weeks
 
@@ -72,5 +72,5 @@ for(nmod in nmods){
   #could also do this outside of the loop, 
   #but this way get intermediary results in case of crash
   saveRDS(comp_times, 
-          here("results", "all_combs_ensemble", "comp_times_smallcountries.RDS"))
+          here("results", "all_combs_ensemble", "comp_times_small.RDS"))
 }
