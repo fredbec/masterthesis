@@ -16,6 +16,7 @@ locs <- as.list(specs$all_combs_ensemble_small_countries)
 nmods <- c(3,5,7,9)
 window <- specs$all_combs_ensemble_window
 init_weeks <- specs$all_combs_ensemble_init_weeks
+avail_threshold <- specs$all_combs_ensemble_avail_threshold
 
 no_mc.cores <- length(specs$all_combs_ensemble_small_countries)
 
@@ -54,7 +55,7 @@ for(nmod in nmods){
           here("results", "all_combs_ensemble", 
                paste0("nmod", nmod, "_", loc, ".RDS")))
          )
-  
+
   #avg number of rows in result (for comp_times)
   nrow_res <- lapply(allres, nrow) |>
     unlist() |>
