@@ -161,6 +161,20 @@ all_combs_ensemble <- function(data,
         model_dists_to_mat()
       )
       
+      #current (only current week)
+      current_dist_all <- subdat_dist |>
+        filter(forecast_date == fc_date) |>
+        setDT() |>
+        split(by = "horizon")
+      current_dist_all <- lapply(current_dist_all, function(dat)
+        dat |>
+          group_by(model1, model2) |>
+          summarise(avgdist = mean(dist, na.rm = TRUE)) |>
+          mutate(avgdist = 
+                   ifelse(is.nan(avgdist), NA, avgdist)) |>
+          model_dists_to_mat()
+      )
+      
       
       #initialize result container for combo
       #faster than rbind after every iteration in next loop
@@ -188,7 +202,7 @@ all_combs_ensemble <- function(data,
           sapply(function(x) #this returns a df-esque object with summary statistics
             c(hist_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)), #if all NA, also return NA and not NaN
                                       NA, round(mean(x, na.rm = TRUE), 2)),
-              hist_dist_sd = round(sd(x), 2),
+              hist_dist_sd = round(sd(x, na.rm = TRUE), 2),
               hist_pairs_avail = 
                 choose(nmod, 2) - sum(is.na(x)))) |> #how many pairwise dists are available
           t() |>
@@ -203,8 +217,23 @@ all_combs_ensemble <- function(data,
           sapply(function(x) 
             c(recent_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)), #if all NA, also return NA and not NaN
                                         NA, round(mean(x, na.rm = TRUE),2)),
-              recent_dist_sd = round(sd(x),2),
+              recent_dist_sd = round(sd(x, na.rm = TRUE),2),
               recent_pairs_avail = 
+                choose(nmod, 2) - sum(is.na(x)))) |> #how many pairwise dists are available
+          t() |>
+          data.table() |>
+          mutate(horizon = 1:4)
+        
+        #same as above
+        current_dist_df <- lapply(current_dist_all, function(mat)
+          apply(ens_combs, 1, 
+                function(x) mat[x[1], x[2]])
+        ) |>
+          sapply(function(x) 
+            c(current_dist_mean = ifelse(is.nan(mean(x, na.rm = TRUE)), #if all NA, also return NA and not NaN
+                                        NA, round(mean(x, na.rm = TRUE),2)),
+              current_dist_sd = round(sd(x, na.rm = TRUE),2),
+              current_pairs_avail = 
                 choose(nmod, 2) - sum(is.na(x)))) |> #how many pairwise dists are available
           t() |>
           data.table() |>
@@ -222,6 +251,8 @@ all_combs_ensemble <- function(data,
           left_join(hist_dist_df,
                     by = c("horizon")) |>
           left_join(recent_dist_df,
+                    by = c("horizon")) |>
+          left_join(current_dist_df,
                     by = c("horizon"))
         
         
