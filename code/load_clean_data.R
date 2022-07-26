@@ -49,25 +49,27 @@ matcher <- data.frame(model = "EuroCOVIDhub-baseline",
                       act_1220 = 1) |>
   mutate(target_end_date = as.IDate(target_end_date))
 
+#join with main data
 hub_data <- hub_data |> 
   left_join(matcher, by = c("model", "target_end_date", "horizon")) |>
   mutate(act_1220 = as.numeric(!is.na(act_1220)))
 
+#subset only those observations that need to be changed
 hub_data_bl20 <- hub_data  |>
   filter(act_1220 == 1) |>
   mutate(forecast_date = as.IDate("2021-12-20")) |>
   select(-act_1220)
 
+#attach again to orginal data
 hub_data <- hub_data |>
-  filter(act_1220 == 0) |>
+  filter(act_1220 == 0) |> #remove relevant obs
   select(-act_1220) |>
-  rbind(hub_data_bl20)|>
-  setkey(model) |>
-  arrange(model, location, target_type, forecast_date, horizon, quantile) |>
+  rbind(hub_data_bl20)|> #add back relevant obs
+  setkey(model) |> #key is removed in the process
+  arrange(model, location, target_type, forecast_date, 
+          horizon, quantile) |>
   model_availability() 
 
-
-#change so row order is same (with arrange)
 
 #remove some stuff from the workspace
 rm(list = c("model_types", "dates", "locs"))
