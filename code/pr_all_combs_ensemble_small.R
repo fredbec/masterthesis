@@ -13,7 +13,7 @@ moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 #load specs
 #load locs as list for mclapply (distribute locs across cpus)
 locs <- as.list(specs$all_combs_ensemble_small_countries)
-nmods <- c(3,5,7,9)
+nmods <- c(4,6,8,10)
 window <- specs$all_combs_ensemble_window
 init_weeks <- specs$all_combs_ensemble_init_weeks
 avail_threshold <- specs$all_combs_ensemble_avail_threshold
