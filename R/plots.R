@@ -567,3 +567,140 @@ plot_best_performers_models <-
     
   }
 
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import ggplot2
+#' @import gridExtra
+#' @description 
+#' Plots model_distance vs performance
+#' @export
+#Note: data will be stratified by forecast_date, horizon, model, target_type
+#this also means: different locations will be averaged over. If this is not 
+#desired, filter data beforehand
+
+plot_dist_vs_scores_overtime <- function(
+    plot_data, 
+    score_data = NULL,
+    palette = "Set2",
+    min_x.ticks = TRUE){
+  
+  #if(length(unique(plot_data$target_type))>1 | length(unique(score_data$target_type))>1){
+  #  warning("do you really want to average over target types?")
+  #}
+  
+  #make boxplots
+  boxplot_data <- plot_data |> 
+    select(forecast_date, inc_models, horizon, target_type, 
+           hist_dist_mean, recent_dist_mean, current_dist_mean) |>
+    distinct() 
+  
+  
+  #this is some stupid code for the tick marks
+  #it's stupid for two reasons: a. it's ugly, b. it doesn't even work
+  dates <- c("2021-07-05","2021-10-04","2021-12-06")
+  labs <- c()
+  prev_loc <- 0
+  for(dat in dates){
+    loc <- which(sort(unique(plot_data$forecast_date))==dat)
+    labs <- c(labs, rep("", times = (loc-prev_loc)-1), dat)
+    prev_loc <- loc
+  }
+  loc <- length(unique(plot_data$forecast_date)) - loc
+  labs <- c(labs, rep("", times = loc))
+  
+  
+  box_plot_dist <- ggplot(boxplot_data, 
+                          aes(x = factor(sort(forecast_date)), 
+                              y = current_dist_mean, 
+                              fill = factor(horizon))) +
+    geom_boxplot(outlier.shape = 20) +
+    scale_fill_brewer(palette = palette) +
+    scale_x_discrete(breaks=sort(unique(plot_data$forecast_date)),
+                     labels=labs) +
+    xlab("") +
+    ylab("Mean ensemble distance") +
+    labs(fill='Horizon') +
+    scale_y_continuous(trans = "log10", labels = scales::comma)
+  
+  #theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) +
+  #facet_wrap(~target_type, ncol = 2, scales = "free")
+  
+  
+  #this step takes a while, so best to supply from outside
+  if(is.null(score_data)){
+    
+    score_data <- plot_data |>
+      score() |>
+      summarise_scores(by = c("forecast_date", "horizon", "model", "target_type"))
+  }
+  
+  score_data <- score_data |>
+    filter(model == "median_ensemble")
+  
+  line_plot_perform <- ggplot(score_data, aes(x = (sort(forecast_date)), 
+                                              y = interval_score,
+                                              color = factor(horizon))) +
+    #shape = factor(model)))) +
+    #shape = factor(model))) +
+    geom_line() +
+    scale_color_brewer(palette = palette) +
+    xlab("Forecast Date") +
+    ylab("Interval Score") +
+    labs(color='Horizon') +
+    scale_y_continuous(trans = "log10", labels = scales::comma)
+  #facet_wrap(~target_type, ncol = 2, scales = "free")
+  
+  #arrange in single plot
+  plots_dist <- gridExtra::grid.arrange(box_plot_dist, line_plot_perform, nrow = 2)
+  
+  return(plots_dist)
+}
+
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import ggplot2
+#' @import gridExtra
+#' @description 
+#' Plots model_distance vs performance
+#NEEDS WORK, STILL VERY BASIC
+basic_dist_ovr_hor <- function(plot_dat,
+                               quantiles = seq(0.1, 0.9, 0.1)){
+  
+  
+  plot_dat_quants <- plot_dat |> 
+    select(forecast_date, inc_models, horizon, target_type, 
+           hist_dist_mean, recent_dist_mean, current_dist_mean) |>
+    distinct() |> 
+    group_by(horizon, target_type) |>
+    summarise(quantile = paste0("quant", quantiles),
+              myval = quantile(current_dist_mean,
+                               quantiles)) |>
+    setDT() |>
+    dcast(horizon + target_type ~ quantile)
+  
+  
+  spread_plot <- ggplot(czdat_min, aes(x = horizon, y = quant0.5)) +
+    geom_line() +
+    ggplot2::geom_ribbon(
+      aes(x = horizon, ymin = quant0.2, ymax = quant0.8, alpha = 'Q50'), 
+      fill = "blue") + 
+    ggplot2::geom_ribbon(
+      aes(x = horizon, ymin = quant0.1, ymax = quant0.9, alpha = 'Q50'), 
+      fill = "blue") + 
+    ggplot2::geom_ribbon(
+      aes(x = horizon, ymin = quant0.4, ymax = quant0.6, alpha = 'Q50'), 
+      fill = "blue") + 
+    ggplot2::geom_ribbon(
+      aes(x = horizon, ymin = quant0.3, ymax = quant0.7, alpha = 'Q50'), 
+      fill = "blue") + 
+    facet_wrap(~target_type, scales = "free")
+  
+  
+  return(spread_plot)
+  
+}
