@@ -284,6 +284,7 @@ plot_kickout_results <- function(model_kickout_results,
 #' @import dplyr 
 #' @import ggplot2
 #' @import viridis 
+#' @import RcolorBrewer
 #'
 #' @description 
 #' Plots model availability
@@ -299,39 +300,55 @@ plot_kickout_results <- function(model_kickout_results,
 plot_model_availability <- function(data,
                                     saveplot = TRUE,
                                     path = (here("plots", 
-                                                 "availability.pdf"))){
+                                                 "availability.pdf")),
+                                    height = 12, 
+                                    width = 8,
+                                    indiv = TRUE,
+                                    main = NULL,
+                                    xlab = NULL,
+                                    ylab = NULL,
+                                    palette = "Set1"){
   
   
   plot_model_avail_total <- data |>
       dplyr::group_by(forecast_date, location, target_type) |>
-      dplyr::summarise(nmods = length(unique(model))) |>
+      dplyr::summarise(nmods = length(unique(model))-2) |> #subtract 2 bc of baseline, ensemble
       dplyr::ungroup() |>
       ggplot2::ggplot(
         aes(x = forecast_date, y = nmods,
             group = location, 
             color = location)) +
       ggplot2::geom_line() + 
-      ggplot2::labs(title = "Total Model Availability") +
+      ggplot2::labs(title = main) +
       ggplot2::facet_grid(~ target_type) +
-      ggplot2::ylim(5, 25)
+      ggplot2::scale_color_brewer(palette = palette)
+      ggplot2::ylim(5, 25)+
+      ggplot2::xlab(xlab) +
+      ggplot2::ylab(ylab)  
   
   plot_model_avail_indiv <- data |>
       dplyr::select(model, location, 
              target_type, availability) |>
       dplyr::distinct() |>
-      ggplot2::ggplot(aes(x = location, y = model,
+      ggplot2::ggplot(aes(x = model, y = location,
                           fill = availability)) +
       ggplot2::geom_tile()+
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
       ggplot2::facet_wrap(~target_type) + 
       viridis::scale_fill_viridis(option = "rocket") +
       ggplot2::theme(
         axis.text.y = element_text(angle = 0, size = 7)) +
-      ggplot2::labs(title = "Individual Model Availability")
+      ggplot2::labs(title = main) +
+    ggplot2::xlab(xlab) +
+    ggplot2::ylab(ylab)
   
   if(saveplot){
-    pdf(file = path)
-    print(plot_model_avail_total)
-    print(plot_model_avail_indiv)
+    pdf(file = path, height= height, width = width)
+    if(indiv){
+      print(plot_model_avail_indiv)
+    } else {
+      print(plot_model_avail_total)
+    }
     dev.off()
   } else {
     print(plot_model_avail_total)
@@ -549,3 +566,4 @@ plot_best_performers_models <-
     
     
   }
+
