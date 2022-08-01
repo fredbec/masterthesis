@@ -26,17 +26,23 @@ model_types <- read.csv(here("scraper", "metadata_extended_final.csv")) |>
 
 #read in filter values for locations and dates
 locs <- specs$locs
-
 dates <- specs$dates |>
   as.Date() |>
   (\(x) seq.Date(x[1], x[2], by = 7))()
+excl_neg <- specs$excl_neg
 
 
+###Filter data according to specs
+##and merge with model type info
 hub_data <- left_join(hub_data, model_types,
                       by = "model") |>
   filter(location %in% locs,
          forecast_date %in% dates)
 
+if(excl_neg){
+  hub_data <- hub_data |>
+    filter(true_value >= 0)
+}
 
 #some baseline predictions are wrongly attributed to "2021-12-27"
 #helper dataframe to identify those observations
@@ -72,4 +78,4 @@ hub_data <- hub_data |>
 
 
 #remove some stuff from the workspace
-rm(list = c("model_types", "dates", "locs"))
+rm(list = c("model_types", "dates", "locs", "matcher"))

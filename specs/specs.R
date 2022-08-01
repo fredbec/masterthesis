@@ -4,6 +4,8 @@ avail_threshold <- 0.35
 
 locs <- c("DE", "PL", "GB", "FR", "CZ")
 
+excl_neg <- TRUE
+
 
 
 ########## model_similarity_kickout#########
@@ -48,6 +50,7 @@ all_combs_ensemble_big_nmod <- c(3,4,6,8,10,12,14,16)
 specs <- list(dates = dates,
               avail_threshold = avail_threshold,
               locs = locs,
+              excl_neg = excl_neg,
               model_similarity_kickout_avail_threshold = model_similarity_kickout_avail_threshold,
               model_similarity_kickout_avail_overlap_threshold = model_similarity_kickout_avail_overlap_threshold,
               model_similarity_kickout_dist_fun = model_similarity_kickout_dist_fun, 
