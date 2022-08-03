@@ -40,6 +40,13 @@
 \section{Introduction}
 \input{introduction.tex}
 \section{Forecasting and Ensembles}
+\subsection{What is forecasting?- the forecasting paradigm}
+Forecasts vs. scenarios vs. projections.\\
+Sharpness subject to calibration.
+\begin{figure}
+\centering
+\includegraphics[width = 0.95\textwidth]{../plots/sharp_calib.pdf}
+\end{figure}
 \subsection{Ensemble Forecasts}
 They have a long tradition in weather forecasting, where they show consistently improving performance over single models. \\
 An ensemble aggregates models, thereby unifying their respective knowledge/signals into a single forecast.\\
@@ -47,15 +54,16 @@ Ray2020: "Multiple studies of epidemic forecasting have shown that ensemble fore
 \section{Scoring}
 Suppose that $y$ is the realisation of a random variable under the true data-generating distribution $G$. The forecasting problem is defined by trying to issue a predictive probability distribution $F$ for the future realisation of this random variable. Further, denote $s(F,G)$ for the expectation of $\text{E}[s(F,y)]$. We then say that scoring rule $s$ is \textit{proper}, if 
 \[s(G,G) \leq s(F,G).\]
-Put into words, this means that the scoring function is minimized if the true data-generating distribution is issued as the forecast distribution. Likewise, the scoring rule $s$ is \textit{strictly proper}, if 
+Put into words, this means that the scoring rule is minimized if the true data-generating distribution is issued as the forecast distribution. Likewise, the scoring rule $s$ is \textit{strictly proper}, if 
 \[s(G,G) < s(F,G).\] 
 A (strictly) proper scoring rule thus incentivizes the forecaster to issue his or her true belief for the predictive probability distribution.\\
 This notion of the propriety of scoring rules originated with \todos{Winkler and Murphy (1968)} and its importance in the forecasting world (hmpf) cannot be overstated - if a scoring rule for distributional forecasts is not proper, it could, for instance, incentivize a forecaster to report a more confident estimate than he or she actually believes in \todos{Thorarinsdottir 2013}. \\
 \subsection{Scoring rules}
 \subsubsection{PIT}
 \subsubsection{Coverage}
+Prediction interval coverage measures the proportion of values that fell into a predictive interval of a given level and thus reflects how well a model was able to characterize uncertainty over time.\citep{cramer_evaluation_nodate} \todos{(from SI, cite something better. Scoringutils paper is also a good reference)}. It measures probabilistic calibration \citep{bosse_evaluating_2022}.
 \subsubsection{Weighted Interval Score}
-Here, we introduce the \ac{wis}, which is the main scoring function used within this thesis \cite{bracher_evaluating_2021}. It is designed for use on probabilistic forecasts \cite{european_covid-19_forecast_hub_european_2021} $F$ that are issued as a set of discrete central prediction intervals, each with nominal coverage level $\alpha$ - or, put differently, as a set of symmetric predictive quantiles $q$ which directly translate to central prediction intervals. \\
+Here, we introduce the \ac{wis}, which is the main scoring rule used within this thesis \cite{bracher_evaluating_2021}. It is designed for use on probabilistic forecasts \cite{european_covid-19_forecast_hub_european_2021} $F$ that are issued as a set of discrete central prediction intervals, each with nominal coverage level $\alpha$ - or, put differently, as a set of symmetric predictive quantiles $q$ which directly translate to central prediction intervals. \\
 Each central prediction interval can be scored via the interval score \citep{gneiting_strictly_2007}
 \begin{equation}
 IS_{\alpha}(F, y) = (u-l) + \frac{2}{\alpha}(l - y)\mathbb{1}(y < l) + \frac{2}{\alpha}(y - u)\mathbb{1}(y > u),
@@ -65,21 +73,49 @@ where $\mathbb{1}$ is the indicator function, returning 1 if the condition insid
 \begin{equation}
 WIS_{\alpha_{0:K}}(F,y) = \frac{1}{K + 1/2}\left(w_{0}|y-m| + \sum_{k=1}^{K}\left(w_k IS_{\alpha_{k}}(F, y)\right)\right),
 \end{equation}
-where we usually set for the quantile weights $w_k = \frac{\alpha_{k}}{2}$, and for the median weight $w_{0} = \frac{1}{2}$.\\
+where usually the quantile weights are set to $w_k = \frac{\alpha_{k}}{2}$, and the median weight to $w_{0} = \frac{1}{2}$.\\
 It can be shown that the \ac{wis} is an approximation of the \ac{crps}, a well-known scoring function that measures the distance between the predictive and true distribution 
 \begin{equation}
 CRPS(F, x) = \int_{-\infty}^{\infty} \left(F(y) - \mathbb{1}(y \geq x) \right)^2dy.
 \end{equation}
+All in all, the \ac{wis} is a parsimonious way to score forecasts that come in the shape of a set of discrete intervals.
+An important "feature" of the WIS is that it is not standardized: that is, it scales with the data. Scores will increase if the target to be predicted also increases. This makes forecast comparisons a bit difficult, which leads us to the next point.
+\subsection{Pairwise comparisons}
+One issue that often arises when aiming to compare different forecasting models is a potentially non-overlapping base of targets the models predicted for, as some scoring rules are not normalized and thus scale with the data. For instance, if models were compared via average WIS, one model might look better than another if it only predicted in periods that saw low incidence or were otherwise comparatively "easy" to forecast. This would thus disincentivize forecasters to predict in periods that they perceive to be more challenging - this is especially undesirable because these periods (e.g. exponential growth, high level of infections) are often of special interest to decision makers \todos{(cite something)}.\\
+One can address this by computing a relative score that is based on employing pairwise comparisons, as developed in \cite{cramer_evaluation_nodate}. For a pair of models denoted $l$ and $m$, first a measure of relative skill is computed
+\[
+\theta_{l,m} = \frac{\bar{s}_{l}}{\bar{s}_{m}},
+\]
+where $\bar{s}_{l}$ and $\bar{s}_{m}$ denote the average scores the models achieved on the targets both models predicted on - this is usually chosen to be the WIS. For each model, the geometric mean of these relative scores is then computed as
+\[
+\theta_{l\cdot} = \left(\prod_{m = 1}^{M}\theta_{l,m} \right)^{\frac{1}{M}},
+\]to obtain a relative score of model $l$ with respect to all other available models. It can thus be interpreted as a performance measure of model $l$ with respect to a model with ``average'' performance. If interest lies in a direct pairwise comparison with a specific model $m$, one can instead consider the ratio of these relative scores
+\[
+\phi_{l,m} = \frac{\theta_{l\cdot}}{\theta_{m\cdot}}.
+\]
+Calculating this ratio for all model pairs that are of interest results in a ``pairwise tournament'' for all models in the set - this approach is implemented in the \textbf{scoringutils} package \citep{bosse_epiforecastsscoringutils_2022}. For negatively oriented scoring rules, the ratio will be smaller than 1 if model $l$ outperformed model $m$ on their set of shared targets and larger than 1 if it did not. Note that this mode of pairwise comparison still requires the assumption that it is equally hard to perform relatively well to other models at all forecast dates and locations \citep{cramer_evaluation_nodate}.\\
+If one is interested in concisely summarizing the skill of single models rather than performing comparisons between all pairs of models, one can choose a baseline model's $B$ relative score $\theta_{B\cdot}$ as the denominator, which for the WIS results in the measure that is commonly referred to as "relative WIS". Analogously to above, a ratio below 1 corresponds to a model overall outperforming the baseline model, while a score above 1 means that the model did not succeed in clearing baseline performance.\\
+\subsection{general}
+WIS assesses sharpness, while coverage assesses calibration.\\
+Scoring rule is not a meaningless choice: as will be demonstrated in later sections, different scoring rules induce different rankings. It all depends on what the goal is.
 \section{Data}
-The data used in this thesis stem from the European forecast(ing) hub, which was instigated by the \ac{ecdc} in 2021 and collates forecasts for Covid-19 cases and deaths from independent modeling teams across Europe \cite{european_covid-19_forecast_hub_european_2021}. Its primary goal is to "provide reliable information about the near-term epidemiology of the COVID-19 pandemic to the research and policy communities and the general public" \todos{newer} \citep{sherratt_draft_nodate}. In general, a modeling hub is a coordinated effort, in which one or more common prediction targets, as well as a common format for prediction, are agreed upon / implemented. This serves the purpose of facilitating model evaluation and development by making model predictions comparable, as well as making predictions suitable for aggregation, that is, for ensemble predictions. \\
+The data used in this thesis stem from the European forecast hub, which was instigated by the \ac{ecdc} in 2021 and collates forecasts for Covid-19 cases and deaths from independent modeling teams across Europe \citep{european_covid-19_forecast_hub_european_2021}. Its primary goal is to "provide reliable information about the near-term epidemiology of the COVID-19 pandemic to the research and policy communities and the general public" \todos{newer} \citep{sherratt_draft_nodate}. In general, a modeling hub is a coordinated effort, in which one or more common prediction targets, as well as a common format for prediction, are agreed upon / implemented. This serves the purpose of facilitating model evaluation and development by making model predictions comparable, as well as making predictions suitable for aggregation, that is, for ensemble predictions. \\
 The "hub" format has some precedence both in the realm of climatology as well as in epidemiology, for example in forecasting influenza in the United States \cite{reich_collaborative_2019} as well as dengue fever in ... \cite{johansson_open_2019}. For these seasonal diseases, prediction targets were total number of cases in a season or the height of the peak, while in the case of Covid-19 and the European forecast(ing) hub, the common prediction target are weekly incidence Covid-19 case and death counts in 32 \todos{(check)} European countries, later also hospitalization rates. Forecasts are issued in a probabilistic manner, namely as a set of 23 quantiles of the predictive distribution, at non-equally-spaced levels between 0.01 and 0.99 (namely $\tau = 0.01, 0.025, 0.05, 0.1, 0.15, ..., 0.85, 0.9, 0.95, 0.975, 0.99$).
 To be included in the Hub's ensemble and thus in this analysis, models had to provide a full set of 23 quantiles for all four horizons.\\
 Include example plots of individual and ensemble predictions.\\
-Talk about how the ensemble paradigm has also held here, with citations to both Eu and Us FCH.\\
-Talk about truth data source, and potential data issues.
+Incident deaths are inferred via cumulative.
+Talk about how the ``ensemble is best'' paradigm has also held here, with citations to both Eu and Us FCH.\\
+Talk about truth data source, and potential data issues.(incidence is inferred from cumulative).\\
+The Hub also includes a ``naive'' baseline model, which is the same as the one that is used in the US Covid-19 Forecast Hub \todos{(cite)}. For each forecast date, its forecast for median incidence is equal to the last value for incidence Cases/Deaths that was observed in the most recent week. To obtain the other predictive quantiles, uncertainty around the median is modeled via Monte Carlo approximations of the empirical distribution function that is induced by the first differences observed in the respective time series \citep{cramer_evaluation_nodate}. Predictive quantiles are taken from these samples. Including a baseline model serves the purpose of providing a sort of ``minimum'' performance that models should be able to clear. Reporting that a model performs better than the baseline thus gives validity to the performance of that model. It's a reference model that all models can be compared against. 
 \subsection{Hub Data}
 Issued as 23 quantiles. Mostly use \ac{wis}, which corresponds to giving slightly larger weight to intervals with large nominal coverage, as compared to \ac{crps} \citep{bracher_evaluating_2021}.
+\section{Introspective stuff}
+\subsection{Model Types}
+First and foremost, we had to categorize the models in the data in a meaningful manner. We decided on a categorization. To this end, we . Teams that mentioned an explicit compartmental structure of SIR or related (for instance SEIR, SECIR) type we categorized as "mechanistic".\\
+\citep{bracher_evaluating_2021} state that they did not find any ``striking patterns'' between model types in their analysis, but also acknowledge that this might be due to the relatively short study period they considered. A question that thus naturally arises is, whether given a longer study period, patterns can be found.\\
+
 \section{Ensemble Experiments}
+In this section, we 
 \subsection{Model Types}
 These compartmental models, via a set of differential equations, explicitly model how members of the population transition through the states of being susceptible, (exposed), infected, and recovered/removed \cite{taylor_combining_2021}.
 \cite{taylor_combining_2021} conjecture that during periods of low incidence, mechanistic models should perform better than statistical ones. This is due to the fact that random statistical fluctuations can still occur, but statistical models might, somehow, latch on to these too eagerly and proceed to forecast exponential growth where there is none.
@@ -94,6 +130,8 @@ This notion has some mention (\todos{find better word}) in the literature. For e
 \includegraphics[width = 0.95\textwidth]{../plots/model_similarity.pdf}
 \end{figure}
 \newpage
+\subsection{Weighting based on model types}
+It is perhaps overeager to assume that one model type could systematically outperform another over the entire study period which, after all, comprises different countries with varying periods of infection dynamics. One could however then conjecture that in specific situations, one modeling philosophy could be better suited than another. For instance, \citep{taylor_combining_2021} has surmised whether in periods of low infection rates, [ensembles of] compartmental models might be best suited for forecasting, while \citep{bracher_pre-registered_2021} have identified that following changes in trends, statistical models perform more poorly, likely because they first have to observe the changing trend in the data from which they extrapolate.
 \bibliography{references}
 \bibliographystyle{plainnat}
 \end{document}

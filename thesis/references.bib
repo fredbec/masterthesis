@@ -333,3 +333,31 @@ This suggests that forecasts may have been of good enough quality to inform deci
 	year = {2022},
 	pages = {839--842},
 }
+
+@misc{bosse_epiforecastsscoringutils_2022,
+	title = {epiforecasts/scoringutils: 1.0.0},
+	copyright = {Open Access},
+	shorttitle = {epiforecasts/scoringutils},
+	url = {https://zenodo.org/record/4618017},
+	abstract = {Major update to the package and most package functions with lots of breaking changes. Feature updates new and updated Readme and vignette the proposed scoring workflow was reworked. Functions were changed so they can easily be piped and have simplified arguments and outputs. new functions and function changes the function {\textless}code{\textgreater}eval\_forecasts(){\textless}/code{\textgreater} was replaced by a function {\textless}code{\textgreater}score(){\textless}/code{\textgreater} with a much reduced set of function arguments. Functionality to summarise scores and to add relative skill scores was moved to a function {\textless}code{\textgreater}summarise\_scores(){\textless}/code{\textgreater} new function {\textless}code{\textgreater}check\_forecasts(){\textless}/code{\textgreater} to analyse input data before scoring new function {\textless}code{\textgreater}correlation(){\textless}/code{\textgreater} to compute correlations between different metrics new function {\textless}code{\textgreater}add\_coverage(){\textless}/code{\textgreater} to add coverage for specific central prediction intervals new function {\textless}code{\textgreater}avail\_forecasts(){\textless}/code{\textgreater} allows to visualise the number of available forecasts new function {\textless}code{\textgreater}find\_duplicates(){\textless}/code{\textgreater} to find duplicate forecasts which cause an error all plotting functions were renamed to begin with {\textless}code{\textgreater}plot\_{\textless}/code{\textgreater}. Arguments were simplified the function {\textless}code{\textgreater}pit(){\textless}/code{\textgreater} now works based on data.frames. The old {\textless}code{\textgreater}pit{\textless}/code{\textgreater} function was renamed to {\textless}code{\textgreater}pit\_sample(){\textless}/code{\textgreater}. PIT p-values were removed entirely. the function {\textless}code{\textgreater}plot\_pit(){\textless}/code{\textgreater} now works directly with input as produced by {\textless}code{\textgreater}pit(){\textless}/code{\textgreater} many data-handling functions were removed and input types for {\textless}code{\textgreater}score(){\textless}/code{\textgreater} were restricted to sample-based, quantile-based or binary forecasts. the function {\textless}code{\textgreater}brier\_score(){\textless}/code{\textgreater} now returns all brier scores, rather than taking the mean before returning an output. {\textless}code{\textgreater}crps{\textless}/code{\textgreater}, {\textless}code{\textgreater}dss{\textless}/code{\textgreater} and {\textless}code{\textgreater}logs{\textless}/code{\textgreater} were renamed to {\textless}code{\textgreater}crps\_sample(){\textless}/code{\textgreater}, {\textless}code{\textgreater}dss\_sample(){\textless}/code{\textgreater}, and {\textless}code{\textgreater}logs\_sample(){\textless}/code{\textgreater} Bug fixes Testing was expanded minor bugs were fixed, for example a bug in the sample\_to\_quantile function (https://github.com/epiforecasts/scoringutils/pull/223) package data updated package data is now based on forecasts submitted to the European Forecast Hub (https://covid19forecasthub.eu/). all example data files were renamed to begin with {\textless}code{\textgreater}example\_{\textless}/code{\textgreater} a new data set, {\textless}code{\textgreater}summary\_metrics{\textless}/code{\textgreater} was included that contains a summary of the metrics implemented in {\textless}code{\textgreater}scoringutils{\textless}/code{\textgreater} Other breaking changes The 'sharpness' component of the weighted interval score was renamed to dispersion. This was done to make it more clear what the component represents and to maintain consistency with what is used in other places.},
+	urldate = {2022-08-01},
+	publisher = {Zenodo},
+	author = {Bosse, Nikos and Abbott, Sam and Gruson, Hugo and Funk, Sebastian and Reich, Nicholas G},
+	month = may,
+	year = {2022},
+	doi = {10.5281/ZENODO.4618017},
+}
+
+@article{bosse_evaluating_2022,
+	title = {Evaluating {Forecasts} with scoringutils in {R}},
+	copyright = {Creative Commons Attribution 4.0 International},
+	url = {https://arxiv.org/abs/2205.07090},
+	doi = {10.48550/ARXIV.2205.07090},
+	abstract = {Evaluating forecasts is essential in order to understand and improve forecasting and make forecasts useful to decision-makers. Much theoretical work has been done on the development of proper scoring rules and other scoring metrics that can help evaluate forecasts. In practice, however, conducting a forecast evaluation and comparison of different forecasters remains challenging. In this paper we introduce scoringutils, an R package that aims to greatly facilitate this process. It is especially geared towards comparing multiple forecasters, regardless of how forecasts were created, and visualising results. The package is able to handle missing forecasts and is the first R package to offer extensive support for forecasts represented through predictive quantiles, a format used by several collaborative ensemble forecasting efforts. The paper gives a short introduction to forecast evaluation, discusses the metrics implemented in scoringutils and gives guidance on when they are appropriate to use, and illustrates the application of the package using example data of forecasts for COVID-19 cases and deaths submitted to the European Forecast Hub between May and September 2021},
+	urldate = {2022-08-01},
+	author = {Bosse, Nikos I. and Gruson, Hugo and Cori, Anne and van Leeuwen, Edwin and Funk, Sebastian and Abbott, Sam},
+	year = {2022},
+	note = {Publisher: arXiv
+Version Number: 1},
+	keywords = {Applications (stat.AP), Computation (stat.CO), FOS: Computer and information sciences, Methodology (stat.ME)},
+}
