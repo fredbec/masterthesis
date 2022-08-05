@@ -131,15 +131,13 @@ make_ensemble <- function(data,
 #'             the ensemble
 #' 
 #' @return 
-#' a data.table object that contains the ensemble forecasts in addition to the 
-#' models that are already in data
-#' 
+#' a data.table object that contains the ensemble forecasts 
 #' @export
 
 #make ensemble by summary
 make_ensemble_minimal <- function(
     data, 
-    summary_function = median,
+    which_ens = NULL,
     excl = c("EuroCOVIDhub-baseline", 
              "EuroCOVIDhub-ensemble"),
     extra_excl = NULL,
@@ -158,28 +156,55 @@ make_ensemble_minimal <- function(
                    "\") that is not in the list of excluded models. Is this intended?"))
   }
   
-  ensemble_mean <- data |>
-    dplyr::group_by(across(all_of(strat))) |>
-    dplyr::filter(model %in% models) |>
-    dplyr::summarise(prediction = mean(prediction),
-                     true_value = mean(true_value), #this is not totally clean, so check further down
-                     .groups = 'drop') |> 
-    dplyr::mutate(model = "mean_ensemble") |>
-    dplyr::select(model, everything()) |>#reordering
-    data.table()
+  if(is.null(which_ens)){
+    ensemble_mean <- data |>
+      dplyr::group_by(across(all_of(strat))) |>
+      dplyr::filter(model %in% models) |>
+      dplyr::summarise(prediction = mean(prediction),
+                       true_value = mean(true_value), #this is not totally clean, so check further down
+                       .groups = 'drop') |> 
+      dplyr::mutate(model = "mean_ensemble") |>
+      dplyr::select(model, everything()) |>#reordering
+      data.table()
+    
+    ensemble_median <- data |>
+      dplyr::group_by(across(all_of(strat))) |>
+      dplyr::filter(model %in% models) |>
+      dplyr::summarise(prediction = median(prediction),
+                       true_value = mean(true_value), #this is not totally clean, so check further down
+                       .groups = 'drop') |> 
+      dplyr::mutate(model = "median_ensemble") |>
+      dplyr::select(model, everything()) |>#reordering
+      data.table()
   
-  ensemble_median <- data |>
-    dplyr::group_by(across(all_of(strat))) |>
-    dplyr::filter(model %in% models) |>
-    dplyr::summarise(prediction = median(prediction),
-                     true_value = mean(true_value), #this is not totally clean, so check further down
-                     .groups = 'drop') |> 
-    dplyr::mutate(model = "median_ensemble") |>
-    dplyr::select(model, everything()) |>#reordering
-    data.table()
-
-  ensemble <- rbind(ensemble_mean,
-                    ensemble_median)
+    ensemble <- rbind(ensemble_mean,
+                      ensemble_median)
+    return(ensemble)
+  } else if (which_ens == "mean_ensemble"){
+    ensemble_mean <- data |>
+      dplyr::group_by(across(all_of(strat))) |>
+      dplyr::filter(model %in% models) |>
+      dplyr::summarise(prediction = mean(prediction),
+                       true_value = mean(true_value), #this is not totally clean, so check further down
+                       .groups = 'drop') |> 
+      dplyr::mutate(model = "mean_ensemble") |>
+      dplyr::select(model, everything()) |>#reordering
+      data.table()
+    return(ensemble_mean)
+  } else if (which_ens == "median_ensemble"){
+    ensemble_median <- data |>
+      dplyr::group_by(across(all_of(strat))) |>
+      dplyr::filter(model %in% models) |>
+      dplyr::summarise(prediction = median(prediction),
+                       true_value = mean(true_value), #this is not totally clean, so check further down
+                       .groups = 'drop') |> 
+      dplyr::mutate(model = "median_ensemble") |>
+      dplyr::select(model, everything()) |>#reordering
+      data.table()
+    return(ensemble_median)
+  } else {
+    print(which_ens)
+  }
   
   return(ensemble)
 }
