@@ -39,18 +39,27 @@
 \vspace{2cm}
 \section{Introduction}
 \input{introduction.tex}
+We want to emphasize once again that our goal is not necessarily to find a new method that should replace the use of the current (median) ensemble in the European Forecast Hub. Even in the US forecast hub, the median is still the ensemble of choice, as it is simple and robust \citep{ray_ensemble_2020}. Occam's Razor. Rather, our study should be seen more inquisitively - even with hindsight, is it possible to beat the median ensemble? Thus, to put more on top (turning the table by 180 degrees), our entire study could thus be seen as one giant effort to support the continued use of the simple median ensemble. We love to see it.
 \section{Forecasting and Ensembles}
 \subsection{What is forecasting?- the forecasting paradigm}
-Forecasts vs. scenarios vs. projections.\\
-Sharpness subject to calibration.
+Forecasts vs. scenarios vs. projections.\\ 
+"Forecasting is the ability to predict what will happen in the future on the basis of analysis of past and current data" \cite{moran_epidemic_2016}.
+Sharpness subject to calibration.\cite{ray_ensemble_2020}.
 \begin{figure}
 \centering
 \includegraphics[width = 0.95\textwidth]{../plots/sharp_calib.pdf}
 \end{figure}
+
 \subsection{Ensemble Forecasts}
 They have a long tradition in weather forecasting, where they show consistently improving performance over single models. \\
 An ensemble aggregates models, thereby unifying their respective knowledge/signals into a single forecast.\\
 Ray2020: "Multiple studies of epidemic forecasting have shown that ensemble forecasts, which incorporate multiple model predictions into a combined forecast, consistently perform well and often outperform most if not all individual models (Viboud et al. 2018; Johansson et al. 2019; McGowan et al. 2019; Reich, Brooks, et al. 2019)."
+\subsection{US forecast hub}
+Numerous studies have come out for the US forecast hub. Taylor and Taylor, Ray 2020. \cite{ray_ensemble_2020}.
+\subsection{Epidemic forecasting}
+Different paradigms: statistical, mechanistic, semi-mechanistic. There is no consensus in the epidemic modeling community on which of these model types performs best \cite{moran_epidemic_2016}. Furthermore, there are also approaches that are based on human judgment that saw promising results \cite{bosse_comparing_2021}. Namely, the tradition of expert forecasts has some previous tradition in the field of Economics/Econometrics: the Survey of Professional Forecasters often serves as a powerful benchmark in the field \todos{(cite)}.\\
+There are a few characteristics that can make forecasting epidemics particularly challenging: firstly, epidemic models seek to model transmission dynamics, which are not constant and can change during the course of an epidemic, namely (but not exclusively) due to human behavior changes and/or changes in the relevant pathogen \citep{moran_epidemic_2016}. Furthermore, data sources come with their challenges: While it is clear that timeliness is of critical importance for disease surveillance, data are oftentimes not readily available in real-time, and are sometimes made available only months after initial recording \cite{jajosky_evaluation_2004} \todos{(more directly cited from Moran)}. Different data streams, all with own challenges \cite{moran_epidemic_2016}. Briefly describe truth data collection in Covid-19 epidemic. One could argue that in the recent Covid-19 epidemic, there were major improvements in the timeliness of reporting, yet data continued to see retroactive revisions, sometimes substantially \todos{(cite)}. 
+
 \section{Scoring}
 Suppose that $y$ is the realisation of a random variable under the true data-generating distribution $G$. The forecasting problem is defined by trying to issue a predictive probability distribution $F$ for the future realisation of this random variable. Further, denote $s(F,G)$ for the expectation of $\text{E}[s(F,y)]$. We then say that scoring rule $s$ is \textit{proper}, if 
 \[s(G,G) \leq s(F,G).\]
@@ -106,16 +115,20 @@ Include example plots of individual and ensemble predictions.\\
 Incident deaths are inferred via cumulative.
 Talk about how the ``ensemble is best'' paradigm has also held here, with citations to both Eu and Us FCH.\\
 Talk about truth data source, and potential data issues.(incidence is inferred from cumulative).\\
-The Hub also includes a ``naive'' baseline model, which is the same as the one that is used in the US Covid-19 Forecast Hub \todos{(cite)}. For each forecast date, its forecast for median incidence is equal to the last value for incidence Cases/Deaths that was observed in the most recent week. To obtain the other predictive quantiles, uncertainty around the median is modeled via Monte Carlo approximations of the empirical distribution function that is induced by the first differences observed in the respective time series \citep{cramer_evaluation_nodate}. Predictive quantiles are taken from these samples. Including a baseline model serves the purpose of providing a sort of ``minimum'' performance that models should be able to clear. Reporting that a model performs better than the baseline thus gives validity to the performance of that model. It's a reference model that all models can be compared against. 
+Talk about issues of model availability.\\
+\begin{figure}
+\includegraphics[width = 0.95\textwidth]{../plots/availability_indiv.pdf}
+\end{figure}
+The Hub also includes a ``naive'' baseline model, which is the same as the one that is used in the US Covid-19 Forecast Hub \todos{(cite)}. For each forecast date, its forecast for median incidence is equal to the last value for incidence Cases/Deaths that was observed in the most recent week. For uncertainty around the median, the other predictive quantiles are taken from Monte Carlo approximations of the empirical distribution function that is induced by the first differences observed in the respective time series \citep{cramer_evaluation_nodate}. Including a baseline model serves the purpose of providing a sort of ``minimum'' performance that models should be able to clear. Reporting that a model performs better than the baseline thus gives validity to the performance of that model. It's a reference model that all models can be compared against. \\
+For the subset used in this study, we decided ahead of our study to only use a subset of the available countries in the set. This is simply due to the fact that most of the analyses we aimed to perform required a sufficient model base as support. Furthermore, we decided to only use data up until Mid-December of 2021. This is due to the fact that model base dropped around Christmas,. Moreover, beginning with the new year 2022, Omicron\textsuperscript{TM} entered the chat and in some countries, testing criteria changed. We thought that this could make the time periods less comparable.\\
 \subsection{Hub Data}
 Issued as 23 quantiles. Mostly use \ac{wis}, which corresponds to giving slightly larger weight to intervals with large nominal coverage, as compared to \ac{crps} \citep{bracher_evaluating_2021}.
 \section{Introspective stuff}
 \subsection{Model Types}
 First and foremost, we had to categorize the models in the data in a meaningful manner. We decided on a categorization. To this end, we . Teams that mentioned an explicit compartmental structure of SIR or related (for instance SEIR, SECIR) type we categorized as "mechanistic".\\
 \citep{bracher_evaluating_2021} state that they did not find any ``striking patterns'' between model types in their analysis, but also acknowledge that this might be due to the relatively short study period they considered. A question that thus naturally arises is, whether given a longer study period, patterns can be found.\\
-
 \section{Ensemble Experiments}
-In this section, we 
+Some of these techniques came up 
 \subsection{Model Types}
 These compartmental models, via a set of differential equations, explicitly model how members of the population transition through the states of being susceptible, (exposed), infected, and recovered/removed \cite{taylor_combining_2021}.
 \cite{taylor_combining_2021} conjecture that during periods of low incidence, mechanistic models should perform better than statistical ones. This is due to the fact that random statistical fluctuations can still occur, but statistical models might, somehow, latch on to these too eagerly and proceed to forecast exponential growth where there is none.
@@ -130,8 +143,25 @@ This notion has some mention (\todos{find better word}) in the literature. For e
 \includegraphics[width = 0.95\textwidth]{../plots/model_similarity.pdf}
 \end{figure}
 \newpage
+\subsection{Adding a new model}
+Note thus that the model added to the mean vs median ensemble need not be the same.
+\subsection{Best performers}
+For , we also excluded those forecasts that did not realize yet, i.e. forecast date + horizon > current date
 \subsection{Weighting based on model types}
-It is perhaps overeager to assume that one model type could systematically outperform another over the entire study period which, after all, comprises different countries with varying periods of infection dynamics. One could however then conjecture that in specific situations, one modeling philosophy could be better suited than another. For instance, \citep{taylor_combining_2021} has surmised whether in periods of low infection rates, [ensembles of] compartmental models might be best suited for forecasting, while \citep{bracher_pre-registered_2021} have identified that following changes in trends, statistical models perform more poorly, likely because they first have to observe the changing trend in the data from which they extrapolate.
+It is perhaps overeager to assume that one model type could systematically outperform another over the entire study period which, after all, comprises different countries with varying periods of infection dynamics. One could however then conjecture that in specific situations, one modeling philosophy could be better suited than another. For instance, \citep{taylor_combining_2021} has surmised whether in periods of low infection rates, [ensembles of] compartmental models might be best suited for forecasting, while \citep{bracher_pre-registered_2021} have identified that following changes in trends, statistical models perform more poorly, likely because they first have to observe the changing trend in the data from which they extrapolate.\\
+We aimed at categorizing phases of the pandemic into some notion of (``stable'', ``upswing'', ``downswing''), but ultimately found that any such categorization would be arbitrary to a non-neglectable degree. Instead, the idea is to use recent performance of the model types to weight them differently in an ensemble. As mentioned, due to models dropping in and out of predicting, there are substantial gaps for each model and thus not yielding a consistent record of recent performance that one could use to weight on. On the level of model types, we don't have these gaps. The idea thus is to first build an ensemble for each model type in the data and then to weight these respective ensembles with respect to their recent performance. The hope is that if there are periods of the pandemic where a certain model type has an edge over others, this system will recognize this and weight the models accordingly. 
+\begin{figure}
+\centering
+\includegraphics[width = 0.95\textwidth]{plot_placeholder/perform_ensemble_ovrtime.png}
+\caption{From \cite{ray_ensemble_2020}. Plot different ensemble techniques over time}
+\
+\end{figure}
+\begin{figure}
+\centering
+\includegraphics[width = 0.95\textwidth]{plot_placeholder/perform_ensemble_ovrtime2.png}
+\caption{From \cite{ray_ensemble_2020}. Plot different ensemble techniques over time}
+\
+\end{figure}
 \bibliography{references}
 \bibliographystyle{plainnat}
 \end{document}
