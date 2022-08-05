@@ -20,7 +20,7 @@ no_weeks <- 1
 hub_data <- filter(hub_data, location == loc)
 
 #scheduler of cores for mclapply
-no_mc.cores = c(2, rep(1, 12), rep(1, 11), rep(2, 9))
+no_mc.cores = c(2, rep(1, 12), rep(1, 11), rep(2, 8), 1)
 #number of iterations needed to go over list
 num_its = length(no_mc.cores)
 
@@ -58,8 +58,11 @@ fc_dates_list <- make_date_list(fcdates, no_weeks, window)
 comp_times <- NULL
 
 
-lwr <- 1
+lwr <- 11
 for(i in 1:num_its){
+  if(i < 11){
+    next
+  }
   
   #get current `no_mc.cores` elements from fc_dates_list
   num_sets <- no_mc.cores[i]
@@ -71,7 +74,8 @@ for(i in 1:num_its){
   #record computation time
   start_time <- Sys.time()
   #make results, with mclapply
-  if(i == 12){
+  if(i == 11){
+    print("Cases")
     
     allres_ca <- mclapply(curr_fc_dates_list, function(fcdates)
       
@@ -93,6 +97,7 @@ for(i in 1:num_its){
     
     rm(allres_ca)
     
+    print("Deaths")
     
     allres_de <- mclapply(curr_fc_dates_list, function(fcdates)
       
