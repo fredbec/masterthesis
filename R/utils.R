@@ -614,3 +614,25 @@ model_dists_to_mat <- function(model_dist_dt){
   
   return(model_dist_mat)
 }
+
+
+
+fc_dates_window <- function(curr_date, window, incl = FALSE){
+  
+  curr_date <- as.Date(curr_date)
+
+  if(incl){
+    end_date <- curr_date
+    start_date <- end_date - window * 7
+  } else {
+    end_date <- curr_date - 7
+    start_date <- end_date - (window-1) * 7
+  }
+  
+
+  all_dates <- seq.Date(from = start_date, 
+                        to = end_date, 
+                        by = 7)
+  
+  return(all_dates)
+}
