@@ -58,7 +58,7 @@ fc_dates_list <- make_date_list(fcdates, no_weeks, window)
 comp_times <- NULL
 
 
-lwr <- 11
+lwr <- 12
 for(i in 1:num_its){
   if(i < 11){
     next
