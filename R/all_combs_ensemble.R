@@ -278,6 +278,10 @@ all_combs_ensemble <- function(data,
     )
   }
   
+  if(unique(data$forecast_date) == "2022-01-31"){
+    return(all_ensemble_data)
+  }
+  
   #remove some redudant columns (less storage requirements)
   if(length(unique(data$location))==1){
     all_ensemble_data <- all_ensemble_data |> select(-location)
