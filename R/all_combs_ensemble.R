@@ -70,8 +70,6 @@ all_combs_ensemble <- function(data,
       filter(location == loc,
              target_type == target)
     
-    
-    
     #go over all forecast dates, get all combinations of models of size nmod 
     #at each date, build ensemble and compute average pairwise historical and 
     #recent distance in ensemble
@@ -100,6 +98,8 @@ all_combs_ensemble <- function(data,
         next
       }
       
+      #sometimes the next part still threw an error,
+      #so wrap in exception handler
       all_combs <- tryCatch(
         expr = {
           
@@ -277,20 +277,6 @@ all_combs_ensemble <- function(data,
       data.table::rbindlist(fc_date_ensemble_data)
     )
   }
-  
-  if(unique(data$forecast_date) == "2022-01-31"){
-    return(all_ensemble_data)
-  }
-  
-  #remove some redudant columns (less storage requirements)
-  if(length(unique(data$location))==1){
-    all_ensemble_data <- all_ensemble_data |> select(-location)
-  }
-  
-  if(length(unique(data$target_type))==1){
-    all_ensemble_data <- all_ensemble_data |> select(-target_type)
-  }
-  
   
   return(all_ensemble_data)
 }
