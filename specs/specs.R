@@ -6,6 +6,9 @@ locs <- c("DE", "PL", "GB", "FR", "CZ")
 
 excl_neg <- TRUE
 
+su_cols <- c("model", "forecast_date", "quantile", "horizon", 
+             "target_type", "target_end_date", "prediction", "true_value")
+
 
 
 ########## model_similarity_kickout#########
@@ -39,11 +42,11 @@ all_combs_ensemble_init_weeks <- 5
 
 ##small set (countries with less models -> CZ, FR, GB)
 all_combs_ensemble_small_countries <- c("CZ", "FR", "GB")
-all_combs_ensemble_small_nmod <- c(3,4,5,6,7,8,9,10,11,12)
+all_combs_ensemble_small_nmod <- seq(3,10, by = 1)
 
 #large set 
 all_combs_ensemble_big_countries <- c("PL", "DE")
-all_combs_ensemble_big_nmod <- c(3,4,6,8,10,12,14,16)
+all_combs_ensemble_big_nmod <- c(seq(3,10, by = 1), 12, 14)
 
 
 
@@ -51,6 +54,7 @@ specs <- list(dates = dates,
               avail_threshold = avail_threshold,
               locs = locs,
               excl_neg = excl_neg,
+              su_cols = su_cols,
               model_similarity_kickout_avail_threshold = model_similarity_kickout_avail_threshold,
               model_similarity_kickout_avail_overlap_threshold = model_similarity_kickout_avail_overlap_threshold,
               model_similarity_kickout_dist_fun = model_similarity_kickout_dist_fun, 
@@ -72,7 +76,8 @@ specs <- list(dates = dates,
               all_combs_ensemble_big_countries = all_combs_ensemble_big_countries,
               all_combs_ensemble_big_nmod = all_combs_ensemble_big_nmod)
 
-rm(dates, avail_threshold, locs, model_similarity_kickout_avail_threshold, 
+rm(dates, avail_threshold, locs, excl_neg, su_cols, 
+   model_similarity_kickout_avail_threshold, 
    model_similarity_kickout_avail_overlap_threshold, 
    model_similarity_kickout_dist_fun, model_similarity_kickout_number_random_samples,
    model_similarity_kickout_max_nmods,
