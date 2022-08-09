@@ -62,10 +62,12 @@ num_its = length(no_mc.cores)
 #init result container
 comp_times <- NULL
 
+
 for(nmod in nmods){ #bigger nmod need different no_mc.cores because of limited RAM
   #loop over locations
   for (loc in locs){
     print(loc)
+    lwr <- 1
     for(i in 1:num_its){
       #get current `no_mc.cores` elements from fc_dates_list
       num_sets <- no_mc.cores[i]
