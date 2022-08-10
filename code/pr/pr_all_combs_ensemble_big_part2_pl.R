@@ -22,8 +22,10 @@ no_weeks <- 1
 hub_data <- hub_data |>
   filter(location == loc)
 
+
+fcdates <- sort(unique(hub_data$forecast_date))[(window+1):length(unique(hub_data$forecast_date))]
 #scheduler of cores for mclapply
-no_mc.cores = c(rep(3,1), rep(2, 6), rep(3, 9))
+no_mc.cores = c(rep(3,1), rep(2, 4), rep(1,2), 2, rep(3, 9))
 
 
 #this just gets the forecast dates that end up in the result dataframe
