@@ -1,4 +1,4 @@
-####################Big countries (DE, PL)####################
+####################DE for part2##########################
 library(here)
 library(masterthesis)
 library(data.table)
@@ -11,13 +11,16 @@ source(here("specs", "specs.R"))
 #load model distance dataframe
 moddist <- readRDS(here("results", "pairwise_model_dists.RDS"))
 
-locs <- specs$all_combs_ensemble_big_countries
+loc <- "DE"
 window <- specs$all_combs_ensemble_window
 init_weeks <- specs$all_combs_ensemble_init_weeks
 avail_threshold <- specs$all_combs_ensemble_avail_threshold
 
 nmods <- specs$all_combs_ensemble_big_nmod[5:10]
 no_weeks <- 1
+
+hub_data <- hub_data |>
+  filter(location == loc)
 
 #scheduler of cores for mclapply
 no_mc.cores = c(2, rep(1, 23), rep(2, 8), 1)
@@ -84,7 +87,8 @@ for(nmod in nmods){ #bigger nmod need different no_mc.cores because of limited R
         
         allres_ca <- mclapply(curr_fc_dates_list, function(fcdates)
           
-          all_combs_ensemble(filter(hub_data, target_type == "Cases",
+          all_combs_ensemble(filter(hub_data, 
+                                    target_type == "Cases",
                                     forecast_date %in% fcdates),
                              model_dist = moddist,
                              avail_threshold = avail_threshold,
@@ -106,7 +110,8 @@ for(nmod in nmods){ #bigger nmod need different no_mc.cores because of limited R
         
         allres_de <- mclapply(curr_fc_dates_list, function(fcdates)
           
-          all_combs_ensemble(filter(hub_data, target_type == "Deaths",
+          all_combs_ensemble(filter(hub_data,
+                                    target_type == "Deaths",
                                     forecast_date %in% fcdates),
                              model_dist = moddist,
                              avail_threshold = avail_threshold,
@@ -136,7 +141,7 @@ for(nmod in nmods){ #bigger nmod need different no_mc.cores because of limited R
         
         
       } else {
-        
+
         allres <- mclapply(curr_fc_dates_list, function(fcdates)
           
           all_combs_ensemble(filter(hub_data,
@@ -147,7 +152,6 @@ for(nmod in nmods){ #bigger nmod need different no_mc.cores because of limited R
                              init_weeks = init_weeks),
           mc.cores = no_mc.cores[i]
         )
-        
         
         #name result list
         names(allres) <- lwr:upr
