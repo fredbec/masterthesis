@@ -68,8 +68,8 @@ comp_times <- NULL
 
 for(nmod in nmods){ #bigger nmod need different no_mc.cores because of limited RAM
   #loop over locations
-  lwr <- 1
-  for(i in 1:num_its){
+  lwr <- 12
+  for(i in 11:num_its){
     #get current `no_mc.cores` elements from fc_dates_list
     num_sets <- no_mc.cores[i]
     upr <- (lwr + num_sets) - 1
@@ -80,6 +80,10 @@ for(nmod in nmods){ #bigger nmod need different no_mc.cores because of limited R
     #record computation time
     start_time <- Sys.time()
     #make results, with mclapply
+    if(i == 11 & loc == "DE" & nmod %in% c(9,10)){
+      next
+    }
+
     if(i == 11 & loc == "DE"){
       print("Cases")
       
