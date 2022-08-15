@@ -69,8 +69,14 @@ comp_times <- NULL
 for(nmod in c(9,10,12,14)){ #bigger nmod need different no_mc.cores because of limited RAM
   print(nmod)
   #loop over locations
-  lwr <- 12
-  for(i in 11:num_its){
+  lwr <- 1
+  for(i in 1:num_its){
+    if(i <= 11 & loc == "DE" & nmod == 9){
+      num_sets <- no_mc.cores[i]
+      upr <- (lwr + num_sets) - 1
+      lwr <- upr + 1
+      next
+    }
     #get current `no_mc.cores` elements from fc_dates_list
     num_sets <- no_mc.cores[i]
     upr <- (lwr + num_sets) - 1
@@ -82,6 +88,8 @@ for(nmod in c(9,10,12,14)){ #bigger nmod need different no_mc.cores because of l
     start_time <- Sys.time()
     #make results, with mclapply
     if(i == 11 & loc == "DE" & nmod %in% c(9,10)){
+      upr <- (lwr + num_sets) - 1
+      lwr <- upr + 1
       next
     }
 
