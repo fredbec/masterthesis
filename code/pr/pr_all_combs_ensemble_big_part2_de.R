@@ -67,6 +67,7 @@ comp_times <- NULL
 
 
 for(nmod in c(9,10,12,14)){ #bigger nmod need different no_mc.cores because of limited RAM
+  print(nmod)
   #loop over locations
   lwr <- 12
   for(i in 11:num_its){
