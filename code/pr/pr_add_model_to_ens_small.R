@@ -23,19 +23,21 @@ names(subset_fc_dates) <- nmods
 
 map_fc_to_tg <- hub_data |>
   select(forecast_date, horizon, target_end_date)
-all_scores <- hub_data |>
-  select(specs$su_cols) |>
-  filter(location == "CZ") |>
-  score() |>
-  summarise_scores(by = c("model",
-                          "forecast_date",
-                          "target_type",
-                          "horizon")) |> 
-  left_join(map_fc_to_tg, by = c("forecast_date", "horizon"))
 
 
 for(nmod in nmods){
   for (loc in locs){
+    
+    all_scores <- hub_data |>
+      select(specs$su_cols) |>
+      filter(location == loc) |>
+      score() |>
+      summarise_scores(by = c("model",
+                              "forecast_date",
+                              "target_type",
+                              "horizon")) |> 
+      left_join(map_fc_to_tg, by = c("forecast_date", "horizon"))
+    
     
     all_combs_dat <- readRDS(here("results", "all_combs_ensemble", paste0("nmod", nmod, "_", loc, ".RDS")))
     
