@@ -30,7 +30,7 @@ for(nmod in nmods){
     
     all_scores <- hub_data |>
       select(specs$su_cols) |>
-      filter(location == loc) |>
+      dplyr::filter(location == loc) |>
       score() |>
       summarise_scores(by = c("model",
                               "forecast_date",
