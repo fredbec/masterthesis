@@ -54,7 +54,7 @@ for(nmod in nmods){
                                       prop_nmod = 3)
     
     saveRDS(add_model_dat[[1]], here("results", "add_model", paste0("ensembles_nmod", nmod, "_", loc, ".RDS")))
-    saveRDS(add_model_dat[[1]], here("results", "add_model", paste0("scores_nmod", nmod, "_", loc, ".RDS")))
+    saveRDS(add_model_dat[[2]], here("results", "add_model", paste0("scores_nmod", nmod, "_", loc, ".RDS")))
     
   }
 }
