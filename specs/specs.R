@@ -7,7 +7,8 @@ locs <- c("DE", "PL", "GB", "FR", "CZ")
 excl_neg <- TRUE
 
 su_cols <- c("model", "forecast_date", "quantile", "horizon", 
-             "target_type", "target_end_date", "prediction", "true_value")
+             "target_type", "location", "target_end_date", 
+             "prediction", "true_value")
 
 
 
@@ -49,6 +50,14 @@ all_combs_ensemble_big_countries <- c("PL", "DE")
 all_combs_ensemble_big_nmod <- c(seq(3,10, by = 1), 12, 14)
 
 
+#plots
+plot_horizon_label <- c(`1` = "1 week ahead", `2` = "2 weeks ahead",
+                  `3` = "3 weeks ahead",`4` = "4 weeks ahead")
+plot_target_label <- c(`Cases` = "Target: Cases", `Deaths` = "Target: Deaths")
+plot_location_label <- c(`PL` = "Poland", `DE` = "Germany",
+                         `CZ` = "Czech Rep.", `GB` = "Great Br.",
+                         `FR` = "France")
+
 
 specs <- list(dates = dates,
               avail_threshold = avail_threshold,
@@ -74,7 +83,10 @@ specs <- list(dates = dates,
               all_combs_ensemble_small_countries = all_combs_ensemble_small_countries,
               all_combs_ensemble_small_nmod = all_combs_ensemble_small_nmod,
               all_combs_ensemble_big_countries = all_combs_ensemble_big_countries,
-              all_combs_ensemble_big_nmod = all_combs_ensemble_big_nmod)
+              all_combs_ensemble_big_nmod = all_combs_ensemble_big_nmod,
+              plot_horizon_label = plot_horizon_label,
+              plot_target_label = plot_target_label,
+              plot_location_label = plot_location_label)
 
 rm(dates, avail_threshold, locs, excl_neg, su_cols, 
    model_similarity_kickout_avail_threshold, 
@@ -89,4 +101,5 @@ rm(dates, avail_threshold, locs, excl_neg, su_cols,
    all_combs_ensemble_avail_threshold, all_combs_ensemble_init_weeks, 
    all_combs_ensemble_window,
    all_combs_ensemble_small_countries, all_combs_ensemble_small_nmod,
-   all_combs_ensemble_big_nmod, all_combs_ensemble_big_countries)
+   all_combs_ensemble_big_nmod, all_combs_ensemble_big_countries,
+   plot_horizon_label, plot_target_label, plot_location_label)
