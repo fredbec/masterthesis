@@ -127,8 +127,9 @@ add_model_to_ens <- function(all_combs_dat, hub_data, loc,
       
       if(nrow(ens_models_list) < sample_nmod/2){
         print(fc_date)
+        print("too little models")
         next
-      } else if (nrow(ens_models_list) < sample_nmod){
+      } else if (nrow(ens_models_list) <= sample_nmod){
         ens_models_list <- ens_models_list |>
           sample_n(sample_nmod,
                    replace = TRUE) |>
@@ -171,6 +172,15 @@ add_model_to_ens <- function(all_combs_dat, hub_data, loc,
         ens_models <- strsplit(ens_models_list[k], ";")[[1]]
         
         #sample models to propose (exclude those already in ensemble)
+        mylen <- setdiff(all_models_recent, ens_models) |>
+          intersect(all_models) |>
+          length()
+        
+        if(mylen < prop_nmod){
+          print("too litte historic models")
+          next
+        }
+        
         prop_mods <- setdiff(all_models, ens_models) |> 
           sample(prop_nmod)
         
