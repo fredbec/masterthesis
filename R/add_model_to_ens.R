@@ -185,12 +185,18 @@ add_model_to_ens <- function(all_combs_dat, hub_data, loc,
           filter(model %in% prop_mods_recent) #|>
           #summarise_scores(by = "model") #|> #|>
         
-
-        #scores_prop_mods$scaled_rel_skill <- c(0.01, 0.3, 0.1)
+        
         scores_prop_mods <- scores_prop_mods |>
           filter(scaled_rel_skill %in% c(min(scaled_rel_skill, na.rm = TRUE),
                                        max(scaled_rel_skill, na.rm = TRUE))) |>
-          arrange(scaled_rel_skill) |>
+          arrange(scaled_rel_skill)
+        
+        if(nrow(scores_prop_mods)>2){
+          print(scores_prop_mods)
+          scores_prop_mods <- scores_prop_mods[c(1, nrow(scores_prop_mods)),]
+        }
+        
+        scores_prop_mods <- scores_prop_mods |>
           #add some columns for merging with other score data later
           mutate(hist = 1,
                  horizon = NA,
