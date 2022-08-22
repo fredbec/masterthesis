@@ -48,6 +48,12 @@ make_ensemble <- function(data,
       paste0("_ensemble")
   }
   
+  if(model_name == "weighted.mean_ensemble" & is.null(data$weights)){
+    stop("can't compute weighted mean without weights")
+  }
+  if(model_name %in% c("median_ensemble", "mean_ensemble") & !is.null(data$weights)){
+    warning("There are weights in the data, but an unweighted summary function was chosen. Was this intended?")
+  }
   
   #######make model vector based on incl/excl arguments#####
   if(!is.null(extra_excl)){
@@ -80,7 +86,8 @@ make_ensemble <- function(data,
   ensemble <- data |>
     dplyr::group_by(across(all_of(strat))) |>
     dplyr::filter(model %in% models) |>
-    dplyr::summarise(prediction = summary_function(prediction),
+    dplyr::summarise(prediction = summary_function(prediction,
+                                                   w = weights),
                      tvsd = stats::sd(true_value),
                      true_value = mean(true_value), #this is not totally clean, so check further down
                      .groups = 'drop') |> 
@@ -90,6 +97,10 @@ make_ensemble <- function(data,
     dplyr::select(model, everything()) |> #reordering
     merge(extra_cols, by = strat) #add back extra cols
   
+  if(!is.null(data$weights)){
+    data <- data |>
+      select(-weights)
+  }
 
   #check if true values were unique before summarising
   if(any(is.na(ensemble$tvsd))){
