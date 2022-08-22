@@ -616,6 +616,17 @@ model_dists_to_mat <- function(model_dist_dt){
 }
 
 
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @description Helper function to give forecast dates in sliding window
+#' 
+#' @param curr_date the current forecast date
+#' @param window size of the sliding window
+#' @param incl should current date be in included in sliding window (default is
+#' FALSE, which should be used if current date's information has not realized yet.
+#' for e.g. distance calculations between forecasts, can be set to TRUE)
+#' 
+#' @return vector with dates in sliding window
 
 fc_dates_window <- function(curr_date, window, incl = FALSE){
   
@@ -635,4 +646,170 @@ fc_dates_window <- function(curr_date, window, incl = FALSE){
                         by = 7)
   
   return(all_dates)
+}
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @description Helper function for assessment of model types
+#' Includes coverage, bias 
+#' 
+#' @param hub_data data from the European forecast hub
+#' @param coverage_ranges PI ranges to compute coverage for
+#' @param avail_threshold  threshold of availability for models to be included
+#' @param adjust_avail should each model or each forecast date - location be weighted
+#' equally (default: TRUE, i.e. forecast date - location)
+#' 
+#' @return data.table
+
+#' @export   
+overall_assessment_model_types <- function(hub_data,
+                                           coverage_ranges = c(50,90),
+                                           avail_threshold = 0,
+                                           adjust_avail = TRUE){
+  #extract model types before scoring
+  model_types <- hub_data |>
+    select(model, model_type) |>
+    distinct()
+  
+  
+  ##Coverage
+  ##adding coverage at level of model_type ensures that models are not
+  #all weighted equally, but by their level of availability
+  #i.e. each forecast unit is weighted equally
+  #other scores are included as usual
+  all_scores <- hub_data |>
+    filter(availability >= avail_threshold,
+           !model_type %in% c("other", "ensemble", "baseline")) |>
+    select(all_of(specs$su_cols)) |> #only keep in columns defining single forecast unit
+    score() |>
+    left_join(model_types, by = c("model")) #|> #join back model type info
+  
+  
+  if(adjust_avail){
+    all_scores <- all_scores |>
+      add_coverage(ranges = coverage_ranges,
+                   by = c("model", "horizon", "target_type")) |>
+      summarise_scores(by = c("model_type", "horizon", "target_type", 
+                              "location", "forecast_date" )) |>
+      summarise_scores(by = c("model_type", "target_type", "horizon"))
+  } else {
+    all_scores <- all_scores |>
+      add_coverage(ranges =  coverage_ranges,
+                   by = c("model_type", "horizon", "target_type")) |>
+      summarise_scores(by = c("model_type", "target_type", "horizon"))
+  }
+    
+  
+  return(all_scores)
+  
+}
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @description Helper function for decomposition of WIS for model types
+#' 
+#' @param hub_data data from the European forecast hub
+#' @param coverage_ranges PI ranges to compute coverage for
+#' @param avail_threshold  threshold of availability for models to be included
+#' @param adjust_avail should each model or each model - forecast date - location instance
+#' be weighted equally (default: TRUE, i.e. equal weight of each model - forecast date - location
+#' instance; this prevents models that have low availability to influence average scores too much)
+#' 
+#' @return data.table (long format) with decomposed WIS at level of model types
+
+#' @export 
+compute_decomp_scores <- function(data, 
+                                  adjust_avail = TRUE){
+  
+  decomp_scores  <- hub_data |>
+    filter(!model_type %in% c("other", "ensemble", "baseline")) |>
+    select(all_of(c(specs$su_cols, "model_type"))) |>
+    score()
+  
+  if(adjust_avail){
+    decomp_scores <- decomp_scores |>
+      summarise_scores(by = c("model_type", 
+                              "horizon", "target_type", "location", "forecast_date")) |>
+      summarise_scores(by = c("model_type", 
+                              "horizon", "target_type"))
+  } else {
+    decomp_scores <- decomp_scores |>
+      summarise_scores(by = c("model_type", 
+                              "horizon", "target_type"))
+  }
+  
+  #get data into long format for plotting
+  decomp_scores <- decomp_scores |>
+    dplyr::select(model_type, horizon, target_type,
+                  overprediction, underprediction, dispersion) |>
+    dplyr::ungroup() |>
+    dplyr::arrange(model_type) |>
+    data.table::melt(id.vars = c("model_type", 
+                                 "horizon", "target_type"))
+  
+}
+
+
+#this is a stupid function because I'm stupid
+add_tt_and_dates <- function(add_model_dat,
+                             ens_dat){
+  
+  #find breaks in date (switch from idx 50 to 1)
+  matcher <- add_model_dat |>
+    mutate(lagg = idx - lag(idx),
+           lagg = ifelse(is.na(lagg), 0, lagg),
+           identi = as.numeric(lagg < 0),
+           groupp = cumsum(identi)) |>
+    group_by(groupp) |>
+    summarise(count = n())
+  
+  #how many observations does each target_type have at each forecast_date
+  case_deaths_counts <- ens_dat |>
+    select(target_type, forecast_date) |>
+    distinct()
+
+  #two dataframes that have info about combination of fc_date and number of observations
+  #for each target_type
+  nrow_cases <- nrow(case_deaths_counts[case_deaths_counts$target_type == "Cases",])
+  nrow_deaths <- nrow(case_deaths_counts[case_deaths_counts$target_type == "Deaths",])
+  matcher_cases <- matcher[1:nrow_cases,]
+  matcher_deaths <- matcher[(nrow_cases+1):nrow(matcher),]
+  
+
+  #lapply function that reps the respective forecast_date as many times as it is
+  #available in ensemble data 
+  fcdates <- case_deaths_counts |>
+    split(by = "target_type")
+
+  fcdates_cases <- lapply(seq_along(fcdates[[1]]$forecast_date), function(k)
+    rep(fcdates[[1]]$forecast_date[k], times = matcher_cases$count[k])) |>
+    unlist() |>
+    as.Date(origin = "1970-01-01") |>
+    data.table() |>
+    mutate(target_type = "Cases") |>
+    rename(forecast_date = V1)
+  fcdates_deaths <- lapply(seq_along(fcdates[[2]]$forecast_date), function(k)
+    rep(fcdates[[2]]$forecast_date[k], times = matcher_deaths$count[k])) |>
+    unlist() |>
+    as.Date(origin = "1970-01-01") |>
+    data.table() |>
+    mutate(target_type = "Deaths") |>
+    rename(forecast_date = V1)
+
+  
+  if(FALSE){
+    #can be used alternatively if one target_type has same number of observations
+    #across the whole dataset
+    fcdates_deaths <- rep(fcdates[[2]]$forecast_date, each = 3700) |>
+      as.Date(origin = "1970-01-01") |>
+      data.table() |>
+      mutate(target_type = "Deaths") |>
+      rename(forecast_date = V1)
+  }
+  
+  extra_cols <- rbind(fcdates_cases, fcdates_deaths)
+  
+  return(cbind(add_model_dat, extra_cols))
 }
