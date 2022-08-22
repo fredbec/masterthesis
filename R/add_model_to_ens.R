@@ -363,12 +363,16 @@ add_model_to_ens <- function(all_combs_dat, hub_data, loc,
           score() |>
           summarise_scores(by = c("model", "type", "horizon")) |>
           mutate(idx = k,
-                 hist = 0)
+                 hist = 0,
+                 ens_before = 1)
          
         
         #append ensemble scores to all model scores
         all_model_scores[[k]] <- rbind(all_model_scores[[k]], 
-                                       all_ens_scores, fill = TRUE)
+                                       all_ens_scores, fill = TRUE) |>
+          mutate(target_type = target,
+                 location = loc,
+                 forecast_date = fc_date)
         
         #for best/worst: record if it's currently over-or underpredictor/if ensemble is over- or underpredictor
       }
