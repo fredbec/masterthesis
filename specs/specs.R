@@ -11,6 +11,31 @@ su_cols <- c("model", "forecast_date", "quantile", "horizon",
              "prediction", "true_value")
 
 
+#########make categorization of periods########
+fc_dates <- sort(unique(hub_data$forecast_date))
+fc_dates <- c(fc_dates, fc_dates[length(fc_dates)] + 7)
+splitter <- c(1,10,10,9,9,9) |> cumsum()
+
+#list for plots (overlapping dates to avoid gaps)
+period_cat_plots <- lapply(1:5, function(i) 
+  c(fc_dates[splitter[i]], 
+    fc_dates[(splitter[i+1])]))
+
+#list with endpoints as correct
+period_cat <- lapply(period_cat_plots,
+                     function(dat) c(dat[1], dat[2]-7))
+
+#data.table for joining with hub_date
+period_cat_dt <- lapply(seq_along(period_cat), 
+       function(k) data.table(forecast_date = 
+                                seq.Date(period_cat[[k]][1], 
+                                         period_cat[[k]][2], by = 7),
+                              period_cat = k)) |>
+  rbindlist() |>
+  mutate(period_cat = factor(period_cat))
+
+
+
 
 ########## model_similarity_kickout#########
 model_similarity_kickout_avail_threshold <- 0.5
@@ -86,7 +111,10 @@ specs <- list(dates = dates,
               all_combs_ensemble_big_nmod = all_combs_ensemble_big_nmod,
               plot_horizon_label = plot_horizon_label,
               plot_target_label = plot_target_label,
-              plot_location_label = plot_location_label)
+              plot_location_label = plot_location_label,
+              period_cat_plots = period_cat_plots,
+              period_cat = period_cat,
+              period_cat_dt = period_cat_dt)
 
 rm(dates, avail_threshold, locs, excl_neg, su_cols, 
    model_similarity_kickout_avail_threshold, 
@@ -102,4 +130,5 @@ rm(dates, avail_threshold, locs, excl_neg, su_cols,
    all_combs_ensemble_window,
    all_combs_ensemble_small_countries, all_combs_ensemble_small_nmod,
    all_combs_ensemble_big_nmod, all_combs_ensemble_big_countries,
-   plot_horizon_label, plot_target_label, plot_location_label)
+   plot_horizon_label, plot_target_label, plot_location_label,
+   period_cat_plots, period_cat, period_cat_dt)
