@@ -34,7 +34,7 @@
 %	ACTUAL TEXT BEGINS
 %----------------------------------------------------------------------------------------
 
-\small
+%\small
 \vspace{2cm}
 \section{Introduction}
 \input{introduction.tex}
@@ -134,6 +134,47 @@ Coverage assesses forecast calibration by measuring the proportion of observatio
 Also here, as one could just predict the historical average. At the same time, one needs a sufficiently large sample to assess coverage. Thus, a model can ``hide'' behind good coverage in the aggregate. Assessing calibration in general is thus more a necessary rather than a sufficient condition for good forecast performance. However, it is still a very useful diagnostic tool that can help forecasters assess whether they are generally over- or under-confident.\\ 
 %Prediction interval coverage measures the proportion of values that fell into a predictive interval of a given level and thus reflects how well a model was able to characterize uncertainty over time.\citep{cramer_evaluation_2022} \todos{(from SI, cite something better. Scoringutils paper is also a good reference)}. It measures probabilistic calibration \citep{bosse_evaluating_2022}.
 In related literature, it's common to report coverage for the central $50\%$ and $90\%$ prediction intervals \todos{(cite)}.
+\subsubsection{Bias}
+``For forecasts in a quantile format, bias is also reflected in the over- and underprediction
+components of the weighted interval score (a proper scoring rule explained in more detail
+in section 2.3.2). These measure over- and underprediction on an absolute scale (analogous
+to the absolute error of a point forecast), rather than a relative scale. However, it is not
+clear what the decomposition ‘should’ look like and a forecast can be well calibrated and still
+have different amounts of over- and underprediction. High overprediction or underprediction
+values can therefore not immediately be interpreted as systematic bias.'' \citep{bosse_evaluating_2022}.
+``It captures how much probability mass of the forecast was above or below the
+true value (mapped to values between -1 and 1, with 0 being ideal) and therefore represents
+a general tendency to over- or under-predict in relative terms.'' \citep{bosse_evaluating_2022}.
+``For quantile forecasts, Bias can be calculated as the maximum
+percentile rank for which the prediction is smaller than y, if the true
+value is smaller than the median of the predictive distribution. If the
+true value is above the median of the predictive distribution, then
+bias is the minimum percentile rank for which the corresponding
+quantile is still larger than the true value. If the true value is exactly
+the median, bias is zero. For a large enough number of quantiles, the
+percentile rank will equal the proportion of predictive samples below
+the observed true value, and this metric coincides with the one for
+continuous forecasts. In contrast to the over- and underprediction penalties of
+the interval score it is bound between 0 and 1 and represents the
+tendency of forecasts to be biased rather than the absolute amount of
+over- and underprediction. It is therefore a more robust
+measurement, but harder to interpet. It largely depends on the
+application whether one is more interested in the tendency to be
+biased or in the absolute value of over- and underpredictions'' \citep{bosse_evaluating_2022}
+For integer-valued forecasts, \cite{funk_assessing_nodate} suggest the following bias metric: 
+\begin{equation*}
+B(F_t, y_t) = 1 - (F_t(y_t) + F_t(y_t + 1)),
+\end{equation*}
+which \cite{bosse_evaluating_2022} extended to the use of quantile-based forecasts as follows. If the true value $y_t$ is below the predicted median forecast $q_{t,0.5}$, the bias is 
+\begin{equation*}
+B(F_t, y_t) = 1 - 2 \cdot \text{max}\{\tau | q_{t,\tau} \leq y_t \}.
+\end{equation*}
+Similarly, if the true value $y_t$ is above the median forecast $q_{t,0.5}$, it is
+\begin{equation*}
+B(F_t, y_t) = 1 - 2 \cdot \text{min}\{\tau | q_{t,\tau} \geq y_t \}.
+\end{equation*}
+This can be interpreted as twice the difference between the quantile level that would ideally be closest to the observed data $y_t$ ($\tau = 0.5$, since the median would be the ideal prediction) and the quantile level that is actually most in line with it. Concretely, if we interpret the quantiles as the endpoints of (central) prediction intervals, this is the outermost quantile of the predictive distribution such that the interval still contains the observed value $y_t$. As above, if the entire predictive mass is above or below the observed value, bias should take on the values 1 and -1, respectively. This is achieved by simply setting $q_{t,0} = 0$ and $q_{t,1} = \infty$.\\
+In short, the further the central mass of the predictive distribution is from the observed value, the larger the bias.\\
 \subsubsection{Weighted Interval Score} \label{ssub:weighted_interval_score}
 Here, we introduce the \ac{wis}, which is the main scoring rule used within this thesis \cite{bracher_evaluating_2021}. It is designed for use on probabilistic forecasts \cite{european_covid-19_forecast_hub_european_2021} $F$ that are issued as a set of discrete central prediction intervals, each with nominal coverage level $\alpha$ - or, put differently, as a set of symmetric predictive quantiles $q$ which directly translate to central prediction intervals. \\
 Each central prediction interval can be scored via the interval score \citep{gneiting_strictly_2007}
@@ -158,7 +199,7 @@ One can address this by computing a relative score that is based on employing pa
 \[
 \theta_{l,m} = \frac{\bar{s}_{l}}{\bar{s}_{m}},
 \]
-where $\bar{s}_{l}$ and $\bar{s}_{m}$ denote the average scores the models achieved on the targets both models predicted on - this is usually chosen to be the WIS. For each model, the geometric mean of these relative scores is then computed as
+where $\bar{s}_{l}$ and $\bar{s}_{m}$ denote the average scores the models achieved on the targets both models predicted on - this is usually chosen to be the WIS. Other scoring rules are possible, but they need to have a fixed orientiation - for instance, the log score (not further discussed here) can take on both negative and positive values, making it unsuitable for these comparisons. For each model, the geometric mean of these relative scores is then computed as
 \[
 \theta_{l\cdot} = \left(\prod_{m = 1}^{M}\theta_{l,m} \right)^{\frac{1}{M}},
 \]to obtain a relative score of model $l$ with respect to all other available models. It can thus be interpreted as a performance measure of model $l$ with respect to a model with ``average'' performance. If interest lies in a direct pairwise comparison with a specific model $m$, one can instead consider the ratio of these relative scores
@@ -168,6 +209,10 @@ where $\bar{s}_{l}$ and $\bar{s}_{m}$ denote the average scores the models achie
 Calculating this ratio for all model pairs that are of interest results in a ``pairwise tournament'' for all models in the set - this approach is implemented in the \textbf{scoringutils} package \citep{bosse_epiforecastsscoringutils_2022}. For negatively oriented scoring rules, the ratio will be smaller than 1 if model $l$ outperformed model $m$ on their set of shared targets and larger than 1 if it did not. Note that this mode of pairwise comparison still requires the assumption that it is equally hard to perform relatively well to other models at all forecast dates and locations \citep{cramer_evaluation_2022}.\\
 If one is interested in concisely summarizing the skill of single models rather than performing comparisons between all pairs of models, one can choose a baseline model's $B$ relative score $\theta_{B\cdot}$ as the denominator, which for the WIS results in the measure that is commonly referred to as "relative WIS". Analogously to above, a ratio below 1 corresponds to a model overall outperforming the baseline model, while a score above 1 means that the model did not succeed in clearing baseline performance.\\
 In section \ref{sub:model_types_analysis}, we use these comparisons to compare groups of models, more specifically certain model types, against each other (better: compare relative skill?). As stated previously, averaging scores preserves propriety, making this comparison possible.
+\subsection{Model distance}
+The 2-order Cramer distance.
+It's the divergence associated with the CRPS.\\
+Explain some characteristics of the Cramer distance, i.e. that it gives small distance to distributions that are wide. Investigate this a bit.
 \section{Data}
 The data used in this thesis stem from the European COVID-19 Forecast Hub (thereafter referred to as the ``Hub'' or ``European Hub'', for the sake of brevity), which was instigated by the \ac{ecdc} in 2021 to collate forecasts for Covid-19 incidence cases and deaths from independent modeling teams across Europe \citep{european_covid-19_forecast_hub_european_2021}. It was modeled after a similar previous effort in the United States, the United States COVID-19 Forecast Hub (thereafter referred to as the ``US Hub'') \citep{cramer_united_2021}. Furthermore, the preceding German-Polish forecasting hub was largely synchronized with the European Hub \citep{bracher_german_2020}. The Hub's primary goal is to "provide reliable information about the near-term epidemiology of the COVID-19 pandemic to the research and policy communities and the general public" \citep{sherratt_predictive_2022}. In general, a modeling hub is a coordinated effort, in which one or more common prediction targets, as well as a common format for prediction, are agreed upon / implemented. This serves the purpose of facilitating model evaluation and development by making model predictions comparable, as well as making predictions suitable for aggregation, that is, for ensemble predictions. \\
 \begin{figure}
@@ -213,7 +258,7 @@ In general, the varying model base can be a bit of an issue. One can deal with t
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Introspective stuff}
-This section, as well as the next, will largely be devoid of rigorous statistical testing. Most of the works cited in this thesis that perform evaluations of similarly are. There exist methods to test the significance of differences in forecast scores/skill between models, the most common being the Diebold-Mariano test, which however has no extension ``to account for dependencies between multiple forecasts made for different time series or locations''(\cite{bracher_evaluating_2021}, \cite{diebold_comparing_1995}). One could also conceive a regression analysis, e.g. with random effects, but this also has the issue that scores are correlated and scores have large outliers which can heavily influence and thus weaken the trust in reported p-values. We still think there is tremendous value in the analysis, but we are aware of and want to highlight the possible limitations. We argue that some of the knowledge distilled in this thesis should be checked against another year's results, to increase trust in the results.\\ 
+This section, as well as the next, will largely be devoid of rigorous statistical testing. Most of the works cited in this thesis that perform evaluations of similarly are. There exist methods to test the significance of differences in forecast scores/skill between models, the most common being the Diebold-Mariano test, which however has no extension ``to account for dependencies between multiple forecasts made for different time series or locations''(\cite{bracher_evaluating_2021}, \cite{diebold_comparing_1995}). One could also conceive a regression analysis, e.g. with random effects, but this also has the issue that scores are correlated and scores have large outliers which can heavily influence and thus weaken the trust in reported p-values. We still think there is tremendous value in the analysis, but we are aware of and want to highlight the possible limitations. We argue that some of the knowledge distilled in this thesis should be checked against another year's results, to increase trust in the results. Furthmore, \cite{bosse_epiforecastsscoringutils_2022} don't recommend statistical testing ``in applied settings''.\\ 
 We try to counteract this by carefully not masking trends in the aggregate, as well as also reporting results that did not show any striking conclusions. Most of our analysis leads were furthermore defined from the start, and we refrained from \todos{(take this out, as it's not entirely true?)}.\\
 \subsection{Model Types} \label{sub:model_types_analysis}
 First and foremost, we had to categorize the models in the data in a meaningful manner. We decided on a categorization. To this end, we . Teams that mentioned an explicit compartmental structure of SIR or related (for instance SEIR, SECIR) type we categorized as "mechanistic".\\
@@ -246,11 +291,11 @@ First of all, we can see that performance is heavily correlated across model typ
 - we see that bad semi scores mostly seem to derive from period 5. while e.g. mechanistic models also underperform in some periods, these periods do not influence the aggregate too much.
 - scores are correlated\\
 - Statistical models better in period 5, for both deaths and cases. This is in line with Bracherboy \todos{(actually, not really)}.\\
-Recall what we previously stated about some periods being easier to forecast in comparison to the baseline: this is especially obvious in period 2, where death numbers are mostly marked by decline and low levels overall (see Figure \ref{fig:trajectories}), we observe that all model types markedly outperform the baseline model at virtually all horizons and locations. Investigating the decomposition of baseline WIS during this period, we found that the baseline model's dispersion alone sat between 0.96 (at horizon 1) and 1.46 (at horizon 2) of the \textit{overall} average WIS score of all other model types, suggesting that the baseline model issued severely underconfident forecasts during this time.\footnote{Does this mean that the baseline model was badly calibrated?} Since the baseline model's uncertainty bands are based on past differences, this suggests that these don't update quick enough, marking the point that the choice of baseline is not entirely trivial. \\
+Recall what we previously stated about some periods being easier to forecast in comparison to the baseline: this is especially obvious in period 2, where death numbers are mostly marked by decline and low levels overall (see Figure \ref{fig:trajectories}), we observe that all model types markedly outperform the baseline model at virtually all horizons and locations. Investigating the decomposition of baseline WIS during this period, we found that the baseline model's dispersion alone sat between 0.96 (at horizon 1) and 1.46 (at horizon 2) of the \textit{overall} average WIS score of all other model types, suggesting that the baseline model issued severely underconfident forecasts during this time. \footnote{Does this mean that the baseline model was badly calibrated? Also, find out if this was especially the case during the beginning of a period. Argument could be: baseline not so well adapted to falling numbers, where other models manage to be more confident.} Since the baseline model's uncertainty bands are based on past differences, this suggests that these don't update quick enough, marking the point that the choice of baseline is not entirely trivial. \\
 \todos{(consider again the next section, might be wrong. How does averaging work again? ... See scoringutils paper.)}
 To see that scores are relatively heavily dominated by periods and locations with high nominal incidence, consider the results from case forecasts in period 3 in Figures \ref{fig:pw_comp_modeltypes_byperiod} and \ref{fig:pw_comp_modeltypes_byloc}: all model types substantially underperform with respect to the baseline in the aggregate, but they actually outperform the baseline for Poland and the Czech Republic. Since these countries however have very low incidence numbers compared with other countries in the evaluation set during this period (see Figure \ref{fig:trajectories}), they don't influence the average score very much. Whether or not this is a desirable feature of the evaluation method is an ongoing debate and can depend on the forecasters' as well as decision makers' preferences. For instance, \cite{bracher_evaluating_2021} argue that scoring forecasts in this manner is meaningful, as a fixed relative deviation from the observed quantity can be regarded as more problematic at high incidence levels rather than at very low incidence levels, which would not be accounted for if only considering the relative deviation.\\  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%Discuss decomposition%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-As explained in subsection \ref{ssub:weighted_interval_score}, the weighted interval score can straightforwardly be decomposed into penalties accrued from overprediction, underprediction and dispersion. A question that thus naturally arises is whether the score differences discussed previously can be explained by model types performing particularly well or not with respect to a certain component. To this end, we show the decomposed average WIS scores obtained by each model type in Figure \ref{fig:decomp_model_types}. Note that these are the raw average scores rather than scores obtained relative to the baseline model. This is possible since forecasts from all model types are available for the entire time period under study\footnote{arggh, not actually true. Statistical models missing for the first few weeks in CZ, FR, GB. Could put figure in appendix showing robustness}. We hence see that scores vary substantially more between the different forecast horizons than they do between the model types, but that we can nevertheless observe some interesting facts. 
+As explained in subsection \ref{ssub:weighted_interval_score}, the weighted interval score can straightforwardly be decomposed into penalties accrued from overprediction, underprediction and dispersion. A question that thus naturally arises is whether the score differences discussed previously can be explained by model types performing particularly well or not with respect to a certain component. To this end, we show the decomposed average WIS scores obtained by each model type in Figure \ref{fig:decomp_model_types}. Note that these are the raw average scores rather than scores obtained relative to the baseline model. This is possible since forecasts from all model types are available for the entire time period under study and we first averaged by forecast date and then by model type\footnote{arggh, not actually true. Statistical models missing for the first few weeks in CZ, FR, GB. Could put figure in appendix showing robustness}. We hence see that scores vary substantially more between the different forecast horizons than they do between the model types, but that we can nevertheless observe some interesting facts. 
 - Lastly, we also see a general result from previous studies: cases get increasingly harder to forecast than deaths at higher forecast horizons.\\
 - For both targets, forecasts from semi-mechanistic models receive higher penalties for overdispersion than the other model types.\\
 - For both targets, forecasts from statistical models receive higher penalties for underprediction than the other model types.\\
