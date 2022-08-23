@@ -12,7 +12,7 @@ su_cols <- c("model", "forecast_date", "quantile", "horizon",
 
 
 #########make categorization of periods########
-fc_dates <- sort(unique(hub_data$forecast_date))
+fc_dates <- seq.Date(as.Date(dates[1]), as.Date(dates[2]), by = 7)
 fc_dates <- c(fc_dates, fc_dates[length(fc_dates)] + 7)
 splitter <- c(1,10,10,9,9,9) |> cumsum()
 
