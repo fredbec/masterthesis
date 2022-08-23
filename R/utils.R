@@ -813,3 +813,106 @@ add_tt_and_dates <- function(add_model_dat,
   
   return(cbind(add_model_dat, extra_cols))
 }
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @description Helper function to evaluate different ensemble strategies
+#' 
+#' @param target ensemble data to evaluate score against current
+#' @param current comparison data
+#' @param su_cols columns for scoringutils
+#' @param scoring_fun which scoring function to evaluate
+#' @param strat_by unit of a single forecast
+#' @param return_anti_join if target's and current's targets don't match (function
+#' gives and error), should setdiff between the two be returned
+#' 
+#' @return data.table (long format) with relative scores
+
+#' @export 
+make_eval <- function(target,
+                      current,
+                      su_cols,
+                      scoring_fun = "interval_score",
+                      strat_by = c("model", "target_type","location", 
+                                   "horizon", "forecast_date"),
+                      return_anti_join = FALSE){
+  
+  #check if there are multiple models in any of the datasets
+  if(length(unique(target$model))!=1){
+    mods <- paste0(unique(target$model))
+    message(paste0("There is more than one model in target: ", paste(mods, collapse = ", ")))
+    stop("Can only pass one model per dataframe.")
+  }
+  if(length(unique(current$model))!=1){
+    mods <- paste0(unique(current$model))
+    message(paste0("There is more than one model in current: ", paste(mods, collapse = ", ")))
+    stop("Can only pass one model per dataframe.")
+  }
+  
+  
+  #####check if both models predict for all the same instances#######
+  all_inst_target <- target |>
+    dplyr::select(all_of(strat_by[-1])) |> #remove model from strat_by
+    dplyr::distinct()
+  all_inst_current <- current |>
+    dplyr::select(all_of(strat_by[-1])) |> #remove model from strat_by
+    dplyr::distinct()
+  
+  #perform anti join to find instances that are not in intersection
+  not_in_current <- dplyr::anti_join(all_inst_target, all_inst_current, by = strat_by[-1])
+  not_in_target <- dplyr::anti_join(all_inst_current, all_inst_target, by = strat_by[-1])
+  
+  if(!nrow(not_in_current) == 0){
+    message("There are instances in target that are not in current.")
+    if(return_anti_join){
+      message("Returning these instances.")
+      return(not_in_current)
+    }
+    stop("Relative WIS cannot be reliably computed")
+  }
+  if(!nrow(not_in_target) == 0){
+    message("There are instances in current that are not in target.")
+    if(return_anti_join){
+      message("Returning these instances.")
+      return(not_in_target)
+    }
+    stop("Relative WIS cannot be reliably computed")
+  }
+  
+  #additionally check for nrow (could e.g. be missing quantiles, 
+  #although I have absolutely no idea how that would have happened)
+  if(!identical(nrow(target), nrow(current))){
+    message(paste0("Target has ", nrow(target), " rows, current has ", nrow(current)))
+    stop("Relative WIS cannot be reliably computed")
+  }
+  
+  
+  
+  ########Scoring#########
+  #score target
+  target_score <- target |>
+    dplyr::select(all_of(su_cols)) |> #remove redundant cols before scoring
+    scoringutils::score() |>
+    scoringutils::summarise_scores(by = strat_by) |>
+    dplyr::select(all_of(c(strat_by, scoring_fun))) |>
+    dplyr::rename(target_val = scoring_fun)
+  
+  #score current
+  current_score <- current |>
+    dplyr::select(all_of(su_cols)) |> #remove redundant cols before scoring
+    scoringutils::score() |>
+    scoringutils::summarise_scores(by = strat_by) |>
+    dplyr::select(all_of(c(strat_by, scoring_fun))) |>
+    dplyr::rename(current_val = scoring_fun) |>
+    dplyr::select(-model) #remove before joining
+  
+  
+  #join scores and compute relative score
+  joined_scores <- target_score |>
+    dplyr::left_join(current_score, by = strat_by[-1]) |> #remove model from strat_by
+    dplyr::mutate(rel_score = target_val/current_val)
+  
+  return(joined_scores)
+  
+}
