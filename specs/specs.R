@@ -1,3 +1,5 @@
+library(data.table)
+
 dates <- c("2021-03-15","2022-01-31")
 
 avail_threshold <- 0.35
