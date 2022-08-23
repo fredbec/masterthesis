@@ -11,6 +11,8 @@ locs <- c("DE", "PL")
 
 nmods <- c(3,4)
 
+#needs to start with "2021-04-19", otherwise the following won't work
+#but could of course always change it 
 subset_fc_dates <- list(seq.Date(from = as.Date("2021-04-19"),
                                  to = as.Date("2022-01-31"),
                                  by = 7),
@@ -27,9 +29,9 @@ map_fc_to_tg <- hub_data |>
 
 for(nmod in nmods){
   for (loc in locs){
+    print(loc)
     for(i in 1:length(subset_fc_dates[[1]])){
       
-      print(i)
       all_scores <- hub_data |>
         select(specs$su_cols) |>
         dplyr::filter(location == loc) |>
@@ -41,7 +43,11 @@ for(nmod in nmods){
         left_join(map_fc_to_tg, by = c("forecast_date", "horizon"))
       
       #make trycatch here in case dataset doesn't exist
-      all_combs_dat <- readRDS(here("results", "all_combs_ensemble", paste0("nmod", nmod, "_", loc,"_set", i, ".RDS")))
+      all_combs_dat <- readRDS(here("results", "all_combs_ensemble", 
+                                    paste0("nmod", nmod, "_", loc,"_set", i, ".RDS")))
+      
+      ####
+      print(unique(all_combs_dat$forecast_date))
       
       add_model_dat <- add_model_to_ens(all_combs_dat = all_combs_dat, 
                                         hub_data = hub_data,
@@ -49,7 +55,7 @@ for(nmod in nmods){
                                         nmod = nmod,
                                         all_scores = all_scores,
                                         su_cols = specs$su_cols,
-                                        fc_dates = subset_fc_dates[[as.character(nmod)]],
+                                        fc_dates = subset_fc_dates[[as.character(nmod)]][i],
                                         window = 4,
                                         sample_nmod = 100,
                                         seed = 41,

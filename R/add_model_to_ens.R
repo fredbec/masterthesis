@@ -34,6 +34,9 @@ add_model_to_ens <- function(all_combs_dat, hub_data, loc,
   if(is.null(fc_dates)){
     fc_dates <- unique(all_combs_dat$forecast_date)
   }
+  ####
+  print("forecast dates in all_cobms_dat")
+  print(fc_dates)
   
   
   #overall result containers
@@ -54,11 +57,14 @@ add_model_to_ens <- function(all_combs_dat, hub_data, loc,
     #catchlist <- vector(mode = "list", length = length(fc_dates))
     
     #print(fc_dates)
+    print("forecast dates length")
+    print(length(fc_dates))
     for (i in 1:length(fc_dates)){
     
     #for (i in 1:2){
       #current forecast data
       fc_date <- fc_dates[i]
+      print("fc_date in loop")
       print(fc_date)
       
       #get window of recent dates to judge worst/best model
@@ -68,6 +74,10 @@ add_model_to_ens <- function(all_combs_dat, hub_data, loc,
       subdat_all_combs <- all_combs_dat |>
         filter(forecast_date == fc_date,
                target_type == target)
+      
+      ####
+      print("unique fc dates in subdat")
+      print(unique(subdat_all_combs$forecast_date))
       
       #get relevant subset of scores
       #filter such that only resolved horizons enter
@@ -124,6 +134,7 @@ add_model_to_ens <- function(all_combs_dat, hub_data, loc,
       ens_models_list <- subdat_all_combs |>
         select(inc_models) |>
         distinct()
+      print(ens_models_list[1:5,])
       
       if(nrow(ens_models_list) < sample_nmod/2){
         print(fc_date)
