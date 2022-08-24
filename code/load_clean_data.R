@@ -1,12 +1,16 @@
 library(data.table)
 library(dplyr)
 library(here)
-
-
 here::i_am("code/load_clean_data.R")
 
 #read in specs
 source(here("specs", "specs.R"))
+
+#read in filter values for locations and dates
+avail_threshold <- specs$load_data_avail_threshold
+forecast_dates <- specs$load_data_forecast_dates
+locs <- specs$load_data_locs
+excl_neg <- specs$load_data_excl_neg
 
 
 hub_data <- rbindlist(
@@ -24,13 +28,10 @@ model_types <- read.csv(here("scraper", "metadata_extended_final.csv")) |>
   mutate(model = gsub("\n| ","", model))
 
 
-#read in filter values for locations and dates
-locs <- specs$locs
-dates <- specs$dates |>
+#interpolate dates for filtering
+dates <- forecast_dates |>
   as.Date() |>
   (\(x) seq.Date(x[1], x[2], by = 7))()
-excl_neg <- specs$excl_neg
-
 
 ###Filter data according to specs
 ##and merge with model type info
@@ -41,7 +42,8 @@ hub_data <- left_join(hub_data, model_types,
 
 if(excl_neg){
   hub_data <- hub_data |>
-    filter(true_value >= 0)
+    filter(true_value >= 0) |>
+    mutate(prediction = ifelse(prediction < 0, 0, prediction))
 }
 
 #some baseline predictions are wrongly attributed to "2021-12-27"
@@ -73,8 +75,14 @@ hub_data <- hub_data |>
   rbind(hub_data_bl20)|> #add back relevant obs
   setkey(model) |> #key is removed in the process
   arrange(model, location, target_type, forecast_date, 
-          horizon, quantile) |>
-  model_availability() 
+          horizon, quantile) #|>
+
+
+#compute availability and remove models that are under threshold
+hub_data <- hub_data |>
+  model_availability() |>
+  filter(availability > avail_threshold) |>
+  select(-n)
 
 
 #remove some stuff from the workspace

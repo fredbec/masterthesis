@@ -1,20 +1,23 @@
 library(data.table)
 
-dates <- c("2021-03-15","2022-01-31")
 
-avail_threshold <- 0.35
+#general data loading settings
+load_data_avail_threshold <- 0
+load_data_forecast_dates <- c("2021-03-15","2022-01-31")
+load_data_locs <- c("DE", "PL", "GB", "FR", "CZ")
+load_data_excl_neg <- TRUE
 
-locs <- c("DE", "PL", "GB", "FR", "CZ")
-
-excl_neg <- TRUE
-
+#columns defining single forecast unit (needed to select columns before
+#scoring with scoringutils)
 su_cols <- c("model", "forecast_date", "quantile", "horizon", 
              "target_type", "location", "target_end_date", 
              "prediction", "true_value")
 
 
-#########make categorization of periods########
-fc_dates <- seq.Date(as.Date(dates[1]), as.Date(dates[2]), by = 7)
+#########categorization of periods########
+fc_dates <- seq.Date(as.Date(load_data_forecast_dates[1]),
+                     as.Date(load_data_forecast_dates[2]), 
+                     by = 7)
 fc_dates <- c(fc_dates, fc_dates[length(fc_dates)] + 7)
 splitter <- c(1,10,10,9,9,9) |> cumsum()
 
@@ -29,10 +32,10 @@ period_cat <- lapply(period_cat_plots,
 
 #data.table for joining with hub_date
 period_cat_dt <- lapply(seq_along(period_cat), 
-       function(k) data.table(forecast_date = 
-                                seq.Date(period_cat[[k]][1], 
-                                         period_cat[[k]][2], by = 7),
-                              period_cat = k)) |>
+                        function(k) data.table(forecast_date = 
+                                                 seq.Date(period_cat[[k]][1], 
+                                                          period_cat[[k]][2], by = 7),
+                                               period_cat = k)) |>
   rbindlist() |>
   mutate(period_cat = factor(period_cat))
 
@@ -79,17 +82,18 @@ all_combs_ensemble_big_nmod <- c(seq(3,10, by = 1), 12, 14)
 
 #plots
 plot_horizon_label <- c(`1` = "1 week ahead", `2` = "2 weeks ahead",
-                  `3` = "3 weeks ahead",`4` = "4 weeks ahead")
+                        `3` = "3 weeks ahead",`4` = "4 weeks ahead")
 plot_target_label <- c(`Cases` = "Target: Cases", `Deaths` = "Target: Deaths")
 plot_location_label <- c(`PL` = "Poland", `DE` = "Germany",
                          `CZ` = "Czech Rep.", `GB` = "Great Br.",
                          `FR` = "France")
 
-
-specs <- list(dates = dates,
+avail_threshold <- 0.35
+specs <- list(load_data_avail_threshold = load_data_avail_threshold,
+              load_data_forecast_dates = load_data_forecast_dates,
+              load_data_locs = load_data_locs,
+              load_data_excl_neg = load_data_excl_neg,
               avail_threshold = avail_threshold,
-              locs = locs,
-              excl_neg = excl_neg,
               su_cols = su_cols,
               model_similarity_kickout_avail_threshold = model_similarity_kickout_avail_threshold,
               model_similarity_kickout_avail_overlap_threshold = model_similarity_kickout_avail_overlap_threshold,
@@ -118,7 +122,7 @@ specs <- list(dates = dates,
               period_cat = period_cat,
               period_cat_dt = period_cat_dt)
 
-rm(dates, avail_threshold, locs, excl_neg, su_cols, 
+rm(avail_threshold, su_cols, 
    model_similarity_kickout_avail_threshold, 
    model_similarity_kickout_avail_overlap_threshold, 
    model_similarity_kickout_dist_fun, model_similarity_kickout_number_random_samples,
@@ -133,4 +137,6 @@ rm(dates, avail_threshold, locs, excl_neg, su_cols,
    all_combs_ensemble_small_countries, all_combs_ensemble_small_nmod,
    all_combs_ensemble_big_nmod, all_combs_ensemble_big_countries,
    plot_horizon_label, plot_target_label, plot_location_label,
-   period_cat_plots, period_cat, period_cat_dt)
+   period_cat_plots, period_cat, period_cat_dt,
+   load_data_locs, load_data_avail_threshold, load_data_forecast_dates,
+   load_data_excl_neg)
