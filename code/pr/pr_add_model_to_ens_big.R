@@ -62,7 +62,7 @@ for(nmod in nmods){
                                         window = 4,
                                         sample_nmod = 100,
                                         seed = 41,
-                                        prop_nmod = prop_nmod[as.character(nmod)])
+                                        prop_nmod = prop_nmod[[as.character(nmod)]])
       
       saveRDS(add_model_dat[[1]], here("results", "add_model", paste0("ensembles_nmod", nmod, "_", loc,"_set", i, ".RDS")))
       saveRDS(add_model_dat[[2]], here("results", "add_model", paste0("scores_nmod", nmod, "_", loc,"_set", i, ".RDS")))
