@@ -23,7 +23,7 @@ subset_fc_dates <- list(seq.Date(from = as.Date("2021-04-19"),
                                  to = as.Date("2022-01-31"),
                                  by = 7)
 )
-names(subset_fc_dates) <- nmods
+#names(subset_fc_dates) <- nmods
 
 
 map_fc_to_tg <- hub_data |>
