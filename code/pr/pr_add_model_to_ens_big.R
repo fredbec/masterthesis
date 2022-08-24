@@ -9,7 +9,10 @@ source(here("code", "load_clean_data.R"))
 
 locs <- c("DE", "PL")
 
-nmods <- c(3,4)
+#nmods <- c(3,4)
+nmods <- c(5,6,7,8,9,10)
+prop_nmod <- list(6,6,5,5,4,4)
+names(prop_nmod) <- nmods
 
 #needs to start with "2021-04-19", otherwise the following won't work
 #but could of course always change it 
@@ -55,11 +58,11 @@ for(nmod in nmods){
                                         nmod = nmod,
                                         all_scores = all_scores,
                                         su_cols = specs$su_cols,
-                                        fc_dates = subset_fc_dates[[as.character(nmod)]][i],
+                                        fc_dates = subset_fc_dates[[1]][i],
                                         window = 4,
                                         sample_nmod = 100,
                                         seed = 41,
-                                        prop_nmod = 6)
+                                        prop_nmod = prop_nmod[as.character(nmod)])
       
       saveRDS(add_model_dat[[1]], here("results", "add_model", paste0("ensembles_nmod", nmod, "_", loc,"_set", i, ".RDS")))
       saveRDS(add_model_dat[[2]], here("results", "add_model", paste0("scores_nmod", nmod, "_", loc,"_set", i, ".RDS")))
