@@ -247,7 +247,8 @@ For the subset used in this study, we decided ahead of our study to only use a s
 \subsection{Hub Data}
 Issued as 23 quantiles. Mostly use \ac{wis}, which corresponds to giving slightly larger weight to intervals with large nominal coverage, as compared to \ac{crps} \citep{bracher_evaluating_2021}.
 Talk about availability. We can see that in the aggregate, after an initial period of uptake and recruiting, the modeling base is largest during the summer months and into the fall of 2021, after which it drops.
-In general, the varying model base can be a bit of an issue. One can deal with these issues by e.g. only taking a full forecast set. However, we deliberately wanted to deal with the data as-is and develop and conceive strategies that work with and around this artefact of the data, as we felt that this was the most realistic and helpful for the situation at hand. 
+In general, the varying model base can be a bit of an issue. One can deal with these issues by e.g. only taking a full forecast set. However, we deliberately wanted to deal with the data as-is and develop and conceive strategies that work with and around this artefact of the data, as we felt that this was the most realistic and helpful for the situation at hand. \\
+Mention how they switch from mean to median ensemble.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -330,7 +331,7 @@ This notion has some mention (\todos{find better word}) in the literature. For e
 \newpage
 \subsection{Ensemble Techniques}
 - Mean, median \\
-- weighted: QRA, inverse score weighting, inverse score weighting with exponential smoothing
+- weighted, different types of weight computes: QRA, inverse score weighting, inverse score weighting with exponential smoothing
 \subsection{Adding a new model}
 ``To enhance
 interpretability of scores we mainly report WIS relative to the Hub ensemble in the main text, i.e. we divided
@@ -359,6 +360,7 @@ Note that we refrained from excessively tuning hyperparameters in the study.
 We wanted to derive methods that accounted for the fact that weight estimation does not work well in low signal-to-noise ratio settings \cite{claeskens_forecast_2016}.\\
 We decided to implement an ensemble that is based on the results from 1, i.e. that namely excludes semi-mechanistic models at longer horizons. Of course, we also saw that mechanistic models had rather poor performance at longer horizons, but we decided to exclude only semi-mechanistic as we otherwise wouldn't have much of an ensemble left at all. Furthermore, while the trend isn't $100\%$ clear, we mostly see that semi-mechanistic models perform either second-worst or worst. Also, while we identified a general tendency for larger dispersion (which might actually aid the generally overconfident ensemble), we additionally at larger horizons saw a much more problematic tendency to overpredict the target. We will do this analysis for both cases and deaths, but of course expect larger benefits for case forecasts. Compared with both the relative scores of the other model types, we see that semi-mechanistic models are rarely a good performer when compared to the other model types.  We of course expect this to improve performance in-sample, but further we want to investigate whether this introduces any unwanted effects, i.e. discontinuities. Namely, there are a few desirable properties of forecasts that could be in jeopardy if the set of models in the ensemble varies with the forecast horizon. It is thus conceivable that these models increase the cone of uncertainty for lower horizons, making it drop afterwards if they are then excluded. Furthermore, we also monitor the resultant coverage of the ensemble before and after, to see if anything worsened in this regard - wis might drop (not a surprise, as this is how it was selected), but that makes monitoring other scoring rules even more important. \\
 For evaluation, we use a more direct relative WIS, since there are no missing forecasts in this part of the analysis.\\
+Our analyses in the previous chapters showed some (if slight) performance differences of 
 \subsection{Model Types}
 These compartmental models, via a set of differential equations, explicitly model how members of the population transition through the states of being susceptible, (exposed), infected, and recovered/removed \cite{taylor_combining_2021}.
 \cite{taylor_combining_2021} conjecture that during periods of low incidence, mechanistic models should perform better than statistical ones. This is due to the fact that random statistical fluctuations can still occur, but statistical models might, somehow, latch on to these too eagerly and proceed to forecast exponential growth where there is none.
