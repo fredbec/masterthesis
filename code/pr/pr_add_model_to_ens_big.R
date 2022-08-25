@@ -10,7 +10,8 @@ source(here("code", "load_clean_data.R"))
 locs <- c("DE", "PL")
 
 #nmods <- c(3,4)
-nmods <- c(5,6,7,8,9,10)
+#nmocs <- c(5,6)
+nmods <- c(7,8,9,10)
 prop_nmod <- list(6,6,5,5,4,4)
 names(prop_nmod) <- nmods
 
