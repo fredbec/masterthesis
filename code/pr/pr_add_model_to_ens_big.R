@@ -45,9 +45,23 @@ for(nmod in nmods){
                                 "horizon")) |> 
         left_join(map_fc_to_tg, by = c("forecast_date", "horizon"))
       
+      
       #make trycatch here in case dataset doesn't exist
-      all_combs_dat <- readRDS(here("results", "all_combs_ensemble", 
-                                    paste0("nmod", nmod, "_", loc,"_set", i, ".RDS")))
+      if(nmod >= 7 & subset_fc_dates[[1]][i]=="2021-07-05" & loc == "DE"){
+        all_combs_dat_cases <- readRDS(here("results", "all_combs_ensemble", 
+                                      paste0("nmod", nmod, "_", loc,"_set", i, "_Cases.RDS")))
+          
+        all_combs_dat_deaths <- readRDS(here("results", "all_combs_ensemble", 
+                                            paste0("nmod", nmod, "_", loc,"_set", i, "_Deaths.RDS")))
+        all_combs_dat <- rbind(all_combs_dat_cases, 
+                               all_combs_dat_deaths)
+        
+      } else {
+        all_combs_dat <- readRDS(here("results", "all_combs_ensemble", 
+                                      paste0("nmod", nmod, "_", loc,"_set", i, ".RDS")))
+      }
+      
+      
       
       ####
       print(unique(all_combs_dat$forecast_date))
