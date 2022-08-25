@@ -6,11 +6,12 @@
 \usage{
 best_performers_ensemble(
   data,
+  su_cols,
   score = "interval_score",
   nmods = 3,
   window = 4,
   may_miss = 0,
-  excl = c("EuroCOVIDhub-baseline", "EuroCOVIDhub-ensemble"),
+  excl = c("EuroCOVIDhub-ensemble"),
   return_model_data = FALSE
 )
 }

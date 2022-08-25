@@ -6,8 +6,11 @@
 \usage{
 plot_trajectories(
   data,
+  fc_dates_split = NULL,
   saveplot = TRUE,
-  path = here("plots", "trajectories.pdf")
+  path = here("plots", "trajectories.pdf"),
+  height = 7,
+  width = 9.5
 )
 }
 \arguments{

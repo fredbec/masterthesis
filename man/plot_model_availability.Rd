@@ -7,7 +7,14 @@
 plot_model_availability(
   data,
   saveplot = TRUE,
-  path = (here("plots", "availability.pdf"))
+  path = (here("plots", "availability.pdf")),
+  height = 12,
+  width = 8,
+  indiv = TRUE,
+  main = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  palette = "Set1"
 )
 }
 \arguments{

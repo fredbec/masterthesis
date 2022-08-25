@@ -23,7 +23,7 @@ sampling process}
 
 \item{samples}{how many random samples of models to draw}
 
-\item{seed}{random seed for sampling}
+\item{seed}{random seed mfor sampling}
 
 \item{excl}{which models should be excluded from the ensemble experiment}
 }
