@@ -37,7 +37,8 @@ period_cat_dt <- lapply(seq_along(period_cat),
                                                           period_cat[[k]][2], by = 7),
                                                period_cat = k)) |>
   rbindlist() |>
-  mutate(period_cat = factor(period_cat))
+  mutate(period_cat = factor(period_cat),
+         forecast_date = as.IDate(forecast_date))
 
 
 
@@ -88,6 +89,10 @@ plot_location_label <- c(`PL` = "Poland", `DE` = "Germany",
                          `CZ` = "Czech Rep.", `GB` = "Great Br.",
                          `FR` = "France")
 
+
+##Model type analysis###
+model_type_avail_threshold <- 0
+
 avail_threshold <- 0.35
 specs <- list(load_data_avail_threshold = load_data_avail_threshold,
               load_data_forecast_dates = load_data_forecast_dates,
@@ -120,7 +125,8 @@ specs <- list(load_data_avail_threshold = load_data_avail_threshold,
               plot_location_label = plot_location_label,
               period_cat_plots = period_cat_plots,
               period_cat = period_cat,
-              period_cat_dt = period_cat_dt)
+              period_cat_dt = period_cat_dt,
+              model_type_avail_threshold = model_type_avail_threshold)
 
 rm(avail_threshold, su_cols, 
    model_similarity_kickout_avail_threshold, 
@@ -139,4 +145,4 @@ rm(avail_threshold, su_cols,
    plot_horizon_label, plot_target_label, plot_location_label,
    period_cat_plots, period_cat, period_cat_dt,
    load_data_locs, load_data_avail_threshold, load_data_forecast_dates,
-   load_data_excl_neg)
+   load_data_excl_neg, model_type_avail_threshold)
