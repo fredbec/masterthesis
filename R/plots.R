@@ -321,24 +321,32 @@ plot_model_availability <- function(data,
       ggplot2::geom_line() + 
       ggplot2::labs(title = main) +
       ggplot2::facet_grid(~ target_type) +
-      ggplot2::scale_color_brewer(palette = palette)
+      ggplot2::scale_color_brewer(palette = palette) +
       ggplot2::ylim(5, 25)+
       ggplot2::xlab(xlab) +
       ggplot2::ylab(ylab)  
   
   plot_model_avail_indiv <- data |>
-      dplyr::select(model, location, 
-             target_type, availability) |>
-      dplyr::distinct() |>
-      ggplot2::ggplot(aes(x = model, y = location,
-                          fill = availability)) +
-      ggplot2::geom_tile()+
-      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-      ggplot2::facet_wrap(~target_type) + 
-      viridis::scale_fill_viridis(option = "rocket") +
-      ggplot2::theme(
-        axis.text.y = element_text(angle = 0, size = 7)) +
-      ggplot2::labs(title = main) +
+    dplyr::select(model, location, 
+           target_type, availability) |>
+    dplyr::distinct() |>
+    ggplot2::ggplot(aes(x = model, y = location,
+                        fill = availability)) +
+    ggplot2::geom_tile()+
+    ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+                   axis.text.y = element_text(size = 12),
+                   plot.margin = margin(5, 5, 5, 15),
+                   legend.position = "right") +
+    ggplot2::scale_y_discrete(name ="", 
+                              breaks = c("PL", "GB", "FR", "DE", "CZ"),
+                              labels=c("Poland","Great Britain","France",
+                                       "Germany", "Czech R.")) +
+    ggplot2::facet_wrap(~target_type) + 
+    viridis::scale_fill_viridis(option = "rocket",
+                                name = "") +
+    ggplot2::theme(
+      axis.text.y = element_text(angle = 0, size = 7)) +
+    ggplot2::labs(title = main) +
     ggplot2::xlab(xlab) +
     ggplot2::ylab(ylab)
   
@@ -376,13 +384,31 @@ plot_model_availability <- function(data,
 
 
 plot_trajectories <- function(data,
+                              fc_dates_split = NULL,
                               saveplot = TRUE,
-                              path = here("plots", "trajectories.pdf")){
- 
+                              path = here("plots", "trajectories.pdf"),
+                              height = 7,
+                              width = 9.5
+                              ){
+  
+  if(is.null(fc_dates_split)){
+    fc_dates <- sort(unique(data$forecast_date))
+    fc_dates <- c(fc_dates, fc_dates[length(fc_dates)] + 7)
+    splitter <- c(1,10,10,9,9,9) |> cumsum()
+
+    date_list <- lapply(1:5, function(i) 
+      c(fc_dates[splitter[i]], 
+        fc_dates[(splitter[i+1])]))
+    
+  }
+  #return(date_list)
+
   trajectories <- data |>
     dplyr::filter(horizon == 1) |>
     dplyr::mutate(
-      incidence = 100000 * (true_value / population)) |> #for easier comparison
+      incidence = ifelse(target_type == "Deaths",
+                         true_value,
+        100000 * (true_value / population))) |> #for easier comparison
     dplyr::select(
       location, target_end_date, true_value, 
       target_type, incidence) |>
@@ -390,15 +416,34 @@ plot_trajectories <- function(data,
     ggplot2::ggplot(
       aes(x = target_end_date, y = incidence,
           group = location, color = location)) +
-    ggplot2::geom_line(size = 1.2) + 
-    ggplot2::scale_color_brewer(palette = "GnBu") + 
-    facet_wrap(~target_type,
+    ggplot2::geom_line() +
+    labs(y = "Incidence", x = "", legend = "") +
+    theme_masterthesis() + 
+    ggplot2::geom_point(shape = 18) +
+    ggplot2::scale_color_brewer(palette = "Set2",
+                                breaks = names(specs$plot_location_label),
+                                labels = unname(specs$plot_location_label),
+                                name = "") + 
+    lapply(seq_along(date_list), function(dt) {
+      list(annotate("rect", xmin = as.IDate(date_list[[dt]][1]), 
+                    xmax = as.IDate(date_list[[dt]][2]), ymin = 0, ymax = Inf, 
+                    alpha = .15 * (dt%%2 + 1)))
+    }
+      )+
+    #geom_vline(xintercept=as.IDate("2021-03-15"),linetype="dotted",size=0.6)+
+    #geom_vline(xintercept=as.IDate("2021-05-17"),linetype="dotted",size=0.6) +
+    #geom_rect(aes(xmin=as.IDate("2021-03-15"), 
+    #              xmax=as.IDate("2021-05-17"), ymin=0, ymax=Inf),
+    #          alpha = 0.3)+
+    #ggplot2::scale_color_discrete(labels = labeller(specs$plot_location_label)) + 
+    facet_wrap(~target_type, nrow = 2,
+               labeller = as_labeller(specs$plot_target_label),
                scales = "free") #plots need different scales
   
   if(saveplot){
     pdf(file = path,
-        height = 8.3, 
-        width = 14.7)
+        height = height, 
+        width = width)
     print(trajectories)
     dev.off()
   } else {
@@ -703,4 +748,383 @@ basic_dist_ovr_hor <- function(plot_dat,
   
   return(spread_plot)
   
+}
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import ggplot2
+#'
+#' @description 
+#' Plots model type performance over periods and horizons
+#' Code adapted from scoringutils package 
+#'
+#' @param pw_comp_dat pairwise comparison data to plot
+#' 
+#' @references Bosse NI, Gruson H, Cori A, van Leeuwen E, Funk S, Abbott S (2022). 
+#' “Evaluating Forecasts with scoringutils in R.” 
+#' arXiv. doi:10.48550/ARXIV.2205.07090, https://arxiv.org/abs/2205.07090.
+#' 
+#' 
+#' @export
+
+plot_model_type_across_time <- function(pw_comp_dat){
+  
+  breaks <- c(0, 0.1, 0.5, 0.75, 1, 1.33, 2, 10, Inf)
+  plot_scales <- c(-1, -0.5, -0.25, 0, 0, 0.25, 0.5, 1)
+  
+  get_fill_scale <- function(values, breaks, plot_scales) {
+    values[is.na(values)] <- 1 # this would be either ratio = 1 or pval = 1
+    scale <- cut(values,
+                 breaks = breaks,
+                 include.lowest = TRUE,
+                 right = FALSE,
+                 labels = plot_scales
+    )
+    # scale[is.na(scale)] <- 0
+    return(as.numeric(as.character(scale)))
+  }
+  
+  
+  comparison_result <- pw_comp_dat |>
+    mutate(period = paste0("Period ", period)) |>
+    mutate(period = factor(period)) |>
+    mutate(var_of_interest = round(mean_scores_ratio, 2),
+           fill_col = get_fill_scale(
+             var_of_interest,
+             breaks, plot_scales)) |>
+    data.table()
+  
+  #comparison_result[, var_of_interest := round(mean_scores_ratio, 2)]
+  
+  
+  #comparison_result[, fill_col := get_fill_scale(
+  #  var_of_interest,
+  #  breaks, plot_scales
+  #)]
+  
+  high_col <- "salmon"
+  
+  plot <- ggplot(
+    comparison_result,
+    aes(
+      y = model,
+      x = period,
+      fill = fill_col
+    )
+  ) +
+    geom_tile(
+      color = "white",
+      width = 0.97, height = 0.97
+    ) +
+    geom_text(aes(label = var_of_interest),
+              na.rm = TRUE
+    ) +
+    scale_fill_gradient2(
+      low = "steelblue", mid = "grey95",
+      high = high_col,
+      na.value = "lightgrey",
+      midpoint = 0,
+      limits = c(-1, 1),
+      name = NULL
+    ) +
+    theme_scoringutils() +
+    theme(
+      panel.spacing = unit(1.5, "lines"),
+      legend.position = "none"
+    ) +
+    labs(
+      x = "period", y = ""
+    ) +
+    coord_cartesian(expand = FALSE) +
+    facet_grid(horizon ~ target_type,
+               labeller = as_labeller(c(`1` = "1 week ahead", `2` = "2 weeks ahead",
+                                        `3` = "3 weeks ahead",`4` = "4 weeks ahead",
+                                        `average` = "Average",
+                                        `Deaths` = "Target: Deaths",
+                                        `Cases` = "Target: Cases")))
+  
+  return(plot)
+}
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import ggplot2
+#'
+#' @description 
+#' Plots model type performance over periods and locs
+#' Code adapted from scoringutils package 
+#'
+#' @param pw_comp_dat pairwise comparison data to plot
+#' 
+#' @references Bosse NI, Gruson H, Cori A, van Leeuwen E, Funk S, Abbott S (2022). 
+#' “Evaluating Forecasts with scoringutils in R.” 
+#' arXiv. doi:10.48550/ARXIV.2205.07090, https://arxiv.org/abs/2205.07090.
+#' 
+#' @export
+#' 
+plot_model_type_across_time_and_loc <- function(pw_comp_dat){
+  
+  breaks <- c(0, 0.1, 0.5, 0.75, 1, 1.33, 2, 10, Inf)
+  plot_scales <- c(-1, -0.5, -0.25, 0, 0, 0.25, 0.5, 1)
+  
+  get_fill_scale <- function(values, breaks, plot_scales) {
+    values[is.na(values)] <- 1 # this would be either ratio = 1 or pval = 1
+    scale <- cut(values,
+                 breaks = breaks,
+                 include.lowest = TRUE,
+                 right = FALSE,
+                 labels = plot_scales
+    )
+    # scale[is.na(scale)] <- 0
+    return(as.numeric(as.character(scale)))
+  }
+  
+  
+  comparison_result <- pw_comp_dat |>
+    mutate(period = paste0("Period ", period)) |>
+    mutate(period = factor(period)) |>
+    mutate(var_of_interest = round(mean_scores_ratio, 2),
+           fill_col = get_fill_scale(
+             var_of_interest,
+             breaks, plot_scales)) |>
+    data.table()
+
+  high_col <- "salmon"
+  
+  plot <- ggplot(
+    comparison_result,
+    aes(
+      y = model,
+      x = period,
+      fill = fill_col
+    )
+  ) +
+    geom_tile(
+      color = "white",
+      width = 0.97, height = 0.97
+    ) +
+    geom_text(aes(label = var_of_interest),
+              na.rm = TRUE
+    ) +
+    scale_fill_gradient2(
+      low = "steelblue", mid = "grey95",
+      high = high_col,
+      na.value = "lightgrey",
+      midpoint = 0,
+      limits = c(-1, 1),
+      name = NULL
+    ) +
+    theme_scoringutils() +
+    theme(
+      panel.spacing = unit(1.5, "lines"),
+      legend.position = "none"
+    ) +
+    labs(
+      x = "period", y = ""
+    ) +
+    coord_cartesian(expand = FALSE) +
+    facet_grid(location ~ target_type,
+               labeller = as_labeller(c(`PL` = "Poland", `DE` = "Germany",
+                                        `CZ` = "Czech Rep.", `GB` = "Great Br.",
+                                        `FR` = "France",
+                                        `Deaths` = "Target: Deaths",
+                                        `Cases` = "Target: Cases")))
+  
+  return(plot)
+}
+
+
+#' @title masterthesis ggplot2 theme
+#'
+#' @description
+#' A theme for ggplot2 plotss
+#' @return A ggplot2 theme
+#' @importFrom ggplot2 theme theme_minimal element_line `%+replace%`
+#' @export
+#' 
+theme_masterthesis <- function() {
+  theme_minimal() %+replace%
+    theme(axis.line = element_line(colour = "grey80"),
+          axis.ticks = element_line(colour = "grey80"),
+          panel.border = element_blank(),
+          panel.background = element_blank(),
+          legend.position = "bottom")
+}
+
+
+#' @title WIS decomp
+#'
+#' @description
+#' WIS decomposition plot
+#' @return A ggplot2 theme
+#' 
+#' @export
+
+wis_decomp_model_type <- function(score_data, 
+                                  relative = FALSE,
+                                  breaks = c("mechanistic","semi","statistical"),
+                                  labels = c("mech.", "semi", "stat.")){
+  
+  y_lab <- ifelse(relative, "WIS, relative to baseline model",
+                  "WIS")
+  
+  plot <- ggplot(score_data, aes(x = model_type, 
+                                 y = value, 
+                                 fill = variable)) +
+    geom_bar(position="stack", stat="identity") +
+    facet_grid(target_type ~ horizon,
+               scales = "free_y",
+               labeller = as_labeller(c(specs$plot_target_label,
+                                        specs$plot_horizon_label))) +
+    geom_hline(yintercept = 1) +
+    scale_x_discrete(name = "Model Type",
+                     breaks = breaks,
+                     labels = labels) +
+    scale_y_continuous(name = y_lab) +
+    scale_fill_brewer(palette = "Set2",
+                      labels = c("Overprediction",
+                                 "Underprediction",
+                                 "Dispersion")) +
+    labs(fill = "WIS components") +
+    theme_masterthesis()
+  
+  return(plot)
+}
+
+
+
+
+#' @title Overall assessment plot
+#'
+#' @description
+#' Overall assessment plot
+#' @import patchwork
+#' @importFrom ggplot2 theme theme_minimal element_line `%+replace%`
+#' @export
+
+overall_assessment_plot <- function(overall_score_data,
+                                    decomp_data,
+                                    relative = FALSE,
+                                    breaks = c("mechanistic","semi","statistical"),
+                                    labels = c("mech.", "semi", "stat.")){
+  
+  y_lab <- ifelse(relative, "WIS, relative to baseline model",
+                  "WIS")
+  
+  #################wis decomposition plots##################
+  #helper function to make plot
+  wis_decomp_plot <- function(decomp_data, 
+                              target_type){
+    wis_plot <- ggplot(decomp_data |>
+                        filter(target_type == target_type), 
+                      aes(x = model_type, 
+                          fill = model_type,
+                          y = value,
+                          alpha = variable)) +
+      geom_bar(position="stack", stat="identity") +
+      facet_wrap(~ horizon,
+                 labeller = as_labeller(c(specs$plot_horizon_label)),
+                 nrow = 1) +
+      #geom_hline(yintercept = 1) +
+      scale_alpha_discrete(range = c(0.35,1),
+                           labels = c("Overprediction",
+                                      "Underprediction",
+                                      "Dispersion"),
+                           name = "Components of the WIS") +
+      scale_x_discrete(name = "Model Type",
+                       breaks = breaks,
+                       labels = labels) +
+      scale_y_continuous(name = y_lab) +
+      scale_fill_brewer(palette = "Set2", 
+                        name = "Model Type")+
+      xlab("") +
+      #labs(fill = "Model Type") +
+      theme_masterthesis() +
+      theme(#legend.title=element_blank(),
+            legend.position = "none")
+    
+    return(wis_plot)
+  }
+  wis_plot_cases <- wis_decomp_plot(decomp_data |>
+                                      filter(target_type == "Cases"),
+                                    target_type == "Cases")
+  wis_plot_deaths <- wis_decomp_plot(decomp_data |>
+                                      filter(target_type == "Deaths"),
+                                    target_type == "Deaths")
+  
+
+  
+  ################path plots################
+  horizon_path_plot <- function(score_data,
+                                score_rule,
+                                ylab = score_rule){
+    
+    path_plot <- ggplot(score_data, 
+           aes(x = horizon,
+               y = get(score_rule), 
+               color = model_type)) +
+      scale_color_brewer(palette = "Set2") +
+      geom_line() +
+      geom_point() +
+      facet_wrap(~ target_type,
+                 labeller = as_labeller(specs$plot_target_label),
+                 scales = "free") +
+      ylab(ylab) +
+      xlab("Forecast Horizon") +
+      guides(fill = "none", colour = "none") +
+      theme_masterthesis() %+replace%
+      theme(legend.title=element_blank(),
+            legend.position = "none")
+    
+    return(path_plot)
+    
+  }
+  
+  cov50_plot <- horizon_path_plot(overall_score_data,
+                                  "coverage_50",
+                                  ylab = "50% PI Coverage") +
+    geom_hline(aes(yintercept = 0.5)) +
+    scale_y_continuous(labels = paste0(seq(0, 100, by = 25), "%"),
+                       breaks = seq(0,1, by = 0.25),
+                       limits = c(0,1)) 
+
+
+  cov90_plot <- horizon_path_plot(overall_score_data,
+                                  "coverage_90",
+                                  ylab = "90% PI Coverage") +
+    geom_hline(aes(yintercept = 0.9)) +
+    scale_y_continuous(labels = paste0(seq(0, 100, by = 25), "%"),
+                       breaks = seq(0,1, by = 0.25),
+                       limits = c(0,1)) 
+  
+  bias_plot <- horizon_path_plot(overall_score_data,
+                                 "bias",
+                                 ylab = "Bias") +
+    geom_hline(aes(yintercept = 0)) +
+    scale_y_continuous(labels = paste0(c(-0.3,seq(-0.2, 0.2, by = 0.1), 0.3)),
+                       breaks = c(-0.3,seq(-0.2, 0.2, by = 0.1), 0.3),
+                       limits = c(-0.3,0.3)) 
+  
+  ae_plot <- horizon_path_plot(overall_score_data,
+                                 "ae_median",
+                                 ylab = "Absolute Error")
+  
+  overall_plot <-
+    (wis_plot_cases + wis_plot_deaths) /
+    (cov50_plot + cov90_plot) /
+    (bias_plot + ae_plot) +
+  plot_layout(guides = "collect", 
+              heights = c(1.3, 1, 1)) &
+    plot_annotation(tag_levels = 'I')  &
+    theme(legend.position = 'bottom', 
+          legend.box="vertical", legend.margin=margin()) 
+  
+  
+  return(overall_plot)
+
 }
