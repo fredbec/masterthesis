@@ -28,12 +28,14 @@
 #'          
 
 best_performers_ensemble <- function(data,
+                                     su_cols,
                                      score = "interval_score",
                                      nmods = 3,
                                      window = 4,
                                      may_miss = 0, 
-                                     excl = c("EuroCOVIDhub-baseline",
-                                              "EuroCOVIDhub-ensemble"),
+                                     #excl = c("EuroCOVIDhub-baseline",
+                                    #          "EuroCOVIDhub-ensemble"),
+                                     excl = c("EuroCOVIDhub-ensemble"),
                                      return_model_data = FALSE){
   
   
@@ -81,9 +83,10 @@ best_performers_ensemble <- function(data,
     sub_dates <- seq.Date(from = dates[i],
                           to = dates[i] + (window - 1) * 7,
                           by = 7)
-    
+    print(sub_dates)
     #get models that are available at given forecast date
     fc_date <- dates[i] + window * 7
+    print(fc_date)
     avail_models <- data |>
       dplyr::filter(forecast_date == as.Date(fc_date)) |>
       dplyr::select(model, target_type, location) |>
@@ -97,14 +100,19 @@ best_performers_ensemble <- function(data,
       merge(avail_models, #kick out models which don't predict at given forecast_date
             by = c("model", "location", "target_type")) |>
       dplyr::group_by(model, target_type, location) |>
-      dplyr::mutate(n = n() / (23*4))  |> #forecast present => 92 rows, divide to get unique forecast presence 
+      dplyr::mutate(n = n() / (23*4))  |> #forecast present => 92 rows, divide to get unique forecast presence
+      dplyr::filter(target_end_date < fc_date) |>
       dplyr::filter(n >= window - may_miss) |> #threshold to include model
       dplyr::ungroup() |>
+      dplyr::select(su_cols) |>
       scoringutils::score() |>
-      scoringutils::summarise_scores(
-        by = c("model", "location", "target_type")) |>
+      scoringutils::pairwise_comparison(
+        by = c("model", "location", "target_type"), 
+        baseline = "EuroCOVIDhub-baseline") |>
+      dplyr::filter(compare_against == "EuroCOVIDhub-baseline",
+                    model != "EuroCOVIDhub-baseline") |>
       dplyr::group_by(location, target_type) |>
-      dplyr::slice_min(order_by = get(score), 
+      dplyr::slice_min(order_by = scaled_rel_skill, #only keep best performers
                        n = nmods) |>
       dplyr::select(model, location, target_type)
     
@@ -559,4 +567,133 @@ kickout_ensemble <- function(data,
   }
   
   return(result_table)
+}
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import scoringutils
+#' @description 
+#' Computes inverse score weights for model in European Forecast Hub data
+#' Also includes option to exponentially smooth weights
+#'
+#' @param score_data score table output from leaveout_ensemble function
+#' @param score which score to evaluate (needs to match column names as 
+#'              induced by scoringutils' score() function)
+#'              default is interval_score
+#' @param givedata should relative score data be returned instead of plot
+#' @param title optional, alternative title
+#' @param saveplot should plot be saved in pdf format?
+#' @param path where to save plot to 
+#' 
+#' @export
+
+
+
+inverse_score_weights <- function(data,
+                                  score_data = NULL,
+                                  su_cols = NULL,
+                                  fc_date,
+                                  window = 4,
+                                  exp_smooth = NULL,
+                                  by_target_end_date = TRUE,
+                                  score_fun = "interval_score",
+                                  may_miss = 1){
+  
+  #####IMPUTE SCORES#######
+  
+  if(is.null(score_data) & is.null(su_cols)){
+    stop("if not supplying scores, must supply su_cols")
+  } else if (is.null(score_data)){
+    score_data <- data |>
+      select(su_cols) |>
+      score() |>
+      summarise_scores(by = c("model", "location", "target_type",
+                              "forecast_date", "horizon"))
+  }
+  
+  if(!setequal(unique(data$model), unique(score_data$model))){
+    stop("data and score_data do not contain the same models")
+  }
+  
+  #map of forecast_date and horizon to target_end_date
+  tg_end_map <- data |> 
+    select(forecast_date, horizon, target_end_date) |>
+    distinct()
+  
+  
+  #get window of dates
+  curr_dates <- fc_dates_window(fc_date, window, incl = FALSE)
+  
+  
+  #check if current dates in data and score data
+  num_missing_data <- setdiff(curr_dates, unique(data$forecast_date)) |> length()
+  num_missing_scores <- setdiff(curr_dates, unique(score_data$forecast_date)) |> length()
+  if(num_missing_data > 0){
+    message(paste(setdiff(curr_dates, unique(data$forecast_date)),
+                  collapse = ", "))
+    stop("dates needed to compute weights missing from data")
+  }
+  if(num_missing_scores> 0){
+    message(paste(setdiff(curr_dates, unique(score_data$forecast_date)),
+                  collapse = ", "))
+    stop("dates needed to compute weights missing from score_data")
+  }
+  
+  
+  
+  #compute score smoother values i
+  if(!is.null(exp_smooth)){
+    smoothing_vals <- tg_end_map |>
+      #only keep dates of relevant forecasts
+      filter(forecast_date <= fc_date,
+             target_end_date < fc_date) |>
+      #determine how many dates behind the forecast is
+      mutate(lag_behind = ((as.IDate(fc_date) - 
+                              target_end_date) + 5) / 7) |>
+      mutate(smoother = exp_smooth * 
+               (1 - exp_smooth)^(lag_behind - 1))
+  } else { 
+    #equal weights for all past observations
+    smoothing_vals <- tg_end_map |>
+      #only keep dates of relevant forecasts
+      filter(forecast_date <= fc_date,
+             target_end_date < fc_date) |>
+      mutate(smoother = 1)
+  }
+  
+  #append weights to data
+  score_data <- score_data |>
+    left_join(smoothing_vals, 
+              by = c("forecast_date", "target_end_date", "horizon"))
+  
+  
+  #compute ivnerse score weights
+  inv_score_weights <- score_data |>
+    #get data from window
+    #keep in unresolved horizon forecasts for counting (remove after)
+    filter(forecast_date %in% curr_dates) |>
+    #count number of unique forecasts for each model
+    group_by(model, location, target_type) |>
+    mutate(count = n()/4) |> #divide by 4 for horizon 
+    filter(count >= (window - may_miss),
+           target_end_date < fc_date) |> #remove as yet unresolved horizons
+    #calculate inverse scores
+    group_by(model, location, target_type) |>
+    summarise(interval_score = weighted.mean(get(score_fun),
+                                             w = smoother), 
+              .groups = "drop") |>
+    select(all_of(c("model", "target_type", "location", score_fun))) |>
+    mutate(inv_score = 1/get(score_fun)) |>
+    #normalize so sum of weights is 1 
+    group_by(target_type, location) |> 
+    mutate(weights = inv_score / sum(inv_score)) |>
+    select(model, location, target_type, weights) |>
+    #add back forecast date
+    mutate(forecast_date = fc_date)
+  
+  return(inv_score_weights)
+  
 }
