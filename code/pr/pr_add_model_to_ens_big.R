@@ -10,8 +10,8 @@ source(here("code", "load_clean_data.R"))
 locs <- c("DE", "PL")
 
 #nmods <- c(3,4)
-#nmocs <- c(5,6)
-nmods <- c(7,8,9,10)
+#nmocs <- c(5,6,7)
+nmods <- c(8,9,10)
 prop_nmod <- list(6,6,5,5,4,4)
 names(prop_nmod) <- nmods
 
@@ -81,6 +81,7 @@ for(nmod in nmods){
       
       saveRDS(add_model_dat[[1]], here("results", "add_model", paste0("ensembles_nmod", nmod, "_", loc,"_set", i, ".RDS")))
       saveRDS(add_model_dat[[2]], here("results", "add_model", paste0("scores_nmod", nmod, "_", loc,"_set", i, ".RDS")))
+      rm(add_model_dat)
     }
   }
 }
