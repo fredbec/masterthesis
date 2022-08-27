@@ -1,10 +1,10 @@
-\documentclass[11pt]{article}
+\documentclass[10pt]{article}
 \usepackage{thumbpdf,lmodern}
 \usepackage[utf8]{inputenc}
 %\usepackage[margin=3.3cm]{geometry}
 %\renewcommand{\familydefault}{\sfdefault}
 %\usepackage[top=2.5cm, left=2.8cm, right=2.8cm, bottom=2.5cm]{geometry}
-\usepackage[margin=3cm]{geometry}
+\usepackage[margin=2.8cm]{geometry}
 
 %%% PACKAGES
 \usepackage[dvipsnames]{xcolor}
@@ -18,7 +18,7 @@
 \usepackage{mathtools}
 \usepackage{url}
 \def\UrlBreaks{\do\/\do-} % this is for lineabreaking of bibliography urls
-\usepackage{hyperref}
+\usepackage[hidelinks]{hyperref}
 \usepackage{color}
 \usepackage{float}
 \usepackage[justification=centering]{caption}
@@ -37,6 +37,9 @@
 \usepackage{courier}
 \usepackage{appendix}
 \usepackage{listings}
+
+\captionsetup{justification=raggedright,singlelinecheck=false}
+
 
 
 %%% Listings options
@@ -121,7 +124,8 @@
 \renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
 
 \usepackage{setspace}
-\onehalfspacing
+%\onehalfspacing
+\linespread{1.18}
 
 %for todos
 \usepackage{xcolor}
