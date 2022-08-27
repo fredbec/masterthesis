@@ -596,6 +596,7 @@ inverse_score_weights <- function(data,
                                   score_data = NULL,
                                   su_cols = NULL,
                                   fc_date,
+                                  at_level = "model",
                                   window = 4,
                                   exp_smooth = NULL,
                                   by_target_end_date = TRUE,
@@ -676,24 +677,149 @@ inverse_score_weights <- function(data,
     #keep in unresolved horizon forecasts for counting (remove after)
     filter(forecast_date %in% curr_dates) |>
     #count number of unique forecasts for each model
-    group_by(model, location, target_type) |>
+    group_by(get(at_level), location, target_type) |>
     mutate(count = n()/4) |> #divide by 4 for horizon 
     filter(count >= (window - may_miss),
            target_end_date < fc_date) |> #remove as yet unresolved horizons
     #calculate inverse scores
-    group_by(model, location, target_type) |>
+    group_by(across(all_of(c(at_level, "location", "target_type")))) |>
     summarise(interval_score = weighted.mean(get(score_fun),
                                              w = smoother), 
               .groups = "drop") |>
-    select(all_of(c("model", "target_type", "location", score_fun))) |>
+    select(all_of(c(at_level, "target_type", "location", score_fun))) |>
     mutate(inv_score = 1/get(score_fun)) |>
     #normalize so sum of weights is 1 
     group_by(target_type, location) |> 
     mutate(weights = inv_score / sum(inv_score)) |>
-    select(model, location, target_type, weights) |>
+    select(all_of(c(at_level, "location", "target_type", "weights"))) |>
     #add back forecast date
     mutate(forecast_date = fc_date)
   
   return(inv_score_weights)
+  
+}
+
+
+
+#' @title COVID-19 Forecast Hub ensemble and model structure analysis
+#' 
+#' @import dplyr 
+#' @import quantgen
+#' @import purrr
+#' @description 
+#' Computes QRA weights for data from European Forecast Hub
+#'
+#' @param data Data to form ensemble
+#' @param curr_dates
+
+qr_weights_one_inst <- function(data,
+                                fc_date,
+                                window,
+                                taus){
+  
+  if(length(unique(data$location))>1 | length(unique(data$target_type))>1){
+    stop("function only supports computation for one location at a time")
+  }
+  
+  #compute current dates
+  curr_dates <- fc_dates_window(fc_date, window)
+  
+  #convert data into wide format
+  wide_data <- data |> 
+    dplyr::filter(forecast_date %in% curr_dates) |>
+    #dplyr::group_by(model, location, target_type) |>
+    #dplyr::mutate(count = n()/92) |> #divide by 4 for horizon 
+    #dplyr::filter(count >= length(curr_dates),
+    #              target_end_date < max(curr_dates) + 7) |> #remove as yet unresolved horizons
+    #prepare for dcast
+    dplyr::mutate(quantile = paste0("quantile_", quantile)) |>
+    data.table::setDT() |>
+    data.table::dcast(model + target_type + location + forecast_date + 
+                        horizon + true_value + target_end_date ~ quantile, 
+                      value.var = "prediction") |>
+    dplyr::arrange(horizon, location, model, forecast_date) |>
+    dplyr::select(-c(forecast_date, target_end_date, target_type, location)) |>
+    setkey(NULL)
+  
+  models <- unique(wide_data$model)
+  
+  
+  true_values <- wide_data |>
+    dplyr::group_by(model) |>
+    dplyr::mutate(n = 1:dplyr::n()) |>
+    dplyr::ungroup() |>
+    dplyr::group_by(n) |>
+    dplyr::summarise(true_value = unique(true_value), .groups = "drop") |>
+    dplyr::select(true_value) |>
+    dplyr::pull()
+  
+  
+  
+  if(!(length(true_values) == (nrow(wide_data))  / length(models))){
+    stop("true values and models do not align")
+  }
+  #return(wide_data)
+  qarr <- wide_data |>
+    dplyr::select(-c(true_value, horizon)) |>
+    split(by = "model", keep.by = FALSE) |>
+    purrr::map(.f = as.matrix) |>
+    quantgen::combine_into_array()
+  
+  
+  model_weights <- quantgen::quantile_ensemble(qarr = qarr,
+                                               y = true_values,
+                                               lp_solver = "gurobi",
+                                               tau = taus)$alpha |>
+    data.table() |>
+    dplyr::rename(weights = V1) |>
+    dplyr::mutate(model = models,
+                  forecast_date = fc_date) 
+  
+  
+  
+  return(model_weights)
+}
+
+
+qra_weights <- function(data,
+                        fc_date,
+                        window = 4){
+  
+  #####IMPUTE SCORES#######
+  if(!as.Date(fc_date) %in% unique(data$forecast_date)){
+    stop("fc_date not in data")
+  }
+  
+  #map of forecast_date and horizon to target_end_date
+  tg_end_map <- data |> 
+    select(forecast_date, horizon, target_end_date) |>
+    distinct()
+  
+  taus <- unique(data$quantile)
+  
+  #get window of dates
+  curr_dates <- fc_dates_window(fc_date, window, incl = FALSE)
+  
+  all_data <- data |>
+    dplyr::filter(forecast_date %in% curr_dates) |>
+    dplyr::group_by(model, location, target_type) |>
+    dplyr::mutate(count = n()/92) |> #divide by 4 for horizon 
+    dplyr::filter(count == max(count),
+                  target_end_date < fc_date) #|> #remove as yet unresolved horizons
+    print("hey")
+    return(all_data)
+    setDT() |>
+    split(by = c("location", "target_type"))
+  
+  all_weights <- lapply(all_data, function(dat)
+    qr_weights_one_inst(dat, fc_date, window, taus)) |>
+    rbindlist(idcol = TRUE) |>
+    tidyr::separate(.id, into = c("location", "target_type"), sep = "[.]") |>
+    dplyr::arrange(model, location, target_type, forecast_date, weights)
+  
+  
+  return(all_weights)
+  
+  
   
 }
