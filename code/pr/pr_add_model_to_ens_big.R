@@ -51,15 +51,63 @@ for(nmod in nmods){
       if(nmod >= 7 & subset_fc_dates[[1]][i]=="2021-07-05" & loc == "DE"){
         all_combs_dat_cases <- readRDS(here("results", "all_combs_ensemble", 
                                       paste0("nmod", nmod, "_", loc,"_set", i, "_Cases.RDS")))
-          
+        
+        add_model_dat <- add_model_to_ens(all_combs_dat = all_combs_dat_cases, 
+                                          hub_data = hub_data,
+                                          loc =loc,
+                                          nmod = nmod,
+                                          all_scores = all_scores,
+                                          su_cols = specs$su_cols,
+                                          fc_dates = subset_fc_dates[[1]][i],
+                                          window = 4,
+                                          sample_nmod = 100,
+                                          seed = 41,
+                                          prop_nmod = prop_nmod[[as.character(nmod)]])
+        
+        saveRDS(add_model_dat[[1]], here("results", "add_model", paste0("ensembles_nmod", nmod, "_", loc,"_set", i, "_Cases.RDS")))
+        saveRDS(add_model_dat[[2]], here("results", "add_model", paste0("scores_nmod", nmod, "_", loc,"_set", i, "_Cases.RDS")))
+        
+        rm(add_model_dat)
+        
         all_combs_dat_deaths <- readRDS(here("results", "all_combs_ensemble", 
                                             paste0("nmod", nmod, "_", loc,"_set", i, "_Deaths.RDS")))
-        all_combs_dat <- rbind(all_combs_dat_cases, 
-                               all_combs_dat_deaths)
+        add_model_dat <- add_model_to_ens(all_combs_dat = all_combs_dat_deaths, 
+                                          hub_data = hub_data,
+                                          loc =loc,
+                                          nmod = nmod,
+                                          all_scores = all_scores,
+                                          su_cols = specs$su_cols,
+                                          fc_dates = subset_fc_dates[[1]][i],
+                                          window = 4,
+                                          sample_nmod = 100,
+                                          seed = 41,
+                                          prop_nmod = prop_nmod[[as.character(nmod)]])
+        
+        saveRDS(add_model_dat[[1]], here("results", "add_model", paste0("ensembles_nmod", nmod, "_", loc,"_set", i, "_Deaths.RDS")))
+        saveRDS(add_model_dat[[2]], here("results", "add_model", paste0("scores_nmod", nmod, "_", loc,"_set", i, "_Deaths.RDS")))
+        rm(add_model_dat)
+        
+        
         
       } else {
         all_combs_dat <- readRDS(here("results", "all_combs_ensemble", 
                                       paste0("nmod", nmod, "_", loc,"_set", i, ".RDS")))
+        
+        add_model_dat <- add_model_to_ens(all_combs_dat = all_combs_dat, 
+                                          hub_data = hub_data,
+                                          loc =loc,
+                                          nmod = nmod,
+                                          all_scores = all_scores,
+                                          su_cols = specs$su_cols,
+                                          fc_dates = subset_fc_dates[[1]][i],
+                                          window = 4,
+                                          sample_nmod = 100,
+                                          seed = 41,
+                                          prop_nmod = prop_nmod[[as.character(nmod)]])
+        
+        saveRDS(add_model_dat[[1]], here("results", "add_model", paste0("ensembles_nmod", nmod, "_", loc,"_set", i, ".RDS")))
+        saveRDS(add_model_dat[[2]], here("results", "add_model", paste0("scores_nmod", nmod, "_", loc,"_set", i, ".RDS")))
+        rm(add_model_dat)
       }
       
       
@@ -67,21 +115,7 @@ for(nmod in nmods){
       ####
       print(unique(all_combs_dat$forecast_date))
       
-      add_model_dat <- add_model_to_ens(all_combs_dat = all_combs_dat, 
-                                        hub_data = hub_data,
-                                        loc =loc,
-                                        nmod = nmod,
-                                        all_scores = all_scores,
-                                        su_cols = specs$su_cols,
-                                        fc_dates = subset_fc_dates[[1]][i],
-                                        window = 4,
-                                        sample_nmod = 100,
-                                        seed = 41,
-                                        prop_nmod = prop_nmod[[as.character(nmod)]])
       
-      saveRDS(add_model_dat[[1]], here("results", "add_model", paste0("ensembles_nmod", nmod, "_", loc,"_set", i, ".RDS")))
-      saveRDS(add_model_dat[[2]], here("results", "add_model", paste0("scores_nmod", nmod, "_", loc,"_set", i, ".RDS")))
-      rm(add_model_dat)
     }
   }
 }
