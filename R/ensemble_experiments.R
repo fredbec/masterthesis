@@ -32,7 +32,7 @@ best_performers_ensemble <- function(data,
                                      score = "interval_score",
                                      nmods = 3,
                                      window = 4,
-                                     may_miss = 0, 
+                                     may_miss = 1, 
                                      #excl = c("EuroCOVIDhub-baseline",
                                     #          "EuroCOVIDhub-ensemble"),
                                      excl = c("EuroCOVIDhub-ensemble"),
@@ -800,23 +800,40 @@ qra_weights <- function(data,
   #get window of dates
   curr_dates <- fc_dates_window(fc_date, window, incl = FALSE)
   
+  #
+  if(fc_date <= (as.Date("2021-05-10") + (window-1)*7)){
+    idx_remove <- data.table(
+      model = rep("stat_ensemble",12),
+      location = rep(c("CZ", "GB", "PL"), each = window),
+      target_type = rep("Cases",12),
+      forecast_date = rep(seq.Date(as.Date("2021-05-10"),
+                                   as.Date("2021-05-10") + (window-1) * 7,
+                                   by = 7), 3)) |>
+      mutate(forecast_date = as.IDate(forecast_date))
+  } else {
+    idx_remove <- data.table(
+      model = NA,
+      location = NA,
+      target_type = NA,
+      forecast_date = NA)
+  }
+
   all_data <- data |>
     dplyr::filter(forecast_date %in% curr_dates) |>
-    dplyr::group_by(model, location, target_type) |>
-    dplyr::mutate(count = n()/92) |> #divide by 4 for horizon 
-    dplyr::filter(count == max(count),
-                  target_end_date < fc_date) #|> #remove as yet unresolved horizons
-    print("hey")
-    return(all_data)
+    #dplyr::group_by(model, location, target_type) |>
+    #dplyr::mutate(count = n()/92) |> #divide by 4 for horizon 
+    dplyr::filter(#count == window,
+                  target_end_date < fc_date) |> #remove as yet unresolved horizons
     setDT() |>
+    anti_join(idx_remove, by = c("model", "location", "target_type", "forecast_date")) |>
     split(by = c("location", "target_type"))
-  
+
   all_weights <- lapply(all_data, function(dat)
     qr_weights_one_inst(dat, fc_date, window, taus)) |>
     rbindlist(idcol = TRUE) |>
     tidyr::separate(.id, into = c("location", "target_type"), sep = "[.]") |>
     dplyr::arrange(model, location, target_type, forecast_date, weights)
-  
+    
   
   return(all_weights)
   
