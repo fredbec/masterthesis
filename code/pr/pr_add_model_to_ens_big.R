@@ -7,7 +7,7 @@ library(here)
 source(here("specs", "specs.R"))
 source(here("code", "load_clean_data.R"))
 
-locs <- c("DE", "PL")
+locs <- c("PL")
 
 #nmods <- c(3,4)
 #nmocs <- c(5,6,7)
@@ -92,6 +92,11 @@ for(nmod in nmods){
       } else {
         all_combs_dat <- readRDS(here("results", "all_combs_ensemble", 
                                       paste0("nmod", nmod, "_", loc,"_set", i, ".RDS")))
+        
+        if(nrow(all_combs_dat) > 12000000){
+          all_combs_dat <- all_combs_dat |>
+            slice_sample(prop = 0.5)
+        }
         
         add_model_dat <- add_model_to_ens(all_combs_dat = all_combs_dat, 
                                           hub_data = hub_data,
