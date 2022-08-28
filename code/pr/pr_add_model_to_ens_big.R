@@ -11,9 +11,11 @@ locs <- c("DE", "PL")
 
 #nmods <- c(3,4)
 #nmocs <- c(5,6,7)
-nmods <- c(8,9,10)
-prop_nmod <- list(6,6,5,5,4,4)
-names(prop_nmod) <- nmods
+nmods <- c(8, 12)
+prop_nmod <- c(4, 4)
+names(prop_nmod)
+#prop_nmod <- list(6,6,5,5,4,4)
+#names(prop_nmod) <- nmods
 
 #needs to start with "2021-04-19", otherwise the following won't work
 #but could of course always change it 
