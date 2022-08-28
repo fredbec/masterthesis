@@ -94,6 +94,7 @@ for(nmod in nmods){
                                       paste0("nmod", nmod, "_", loc,"_set", i, ".RDS")))
         
         if(nrow(all_combs_dat) > 12000000){
+          message("got here")
           all_combs_dat <- all_combs_dat |>
             slice_sample(prop = 0.5)
         }
