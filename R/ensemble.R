@@ -48,11 +48,39 @@ make_ensemble <- function(data,
       paste0("_ensemble")
   }
   
-  if(model_name == "weighted.mean_ensemble" & is.null(data$weights)){
-    stop("can't compute weighted mean without weights")
+  #Input checks
+  if(model_name %in% c("weighted.mean_ensemble", "weighted.median_ensemble") & is.null(data$weights)){
+    stop("can't compute weighted mean or median without weights")
   }
   if(model_name %in% c("median_ensemble", "mean_ensemble") & !is.null(data$weights)){
     warning("There are weights in the data, but an unweighted summary function was chosen. Was this intended?")
+  }
+  
+  #check if weights are alright
+  if(!is.null(data$weights)){
+    
+    if(any(is.na(data$weights))){
+      stop("some weights are missing")
+    }
+    
+    sum_weights <- data |>
+      select(model, target_type, location, forecast_date, weights) |>
+      distinct() |>
+      group_by(target_type, location, forecast_date) |>
+      summarise(weight_sum = round(sum(weights), digits = 3), 
+                .groups = "drop") |>
+      select(weight_sum) |>
+      distinct() |> 
+      pull()
+    
+    if(length(sum_weights) > 1){
+      print(sum_weights)
+      message("At the level of one forecast instance, not all weights sum to the same value. Is this intended?")
+    } else if (round(sum_weights,3) != 1){
+      message("At the level of one forecast instance, weights do not sum to 1. Due to automatic correction,
+              this is not necessarily a problem - but check if this is intended")
+    }
+    
   }
   
   #######make model vector based on incl/excl arguments#####
@@ -60,13 +88,15 @@ make_ensemble <- function(data,
     excl <- c(excl, extra_excl)
   }
   
+  #function to get models and check whether there are any ensembles/baseline
+  #models still in the data
   models <- masterthesis::getmodels(data, 
                                     excl = excl, 
                                     incl = incl, 
                                     avail_threshold = avail_threshold)
   
   
-  #check if any ensembles in models (this should in general not be so)
+  #check if any ensembles in models (this should in general not be the case)
   is_ensemble <- grepl(".*ensemble.*", models)
   
   if(any(is_ensemble)){
