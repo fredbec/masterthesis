@@ -13,7 +13,7 @@ locs <- c("DE", "PL")
 #nmocs <- c(5,6,7)
 nmods <- c(8, 12)
 prop_nmod <- c(4, 4)
-names(prop_nmod)
+names(prop_nmod) <- nmods
 #prop_nmod <- list(6,6,5,5,4,4)
 #names(prop_nmod) <- nmods
 
@@ -95,11 +95,11 @@ for(nmod in nmods){
         all_combs_dat <- readRDS(here("results", "all_combs_ensemble", 
                                       paste0("nmod", nmod, "_", loc,"_set", i, ".RDS")))
         
-        if(nrow(all_combs_dat) > 12000000){
-          message("got here")
-          all_combs_dat <- all_combs_dat |>
-            slice_sample(prop = 0.5)
-        }
+        #if(nrow(all_combs_dat) > 12000000){
+        #  message("got here")
+        #  all_combs_dat <- all_combs_dat |>
+        #    slice_sample(prop = 0.5)
+        #}
         
         add_model_dat <- add_model_to_ens(all_combs_dat = all_combs_dat, 
                                           hub_data = hub_data,
