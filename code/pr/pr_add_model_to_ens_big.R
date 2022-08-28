@@ -7,7 +7,7 @@ library(here)
 source(here("specs", "specs.R"))
 source(here("code", "load_clean_data.R"))
 
-locs <- c("PL")
+locs <- c("DE", "PL")
 
 #nmods <- c(3,4)
 #nmocs <- c(5,6,7)
