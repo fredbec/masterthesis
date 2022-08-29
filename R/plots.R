@@ -284,7 +284,7 @@ plot_kickout_results <- function(model_kickout_results,
 #' @import dplyr 
 #' @import ggplot2
 #' @import viridis 
-#' @import RcolorBrewer
+#' @import RColorBrewer
 #'
 #' @description 
 #' Plots model availability
@@ -1127,4 +1127,38 @@ overall_assessment_plot <- function(overall_score_data,
   
   return(overall_plot)
 
+}
+
+
+
+best_performers_boxplot <- function(best_performers_data,
+                                    avg_points_data,
+                                    labeller_targets = specs$plot_target_label,
+                                    labeller_locs = specs$plot_location_label){
+  plot <- ggplot(best_performers_data, aes(x = factor(nmod),
+                                   y = rel_score,
+                                   color = factor(nmod))) +
+    geom_boxplot(outlier.shape = 20,
+                 outlier.color = "darkgray",
+                 lwd = 1.05,
+                 fatten = 0.8) +
+    scale_color_brewer(palette = "Set2",
+                       guide = "none") +
+    geom_hline(yintercept = 1) +
+    facet_grid(target_type ~ location,
+               labeller = as_labeller(c(labeller_targets, 
+                                        labeller_locs))) +
+    theme_masterthesis() +
+    ylab("WIS relative to Median Ensemble") +
+    xlab("Number of best performers")
+  
+  
+  if(!is.null(avg_points_data)){
+    plot <- plot +
+      geom_point(data = all_evals_avg, aes(x = factor(nmod), 
+                                           y = rel_score),
+                 shape = 18, color = "black", size = 2) 
+  }
+  
+  return(plot)
 }
