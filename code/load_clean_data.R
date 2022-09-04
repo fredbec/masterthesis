@@ -81,9 +81,7 @@ hub_data <- hub_data |>
 #compute availability and remove models that are under threshold
 hub_data <- hub_data |>
   model_availability() |>
-  filter(availability > avail_threshold) |>
-  select(-n)
-
+  filter(availability > avail_threshold) 
 
 #remove some stuff from the workspace
-rm(list = c("model_types", "dates", "locs", "matcher"))
+rm(list = c("model_types", "dates", "locs", "matcher", "hub_data_bl20", "excl_neg", "forecast_dates"))
