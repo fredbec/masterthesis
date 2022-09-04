@@ -50,10 +50,11 @@ df_calibration <- data.frame(xs = xs,
 #######Make plots####
 plot_sharpness <- ggplot(df_sharpness, aes(x = xs, y = density, color = sharpness)) +
   geom_line() +
-  scale_colour_brewer(palette = "Set1") +
+  scale_colour_brewer(palette = "Set2") +
   xlab("x") +
   ylab("Density") +
   ggtitle("Sharpness") +
+  theme_masterthesis() %+replace%
   theme(legend.position="bottom",
         legend.title=element_blank(),
         plot.title = element_text(hjust = 0.5))
@@ -63,10 +64,11 @@ plot_calibration <- ggplot() +
   geom_histogram(data = df_samples, aes(x = samples, y = ..density..), bins = 50, 
                  color = "gray", fill = "lightgray", alpha = 0.8) +
   geom_line(data = df_calibration, aes(x = xs, y = density, color = calibration)) +
-  scale_colour_brewer(palette = "Set1", labels = c("well calibrated", "not well calibrated", "not well calibrated")) +
+  scale_colour_brewer(palette = "Set2", labels = c("well calibrated", "not well calibrated", "not well calibrated")) +
   xlab("x") +
   ggtitle("Calibration") +
   ylab("Density") +
+  theme_masterthesis()%+replace%
   theme(legend.position="bottom",
         legend.title=element_blank(),
         plot.title = element_text(hjust = 0.5))
