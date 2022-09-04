@@ -575,6 +575,7 @@ kickout_ensemble <- function(data,
 #' 
 #' @import dplyr 
 #' @import scoringutils
+#' @import tidyr
 #' @description 
 #' Computes inverse score weights for model in European Forecast Hub data
 #' Also includes option to exponentially smooth weights
@@ -604,6 +605,12 @@ inverse_score_weights <- function(data,
                                   may_miss = 1){
   
   #####IMPUTE SCORES#######
+  
+  #warning if baseline or ensemble in data
+  if(score_fun != "interval_score"){
+    stop("can only impute scores for the WIS")
+  }
+  
   
   if(is.null(score_data) & is.null(su_cols)){
     stop("if not supplying scores, must supply su_cols")
@@ -666,21 +673,56 @@ inverse_score_weights <- function(data,
   }
   
   #append weights to data
-  score_data <- score_data |>
-    left_join(smoothing_vals, 
-              by = c("forecast_date", "target_end_date", "horizon"))
+  #(actually, now comes at a later point)
+  #score_data <- score_data |>
+  #  left_join(smoothing_vals, 
+  #            by = c("forecast_date", "target_end_date", "horizon"))
   
+  
+  
+  #make full sets (where all models predict for all targets in window)
+  #to determine number of missings and impute missing scores
+  full_sets <- score_data |>
+    filter(forecast_date %in% curr_dates) |>
+    split(by = c("target_type", "location")) |>
+    lapply(function(dat)
+      tidyr::crossing(placeholder = unique(dat[,at_level]), #rename afterwards because character
+                      location = unique(dat$location),
+                      target_type = unique(dat$target_type),
+                      forecast_date = unique(dat$forecast_date),
+                      horizon = 1:4)) |>
+    rbindlist() |>
+    left_join(tg_end_map, by = c("forecast_date", "horizon"))
+
+  names(full_sets)[1] <- at_level
   
   #compute ivnerse score weights
   inv_score_weights <- score_data |>
     #get data from window
     #keep in unresolved horizon forecasts for counting (remove after)
     filter(forecast_date %in% curr_dates) |>
+    mutate(present = 1) |> #this is to determine missings
+    full_join(full_sets, 
+              by = c(at_level, "location", "target_type", 
+                     "forecast_date", "horizon", "target_end_date"))  |>
+    mutate(present = ifelse(is.na(present), 0, 1)) |>
     #count number of unique forecasts for each model
     group_by(get(at_level), location, target_type) |>
-    mutate(count = n()/4) |> #divide by 4 for horizon 
+    mutate(count = sum(present)/4) |> #divide by 4 because of horizon
+    ungroup() |>
     filter(count >= (window - may_miss),
-           target_end_date < fc_date) |> #remove as yet unresolved horizons
+           target_end_date < fc_date) |> #remove as yet unresolved horizons 
+    #impute missing scores (stratify by location, target_type, horizon)
+    group_by(across(all_of(c("location", "target_type", "horizon")))) |>
+    mutate(maxscore = max(get(score_fun), na.rm = TRUE)) |>
+    filter(maxscore >= 0) |>
+    ungroup() |>
+    mutate(interval_score = ifelse(is.na(interval_score),  #actual imputation
+                                   maxscore, interval_score)) |>
+    select(-c(present, maxscore)) |>
+    #join with exponential smoothing values
+    left_join(smoothing_vals, 
+              by = c("forecast_date", "target_end_date", "horizon")) |>
     #calculate inverse scores
     group_by(across(all_of(c(at_level, "location", "target_type")))) |>
     summarise(interval_score = weighted.mean(get(score_fun),
