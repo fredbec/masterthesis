@@ -9,7 +9,8 @@ source(here("code", "load_clean_data.R"))
 
 locs <- c("FR", "GB", "CZ")
 
-nmods <- c(3,4)
+#nmods <- c(3,4)
+nmods <- c(5,6)
 
 subset_fc_dates <- list(seq.Date(from = as.Date("2021-04-19"),
                             to = as.Date("2022-01-31"),
