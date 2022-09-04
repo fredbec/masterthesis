@@ -809,8 +809,8 @@ plot_model_type_across_time <- function(pw_comp_dat){
   plot <- ggplot(
     comparison_result,
     aes(
-      y = model,
-      x = period,
+      y = period,
+      x = model,
       fill = fill_col
     )
   ) +
@@ -835,10 +835,11 @@ plot_model_type_across_time <- function(pw_comp_dat){
       legend.position = "none"
     ) +
     labs(
-      x = "period", y = ""
+      x = "", y = ""
     ) +
     coord_cartesian(expand = FALSE) +
-    facet_grid(horizon ~ target_type,
+    scale_x_discrete(labels = c("mech.", "semi", "stat.")) +
+    facet_grid(target_type ~ horizon,
                labeller = as_labeller(c(`1` = "1 week ahead", `2` = "2 weeks ahead",
                                         `3` = "3 weeks ahead",`4` = "4 weeks ahead",
                                         `average` = "Average",
@@ -899,8 +900,8 @@ plot_model_type_across_time_and_loc <- function(pw_comp_dat){
   plot <- ggplot(
     comparison_result,
     aes(
-      y = model,
-      x = period,
+      y = period,
+      x = model,
       fill = fill_col
     )
   ) +
@@ -925,10 +926,11 @@ plot_model_type_across_time_and_loc <- function(pw_comp_dat){
       legend.position = "none"
     ) +
     labs(
-      x = "period", y = ""
+      x = "", y = ""
     ) +
+    scale_x_discrete(labels = c("mech.", "semi", "stat.")) +
     coord_cartesian(expand = FALSE) +
-    facet_grid(location ~ target_type,
+    facet_grid(target_type ~ location,
                labeller = as_labeller(c(`PL` = "Poland", `DE` = "Germany",
                                         `CZ` = "Czech Rep.", `GB` = "Great Br.",
                                         `FR` = "France",
@@ -1159,6 +1161,72 @@ best_performers_boxplot <- function(best_performers_data,
                                            y = rel_score),
                  shape = 18, color = "black", size = 2) 
   }
+  
+  return(plot)
+}
+
+
+#model cvg is output from comp_quantile_cvg (utils)
+one_sided_cvg_plot <- function(model_cvg){
+  plot <- ggplot(model_cvg, aes(x = quantile,
+                               y = cvg_deviation,
+                               color = model)) +
+    geom_point() +
+    geom_line() +
+    scale_color_discrete(name="") +
+    #scale_color_brewer(palette = "Set1") +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    facet_wrap(~target_type,
+               labeller = as_labeller(specs$plot_target_label))+
+    ylab("Empirical Minus Nominal Quantile Coverage") +
+    xlab("Nominal Quantile Level") +
+    theme_masterthesis() +
+    ylim(-0.225, 0.225) 
+  
+  return(plot)
+}
+
+
+central_pi_cvg_plot <- function(model_cvg,
+                                model_data = NULL){
+  
+  if(!is.null(model_data)){
+    #compute coverage of central PIs
+    cvg_central <- model_data |>
+      select(all_of(specs$su_cols)) |>
+      score() |>
+      add_coverage(by = c("model", "target_type"), 
+                   ranges = c(seq(10, 90, by = 10), 95, 98)) |>
+      summarise_scores(fun = signif, digits = 2) |>
+      select(all_of(c("model", "target_type", 
+                      paste0("coverage_", c(seq(10, 90, by = 10), 95, 98))))) |>
+      #mutate(coverage_100 = 1,
+      #       coverage_0 = 0) |>
+      distinct() |>
+      setDT() |>
+      melt(id.vars = c("model", "target_type"),
+           variable.name = "pilvl", 
+           value.name = "coverage") |>
+      mutate(pilvl = gsub("^.*?coverage_","",pilvl)) |>
+      mutate(pilvl = as.numeric(pilvl)/100)
+    
+  }
+  
+  plot <- ggplot(bpens_cvg_central, aes(x = pilvl,
+                                y = coverage,
+                                color = model)) +
+    geom_point() +
+    geom_line() +
+    scale_color_discrete(name="") +
+    geom_segment(aes(x = 0, y = 0, xend = 1, yend = 1),
+                 color = "black",
+                 linetype = "dashed") +
+    #scale_color_brewer(palette = "Set1") +
+    facet_wrap(~target_type,
+               labeller = as_labeller(specs$plot_target_label))+
+    ylab("Empirical Coverage Level (Central PI)") +
+    xlab("Nominal Coverage (Central PI)") +
+    theme_masterthesis() 
   
   return(plot)
 }
