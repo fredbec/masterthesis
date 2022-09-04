@@ -254,3 +254,29 @@ pw_comp_by_model_type <- function(data,
   
   return(pw_comp)
 }
+
+
+
+comp_quantile_cvg <- function(data, 
+                              strat_by = c("model", "target_type"),
+                              su_cols = specs$su_cols){
+  
+  quant_cvg <- data |>
+    select(all_of(specs$su_cols)) |>
+    score() |>
+    select(model, location, target_type, quantile, quantile_coverage, forecast_date, horizon) |>
+    mutate(quantile = paste0("quantile", quantile)) |>
+    dcast(model + location + target_type + forecast_date + horizon ~ 
+            quantile, 
+          value.var = "quantile_coverage") |>
+    group_by(model, target_type) |>
+    summarise_at(c(paste0("quantile", taus)), mean) |>
+    ungroup() |>
+    setDT() |>
+    melt(id.vars = c("model", "target_type"),
+         variable.name = "quantile", value = "quantile_coverage") |>
+    mutate(quantile = gsub("^.*?quantile","",quantile)) |>
+    mutate(quantile = as.numeric(quantile)) |>
+    mutate(cvg_deviation = quantile_coverage - quantile)
+  
+}
