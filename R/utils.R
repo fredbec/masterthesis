@@ -781,35 +781,16 @@ fast_eval <- function(target, current, return_eval = FALSE,
   eval <- make_eval(target, current, su_cols,
                     strat_by = strat_by)
   
-  
   #Compute averages across dimensions as specified in comp_avg_by
   if(!is.null(comp_avg_by)){
-    if(!is.list(comp_avg_by)){
-      comp_avg <- eval |>
-        group_by(across(all_of(comp_avg_by))) |>
-        summarise(target_val = mean(target_val),
-                  current_val = mean(current_val)) |>
-        mutate(rel_score = target_val / current_val,
-               model = unique(target$model),
-               average = "average")
-    } else {
-      comp_avg <- vector(mode = "list", length = length(comp_avg_by))
-      k <- 1
-      for(cab in comp_avg_by){
-        print(cab)
-        comp_avg[[k]] <- eval |>
-          group_by(across(all_of(comp_avg_by[[k]]))) |>
-          summarise(target_val = mean(target_val),
-                    current_val = mean(current_val)) |>
-          mutate(rel_score = target_val / current_val,
-                 model = unique(target$model),
-                 average = "average")
-        print(comp_avg[[k]])
-        k <- k + 1
-      }
-      comp_avg = rbindlist(comp_avg, fill = TRUE)
-    }
-    
+    comp_avg <- eval |>
+      group_by(across(all_of(comp_avg_by))) |>
+      summarise(target_val = mean(target_val),
+                current_val = mean(current_val)) |>
+      mutate(rel_score = target_val / current_val,
+             model = unique(target$model),
+             average = "average")
+  
     eval <- rbind(eval, comp_avg, fill = TRUE)
   }
   
@@ -820,4 +801,21 @@ fast_eval <- function(target, current, return_eval = FALSE,
   if(return_eval){
     return(eval)
   }
+}
+
+
+comp_avg_by_extra <- function(fast_eval_result,
+                              comp_avg_by){
+  comp_avg <- fast_eval_result |>
+    group_by(across(all_of(comp_avg_by))) |>
+    summarise(target_val = mean(target_val),
+              current_val = mean(current_val)) |>
+    mutate(rel_score = target_val / current_val,
+           model = unique(fast_eval_result$model),
+           average = "average")
+  
+  eval <- rbind(fast_eval_result, comp_avg, fill = TRUE)
+  
+  return(eval)
+  
 }
