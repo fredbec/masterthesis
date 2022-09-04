@@ -307,7 +307,7 @@ plot_model_availability <- function(data,
                                     main = NULL,
                                     xlab = NULL,
                                     ylab = NULL,
-                                    palette = "Set1"){
+                                    palette = "Set2"){
   
   
   plot_model_avail_total <- data |>
@@ -319,10 +319,25 @@ plot_model_availability <- function(data,
             group = location, 
             color = location)) +
       ggplot2::geom_line() + 
+      #ggplot2::scale_color_discrete(name ="", 
+      #                        breaks = c("PL", "GB", "FR", "DE", "CZ"),
+      #                        labels=c("Poland","United Kingdom","France",
+      #                                 "Germany", "Czech R.")) +
       ggplot2::labs(title = main) +
-      ggplot2::facet_grid(~ target_type) +
-      ggplot2::scale_color_brewer(palette = palette) +
-      ggplot2::ylim(5, 25)+
+      ggplot2::facet_grid(~ target_type,
+                          labeller = as_labeller(specs$plot_target_label)) +
+      ggplot2::scale_color_brewer(palette = palette,
+                                  name = "",
+                                breaks = c("PL", "GB", "FR", "DE", "CZ"),
+                                  labels=c("Poland","United Kingdom","France",
+                                  "Germany", "Czech Republic")) +  
+    
+      ggplot2::scale_x_date(date_breaks = "1 month",
+                           date_labels = "%b %y",
+                            expand = c(0,0)) +
+      ggplot2::ylim(4, 22)+
+      theme_masterthesis() %+replace%
+      ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
       ggplot2::xlab(xlab) +
       ggplot2::ylab(ylab)  
   
@@ -333,31 +348,37 @@ plot_model_availability <- function(data,
     ggplot2::ggplot(aes(x = model, y = location,
                         fill = availability)) +
     ggplot2::geom_tile()+
-    ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
-                   axis.text.y = element_text(size = 12),
-                   plot.margin = margin(5, 5, 5, 15),
-                   legend.position = "right") +
+    #ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+    #               axis.text.y = element_text(size = 12),
+    #               plot.margin = margin(5, 5, 5, 15),
+    #               legend.position = "right") +
     ggplot2::scale_y_discrete(name ="", 
                               breaks = c("PL", "GB", "FR", "DE", "CZ"),
-                              labels=c("Poland","Great Britain","France",
+                              labels=c("Poland","United Kingdom","France",
                                        "Germany", "Czech R.")) +
-    ggplot2::facet_wrap(~target_type) + 
+    ggplot2::facet_wrap(~target_type,
+                        labeller = as_labeller(specs$plot_target_label)) + 
     viridis::scale_fill_viridis(option = "rocket",
                                 name = "") +
-    ggplot2::theme(
-      axis.text.y = element_text(angle = 0, size = 7)) +
+    theme_masterthesis() %+replace%
+    ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 8),
+                   #axis.text.y = element_text(size = 7),
+                   plot.margin = margin(t=5, r=15, b=5, l=10),
+                   legend.position = "top") +
+    #ggplot2::theme(
+    #  axis.text.y = element_text(angle = 0, size = 10)) +
     ggplot2::labs(title = main) +
     ggplot2::xlab(xlab) +
     ggplot2::ylab(ylab)
   
   if(saveplot){
-    pdf(file = path, height= height, width = width)
+    #pdf(file = path, height= height, width = width)
     if(indiv){
       print(plot_model_avail_indiv)
     } else {
       print(plot_model_avail_total)
     }
-    dev.off()
+    #dev.off()
   } else {
     print(plot_model_avail_total)
     print(plot_model_avail_indiv)
