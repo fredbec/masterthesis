@@ -331,7 +331,6 @@ plot_model_availability <- function(data,
                                 breaks = c("PL", "GB", "FR", "DE", "CZ"),
                                   labels=c("Poland","United Kingdom","France",
                                   "Germany", "Czech Republic")) +  
-    
       ggplot2::scale_x_date(date_breaks = "1 month",
                            date_labels = "%b %y",
                             expand = c(0,0)) +
@@ -342,6 +341,7 @@ plot_model_availability <- function(data,
       ggplot2::ylab(ylab)  
   
   plot_model_avail_indiv <- data |>
+    dplyr::filter(!grepl("EuroCOVID*", model)) |> #exclude baseline and ensemble
     dplyr::select(model, location, 
            target_type, availability) |>
     dplyr::distinct() |>
@@ -439,7 +439,8 @@ plot_trajectories <- function(data,
           group = location, color = location)) +
     ggplot2::geom_line() +
     labs(y = "Incidence", x = "", legend = "") +
-    theme_masterthesis() + 
+    theme_masterthesis() %+replace%
+    ggplot2::theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)) +
     ggplot2::geom_point(shape = 18) +
     ggplot2::scale_color_brewer(palette = "Set2",
                                 breaks = names(specs$plot_location_label),
@@ -451,6 +452,9 @@ plot_trajectories <- function(data,
                     alpha = .15 * (dt%%2 + 1)))
     }
       )+
+    ggplot2::scale_x_date(date_breaks = "1 month",
+                          date_labels = "%b %y",
+                          expand = c(0,0)) +
     #geom_vline(xintercept=as.IDate("2021-03-15"),linetype="dotted",size=0.6)+
     #geom_vline(xintercept=as.IDate("2021-05-17"),linetype="dotted",size=0.6) +
     #geom_rect(aes(xmin=as.IDate("2021-03-15"), 
@@ -953,7 +957,7 @@ plot_model_type_across_time_and_loc <- function(pw_comp_dat){
     coord_cartesian(expand = FALSE) +
     facet_grid(target_type ~ location,
                labeller = as_labeller(c(`PL` = "Poland", `DE` = "Germany",
-                                        `CZ` = "Czech Rep.", `GB` = "Great Br.",
+                                        `CZ` = "Czech Rep.", `GB` = "United Kingdom",
                                         `FR` = "France",
                                         `Deaths` = "Target: Deaths",
                                         `Cases` = "Target: Cases")))
@@ -1188,7 +1192,8 @@ best_performers_boxplot <- function(best_performers_data,
 
 
 #model cvg is output from comp_quantile_cvg (utils)
-one_sided_cvg_plot <- function(model_cvg){
+one_sided_cvg_plot <- function(model_cvg,
+                               ylims = c(-0.225, 0.225)){
   plot <- ggplot(model_cvg, aes(x = quantile,
                                y = cvg_deviation,
                                color = model)) +
@@ -1202,18 +1207,18 @@ one_sided_cvg_plot <- function(model_cvg){
     ylab("Empirical Minus Nominal Quantile Coverage") +
     xlab("Nominal Quantile Level") +
     theme_masterthesis() +
-    ylim(-0.225, 0.225) 
+    ylim(ylims) 
   
   return(plot)
 }
 
 
-central_pi_cvg_plot <- function(model_cvg,
+central_pi_cvg_plot <- function(model_cvg = NULL,
                                 model_data = NULL){
   
   if(!is.null(model_data)){
     #compute coverage of central PIs
-    cvg_central <- model_data |>
+    model_cvg <- model_data |>
       select(all_of(specs$su_cols)) |>
       score() |>
       add_coverage(by = c("model", "target_type"), 
@@ -1231,9 +1236,10 @@ central_pi_cvg_plot <- function(model_cvg,
       mutate(pilvl = gsub("^.*?coverage_","",pilvl)) |>
       mutate(pilvl = as.numeric(pilvl)/100)
     
+
   }
   
-  plot <- ggplot(bpens_cvg_central, aes(x = pilvl,
+  plot <- ggplot(model_cvg, aes(x = pilvl,
                                 y = coverage,
                                 color = model)) +
     geom_point() +
@@ -1248,6 +1254,279 @@ central_pi_cvg_plot <- function(model_cvg,
     ylab("Empirical Coverage Level (Central PI)") +
     xlab("Nominal Coverage (Central PI)") +
     theme_masterthesis() 
+  
+  return(plot)
+}
+
+
+plot_re_vals <- function(model_fit, ylims = c(-0.1, 0.2)){
+  
+  revals <- modfit$mu.coefSmo[[1]]$coefficients$random$inact |> 
+    data.table(keep.rownames = TRUE) |>
+    rename(re = `(Intercept)`) |>
+    separate(rn, into = c("loc", "pcat"), sep = 2) |>
+    separate(pcat, into = c("pcat", "target_type"), sep = 1) 
+  
+  plot <- ggplot(revals, aes(x = as.numeric(pcat), y = re, color = loc)) +
+    geom_point(size = 3, shape = 18) +
+    geom_line(linetype = "dashed", alpha = 0.3) +
+    geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5) +
+    scale_color_brewer(palette = "Set2") +
+    theme_masterthesis() + 
+    facet_wrap(~target_type)
+  
+  return(plot)
+}
+
+
+tile_plot_rel_score <- function(rel_score_result){
+  
+  breaks <- c(0, 0.1, 0.7, 0.9, 1, 1/0.9, 1/0.7, 100, Inf)
+  plot_scales <- c(-1, -0.5, -0.25, 0, 0, 0.25, 0.5, 1)
+  
+  get_fill_scale <- function(values, breaks, plot_scales) {
+    values[is.na(values)] <- 1 # this would be either ratio = 1 or pval = 1
+    scale <- cut(values,
+                 breaks = breaks,
+                 include.lowest = TRUE,
+                 right = FALSE,
+                 labels = plot_scales
+    )
+    # scale[is.na(scale)] <- 0
+    return(as.numeric(as.character(scale)))
+  }
+  
+  
+  comparison_result <- rel_score_invscore |>
+    mutate(period = paste0("Period ", period_cat)) |>
+    mutate(period = factor(period_cat)) |>
+    mutate(var_of_interest = round(rel_score, 2),
+           fill_col = get_fill_scale(
+             var_of_interest,
+             breaks, plot_scales)) |>
+    data.table()
+  
+  #comparison_result[, var_of_interest := round(mean_scores_ratio, 2)]
+  
+  
+  #comparison_result[, fill_col := get_fill_scale(
+  #  var_of_interest,
+  #  breaks, plot_scales
+  #)]
+  
+  high_col <- "salmon"
+  
+  plot <- ggplot(
+    comparison_result,
+    aes(
+      y = period,
+      x = factor(horizon),
+      fill = fill_col
+    )
+  ) +
+    geom_tile(
+      color = "white",
+      width = 0.97, height = 0.97
+    ) +
+    geom_text(aes(label = var_of_interest),
+              na.rm = TRUE
+    ) +
+    scale_fill_gradient2(
+      low = "steelblue", mid = "grey95",
+      high = high_col,
+      na.value = "lightgrey",
+      midpoint = 0,
+      limits = c(-1, 1),
+      name = NULL
+    ) +
+    theme_scoringutils() +
+    theme(
+      panel.spacing = unit(1.5, "lines"),
+      legend.position = "none",
+      axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)
+    ) +
+    labs(
+      x = "", y = ""
+    ) +
+    coord_cartesian(expand = FALSE) +
+    scale_x_discrete(labels = specs$plot_horizon_label) +
+    scale_y_discrete(labels = paste0("Period", seq(1,5))) +
+    facet_grid(target_type~location,
+               labeller = as_labeller(c(specs$plot_target_label,
+                                        specs$plot_location_label)))
+  
+  return(plot)
+}
+
+
+
+tile_plot_rel_score_avg <- function(rel_score_result){
+  
+  breaks <- c(0, 0.1, 0.7, 0.9, 1, 1/0.9, 1/0.7, 100, Inf)
+  plot_scales <- c(-1, -0.5, -0.25, 0, 0, 0.25, 0.5, 1)
+  
+  get_fill_scale <- function(values, breaks, plot_scales) {
+    values[is.na(values)] <- 1 # this would be either ratio = 1 or pval = 1
+    scale <- cut(values,
+                 breaks = breaks,
+                 include.lowest = TRUE,
+                 right = FALSE,
+                 labels = plot_scales
+    )
+    # scale[is.na(scale)] <- 0
+    return(as.numeric(as.character(scale)))
+  }
+  
+  
+  comparison_result <- rel_score_result |>
+    mutate(period = paste0("Period ", period_cat)) |>
+    mutate(period = factor(period_cat)) |>
+    mutate(var_of_interest = round(rel_score, 2),
+           fill_col = get_fill_scale(
+             var_of_interest,
+             breaks, plot_scales)) |>
+    data.table() |>
+    mutate(target_type = factor(target_type, 
+                                levels = c("Deaths", "Cases"),
+                                ordered = TRUE))
+  
+  #comparison_result[, var_of_interest := round(mean_scores_ratio, 2)]
+  
+  
+  #comparison_result[, fill_col := get_fill_scale(
+  #  var_of_interest,
+  #  breaks, plot_scales
+  #)]
+  
+  high_col <- "salmon"
+  
+  plot <- ggplot(
+    comparison_result,
+    aes(
+      y = target_type,
+      x = period,
+      fill = fill_col
+    )
+  ) +
+    geom_tile(
+      color = "white",
+      width = 0.97, height = 0.97
+    ) +
+    geom_text(aes(label = var_of_interest),
+              na.rm = TRUE
+    ) +
+    scale_fill_gradient2(
+      low = "steelblue", mid = "grey95",
+      high = high_col,
+      na.value = "lightgrey",
+      midpoint = 0,
+      limits = c(-1, 1),
+      name = NULL
+    ) +
+    theme_scoringutils() +
+    theme(
+      panel.spacing = unit(1.5, "lines"),
+      legend.position = "none",
+      axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)
+    ) +
+    labs(
+      x = "", y = "",
+    ) +
+    coord_cartesian(expand = FALSE) +
+    scale_y_discrete(labels = specs$plot_target_label) +
+    scale_x_discrete(labels = paste0("Period", seq(1,5))) +
+    facet_grid(~location,
+               labeller = as_labeller(c(specs$plot_location_label)))
+  
+  return(plot)
+}
+
+
+tile_plot_weights <- function(weights_inv){
+  
+  breaks <- c(0, 0.15, 0.21, 0.27, 0.33, 0.39, 0.45, 0.51, 1)
+  #breaks <- c(0, 0.18, 0.23, 0.33, 0.331, 0.37, 0.45, 0.55, Inf) |> sort(decreasing = TRUE)
+  
+  #breaks <- c(Inf, 0.6, 0.5, 0.4, 0.35, 0.3, 0.2, 0.1, 0)
+  plot_scales <- c(-1, -0.5, -0.25,0, 0, 0.25, 0.5, 1) |> sort(decreasing = TRUE)
+  
+  get_fill_scale <- function(values, breaks, plot_scales) {
+    values[is.na(values)] <- 1 # this would be either ratio = 1 or pval = 1
+    scale <- cut(values,
+                 breaks = breaks,
+                 include.lowest = TRUE,
+                 right = FALSE,
+                 labels = plot_scales
+    )
+    # scale[is.na(scale)] <- 0
+    return(as.numeric(as.character(scale)))
+  }
+  
+  
+  comparison_result <- weights_inv |>
+    mutate(period = paste0("Period ", period_cat)) |>
+    mutate(period = factor(period_cat)) |>
+    mutate(var_of_interest = round(meanw, 2),
+           fill_col = get_fill_scale(
+             var_of_interest,
+             breaks, plot_scales)) |>
+    data.table() |>
+    mutate(change = ifelse(location %in% c("CZ", "PL", "GB") & target_type == "Cases" & period == 1, 1, 0)) |>
+    mutate(fill_col = ifelse(change, fill_col + 0.25, fill_col)) |>
+    mutate(fill_col = ifelse(is.na(meanw), 0, fill_col)) |>
+    mutate(target_type = factor(target_type, 
+                                levels = c("Cases", "Deaths"),
+                                ordered = TRUE))
+  
+  
+  #comparison_result[, var_of_interest := round(mean_scores_ratio, 2)]
+  
+  
+  #comparison_result[, fill_col := get_fill_scale(
+  #  var_of_interest,
+  #  breaks, plot_scales
+  #)]
+  
+  high_col <- "salmon"
+  
+  plot <- ggplot(
+    comparison_result,
+    aes(
+      y = period,
+      x = factor(model_type),
+      fill = fill_col
+    )
+  ) +
+    geom_tile(
+      color = "white",
+      width = 0.97, height = 0.97
+    ) +
+    geom_text(aes(label = var_of_interest),
+              na.rm = TRUE
+    ) +
+    scale_fill_gradient2(
+      low = "steelblue", mid = "grey95",
+      high = high_col,
+      na.value = "lightgrey",
+      midpoint = 0,
+      limits = c(-1, 1),
+      name = NULL
+    ) +
+    theme_scoringutils() +
+    theme(
+      panel.spacing = unit(1.5, "lines"),
+      legend.position = "none",
+      axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1)
+    ) +
+    labs(
+      x = "", y = ""
+    ) +
+    coord_cartesian(expand = FALSE) +
+    scale_x_discrete(labels = specs$plot_horizon_label) +
+    scale_y_discrete(labels = paste0("Period", seq(1,5))) +
+    facet_grid(target_type~location,
+               labeller = as_labeller(c(specs$plot_target_label,
+                                        specs$plot_location_label)))
   
   return(plot)
 }

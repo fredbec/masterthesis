@@ -11,6 +11,9 @@ source(here("specs", "specs.R"))
 
 avail_threshold <- specs$model_type_avail_threshold
 
+
+devtools::load_all()
+
 #######Exclude models in "other"########
 pw_comp_wo_other <- hub_data |>
   filter(!model %in% c("other", "ensemble"),
@@ -44,12 +47,14 @@ plot_pw_comp_with_other <- pw_comp_with_other |>
   theme(
     panel.spacing = unit(1.5, "lines")
   ) + 
-  facet_grid(horizon ~ target_type,
+  facet_grid(#horizon ~ target_type,
+             target_type ~ horizon,
              labeller = as_labeller(c(specs$plot_horizon_label,
                                       specs$plot_target_label)))
 
-pdf(here("plots", "pw_comp_model_type_with_other.pdf"), 
-    height = 11.69, width = 8.27)
+pdf(here("plots", "pw_comp_model_type_with_other_wide.pdf"), 
+    height = 6.5, width = 12.0)
+    #height = 11.69, width = 8.27)
 plot_pw_comp_with_other
 dev.off()
 
@@ -87,8 +92,8 @@ pw_comp_by_period <- lapply(
          compare_against == "baseline")
 
   
-pdf(here("plots", "pw_comp_model_types_across_periods.pdf"),
-    height = 11.69, width = 8.27)
+pdf(here("plots", "pw_comp_model_types_across_periods_wide.pdf"),
+    height = 4, width = 8.27)
 plot_model_type_across_time(pw_comp_by_period)
 dev.off()
 
@@ -106,8 +111,8 @@ pw_comp_by_period_and_loc <- lapply(
   filter(model != "baseline",
          compare_against == "baseline")
 
-pdf(here("plots", "pw_comp_model_types_across_periods_and_loc.pdf"),
-    height = 11.69, width = 8.27)
+pdf(here("plots", "pw_comp_model_types_across_periods_and_loc_wide.pdf"),
+    height = 4, width = 8.27)
 plot_model_type_across_time_and_loc(pw_comp_by_period_and_loc)
 dev.off()
 
@@ -115,7 +120,7 @@ dev.off()
 
 ####################Other plots####################
 #################WIS decomposition###########
-decomp_scores <- compute_decomp_scores(hub_data, 
+decomp_scores <- compute_decomp_scores(hub_data |> filter(forecast_date > "2021-05-10"), 
                                        adjust_avail = TRUE)
 
 pdf(here("plots", "wis_decomp_model_types.pdf"),
@@ -125,10 +130,42 @@ dev.off()
 
 
 ##############Overall assessment plot###########
-model_type_scores <- overall_assessment_model_types(hub_data, 
+model_type_scores <- overall_assessment_model_types(hub_data |> filter(forecast_date > "2021-05-10"), 
                                                     adjust_avail = TRUE)
 
-pdf(here("plots", "overall_assessment_model_types.pdf"),
+pdf(here("plots", "overall_assessment_model_types_wobeg.pdf"),
     height = 9, width = 10)
 overall_assessment_plot(model_type_scores, decomp_scores)
+dev.off()
+
+
+
+#################WIS plot appendix###############
+mod_types <- hub_data |>
+  select(model, model_type, availability) |>
+  mutate(model_type = 
+           ifelse(model %in% c("MOCOS-agent1", "ICM-agentModel"),
+                  "agent-based", model_type)) |>
+  filter(!grepl("EuroCOVID", model)) |>
+  distinct() |>
+  arrange(model_type)
+
+model_scores <- fread(here("score_data", "score_all_mods_with_relwis_avg.csv")) |>
+  left_join(mod_types, by = "model") |>
+  filter(availability > 0.5) |>
+  filter(!grepl("EuroCOVID", model))
+
+  
+pdf(here("plots", "mod_type_relwis.pdf"), width = 10, height = 10)
+ggplot(model_scores, aes(x = horizon,
+                         y = scaled_rel_skill,
+                         group = model,
+                         color = model_type)) +
+  geom_line() +
+  ylab("relative WIS") +
+  xlab("Horizon") +
+  facet_grid(location ~ target_type,
+             labeller = as_labeller(c(specs$plot_location_label,
+                                      specs$plot_target_label))) +
+  theme_masterthesis()
 dev.off()

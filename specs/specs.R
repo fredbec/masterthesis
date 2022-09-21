@@ -1,5 +1,5 @@
 library(data.table)
-
+library(dplyr)
 
 #general data loading settings
 load_data_avail_threshold <- 0
@@ -55,9 +55,13 @@ model_similarity_kickout_random_seed <- 32
 
 
 ########## best_performers ensemble ##########
-best_performers_ensemble_nmods <- 5
+best_performers_ensemble_nmods <- c(3,5,8,10)
 best_performers_ensemble_window <- 4
-best_performers_ensemble_may_miss <- 1
+best_performers_ensemble_may_miss <- 1 #still ensures there is overlap
+
+######### inverse score ensemble #######
+inverse_score_ensemble_window <- 4
+inverse_score_ensemble_exp_smooth <- 0.5
 
 
 
@@ -86,7 +90,7 @@ plot_horizon_label <- c(`1` = "1 week ahead", `2` = "2 weeks ahead",
                         `3` = "3 weeks ahead",`4` = "4 weeks ahead")
 plot_target_label <- c(`Cases` = "Target: Cases", `Deaths` = "Target: Deaths")
 plot_location_label <- c(`PL` = "Poland", `DE` = "Germany",
-                         `CZ` = "Czech Rep.", `GB` = "Great Br.",
+                         `CZ` = "Czech Rep.", `GB` = "United Kingd.",
                          `FR` = "France")
 
 
@@ -126,7 +130,9 @@ specs <- list(load_data_avail_threshold = load_data_avail_threshold,
               period_cat_plots = period_cat_plots,
               period_cat = period_cat,
               period_cat_dt = period_cat_dt,
-              model_type_avail_threshold = model_type_avail_threshold)
+              model_type_avail_threshold = model_type_avail_threshold,
+              inverse_score_ensemble_window = inverse_score_ensemble_window,
+              inverse_score_ensemble_exp_smooth = inverse_score_ensemble_exp_smooth)
 
 rm(avail_threshold, su_cols, 
    model_similarity_kickout_avail_threshold, 
@@ -145,4 +151,6 @@ rm(avail_threshold, su_cols,
    plot_horizon_label, plot_target_label, plot_location_label,
    period_cat_plots, period_cat, period_cat_dt,
    load_data_locs, load_data_avail_threshold, load_data_forecast_dates,
-   load_data_excl_neg, model_type_avail_threshold)
+   load_data_excl_neg, model_type_avail_threshold,
+   fc_dates, splitter, inverse_score_ensemble_window, 
+   inverse_score_ensemble_exp_smooth)

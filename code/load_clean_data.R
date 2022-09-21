@@ -23,7 +23,7 @@ hub_data <- rbindlist(
 
 #load model_types and rename column for merging
 model_types <- read.csv(here("scraper", "metadata_extended_final.csv")) |>
-  select(model_abbr, model_type)|>
+  dplyr::select(model_abbr, model_type)|>
   rename(model = model_abbr) |>
   mutate(model = gsub("\n| ","", model))
 
@@ -66,12 +66,12 @@ hub_data <- hub_data |>
 hub_data_bl20 <- hub_data  |>
   filter(act_1220 == 1) |>
   mutate(forecast_date = as.IDate("2021-12-20")) |>
-  select(-act_1220)
+  dplyr::select(-act_1220)
 
 #attach again to orginal data
 hub_data <- hub_data |>
   filter(act_1220 == 0) |> #remove relevant obs
-  select(-act_1220) |>
+  dplyr::select(-act_1220) |>
   rbind(hub_data_bl20)|> #add back relevant obs
   setkey(model) |> #key is removed in the process
   arrange(model, location, target_type, forecast_date, 

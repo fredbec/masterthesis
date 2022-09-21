@@ -770,7 +770,8 @@ fast_eval <- function(target, current, return_eval = FALSE,
                       su_cols = specs$su_cols,
                       strat_by = c("model", "target_type","location", 
                                    "horizon", "forecast_date"),
-                      comp_avg_by = NULL){
+                      comp_avg_by = NULL,
+                      period_cat_dt = NULL){
   common_base <- target |>
     select(target_type, location, forecast_date)
   
@@ -780,6 +781,11 @@ fast_eval <- function(target, current, return_eval = FALSE,
   
   eval <- make_eval(target, current, su_cols,
                     strat_by = strat_by)
+  
+  if(!is.null(period_cat_dt)){
+    eval <- eval |>
+      left_join(period_cat_dt, by = "forecast_date")
+  }
   
   #Compute averages across dimensions as specified in comp_avg_by
   if(!is.null(comp_avg_by)){

@@ -261,6 +261,8 @@ comp_quantile_cvg <- function(data,
                               strat_by = c("model", "target_type"),
                               su_cols = specs$su_cols){
   
+  taus <- data |> select(quantile) |> pull() |> unique()
+  
   quant_cvg <- data |>
     select(all_of(specs$su_cols)) |>
     score() |>
@@ -278,5 +280,7 @@ comp_quantile_cvg <- function(data,
     mutate(quantile = gsub("^.*?quantile","",quantile)) |>
     mutate(quantile = as.numeric(quantile)) |>
     mutate(cvg_deviation = quantile_coverage - quantile)
+  
+  return(quant_cvg)
   
 }

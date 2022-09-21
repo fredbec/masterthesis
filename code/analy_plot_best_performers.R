@@ -408,6 +408,28 @@ dev.off()
 
 
 
+plot3 <- plot_bp_weights(bpdat, bpweights, 5, "FR", "Deaths", 4)
+plot2 <- squiggly_line_plot(score_all_mods_with_relwis, bpdat, 4, 5, "FR", "Deaths")
+plot1 <- plot_rel_score_over_time(rel_scores_best_perform, 5, loc = c("FR"), "Deaths")
+plot0 <- plot_predictions_bp(bpdat, hub_data, 5, "FR", "Deaths", 4, ylimval = 5)
+
+
+#Great Britain and Deaths
+overall_plot_gb <-
+  (plot1) /
+  (plot0) /
+  (plot2) /
+  (plot3) +
+  plot_layout(guides = "keep", 
+              heights = c(0.3,0.85,0.75,1.5)) &
+  plot_annotation(tag_levels = 'I') 
+#this shows two problems with the data:
+#different models work differently at different locations, and we have different models altogether
+pdf(here("plots", "best_performers_weights_frdeaths.pdf"), 
+    height = 16, width = 12)
+overall_plot_gb
+dev.off()
+
 
 
 #Why does it work better in Poland?? consistently high weight for a model?
